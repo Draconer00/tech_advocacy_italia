@@ -1,0 +1,9 @@
+pandas
+requests
+beautifulsoup4
+lxml
+feedparser
+spacy
+networkx
+matplotlib
+streamlit
