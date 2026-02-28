@@ -7,3 +7,5 @@ spacy
 networkx
 matplotlib
 streamlit
+ploty
+nbformat
