@@ -23,6 +23,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          python -m spacy download it_core_news_md # Dobbiamo scaricare il cervello di spacy sul server!
 
       - name: 🕵️ Esegui lo Scraper del Garante
         run: python scrapers/scraper_gpdp.py
@@ -30,11 +31,13 @@ jobs:
       - name: 📢 Esegui lo Scraper delle ONG
         run: python scrapers/scraper_ong.py
 
+      - name: 🧠 Esegui l'Analisi Testuale (NLP)
+        run: python nlp/text_analysis.py
+
       - name: 💾 Salva e pubblica i nuovi dati
         run: |
           git config --global user.name "Advocacy Bot"
           git config --global user.email "bot@techadvocacy.it"
-          git add data/raw/
-          # Se non ci sono nuovi dati, evita che il bot vada in errore
-          git commit -m "🤖 Aggiornamento quotidiano dati [Auto]" || echo "Nessun nuovo dato da salvare oggi"
+          git add data/
+          git commit -m "🤖 Aggiornamento quotidiano dati e analisi NLP [Auto]" || echo "Nessun nuovo dato da salvare oggi"
           git push

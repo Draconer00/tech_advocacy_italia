@@ -3,8 +3,7 @@ import spacy
 import os
 from collections import Counter
 
-# 1. Carichiamo il modello linguistico italiano
-print("Caricamento del modello di Intelligenza Artificiale (spaCy)...")
+print("Caricamento del modello linguistico (spaCy)...")
 try:
     nlp = spacy.load("it_core_news_md")
 except OSError:
@@ -13,70 +12,76 @@ except OSError:
 
 def estrai_entita(testo):
     """
-    Legge un intero provvedimento ed estrae le Organizzazioni (ORG) e i Luoghi (LOC).
+    Legge un intero provvedimento ed estrae le Organizzazioni (ORG) e i Luoghi (LOC),
+    filtrando il gergo burocratico.
     """
+    # Se il testo è vuoto o troppo corto, restituiamo una lista vuota
     if not isinstance(testo, str) or len(testo) < 10:
         return []
         
-    # Aumentiamo il limite di lunghezza massima del testo analizzabile da spaCy
+    # Permettiamo a spaCy di leggere documenti molto lunghi senza andare in crash
     nlp.max_length = 2000000 
     
     doc = nlp(testo)
     entita_trovate = []
     
-# Filtriamo le entità
+    # LA NOSTRA BLACKLIST LEGALE (Aggiungi qui le parole se l'IA fa altri errori in futuro)
+    parole_escluse = [
+        "Garante", "Garante Privacy", "Roma", "Italia", 
+        "Autorità", "Autorita", "Autorità Garante", "Garante Per La Protezione Dei Dati",
+        "Provvedimento", "Provvedimenti", "Comunicato", "Comunicato Stampa", 
+        "Stampa", "Legge", "Decreto", "Regolamento", "Gdpr", 
+        "Privacy", "Codice", "Articolo", "Stato", "Repubblica",
+        "Gazzetta Ufficiale", "Parlamento", "Governo", "Direttiva", "Misure",
+        "Piazza Venezia", "Linee", "Linee Guida", "Dati Personali", "Protezione Dei Dati"
+    ]
+    
     for ent in doc.ents:
         if ent.label_ in ['ORG', 'LOC']:
-            # Pulizia base: rimuoviamo spazi extra e convertiamo in minuscolo per raggruppare meglio
             nome_pulito = ent.text.strip().title()
             
-            # --- LA NOSTRA NUOVA BLACKLIST LEGALE ---
-            parole_escluse = [
-                "Garante", "Garante Privacy", "Roma", "Italia", 
-                "Autorità", "Autorita", "Autorità Garante",
-                "Provvedimento", "Provvedimenti", "Comunicato", "Comunicato Stampa", 
-                "Stampa", "Legge", "Decreto", "Regolamento", "Gdpr", 
-                "Privacy", "Codice", "Articolo", "Stato", "Repubblica",
-                "Gazzetta Ufficiale", "Parlamento", "Governo"
-            ]
-            
-            # Controlliamo che la parola non sia nella blacklist e non sia troppo corta
+            # Filtro: lunghezza minima e assenza nella blacklist
             if len(nome_pulito) > 3 and nome_pulito not in parole_escluse:
                 entita_trovate.append(nome_pulito)
+                
+    # Usiamo 'set' per contare un'azienda 1 sola volta per documento, anche se citata 100 volte
+    return list(set(entita_trovate))
 
 def processa_dati_garante():
-    """Legge i dati raw, applica l'NLP e salva in processed."""
+    """Legge i testi completi dal CSV grezzo, applica l'IA e salva i risultati."""
     cartella_script = os.path.dirname(os.path.abspath(__file__))
     percorso_raw = os.path.join(cartella_script, '..', 'data', 'raw', 'gpdp_sample.csv')
     percorso_processed = os.path.join(cartella_script, '..', 'data', 'processed', 'gpdp_analyzed.csv')
     
-    # Assicuriamoci che la cartella processed esista
+    # Creiamo la cartella 'processed' se non esiste
     os.makedirs(os.path.dirname(percorso_processed), exist_ok=True)
     
     if not os.path.exists(percorso_raw):
-        print(f"File raw non trovato: {percorso_raw}")
+        print(f"File raw non trovato in: {percorso_raw}")
         return
         
-    print("Lettura del database grezzo del Garante...")
+    print("Lettura del database dei testi completi...")
     df = pd.read_csv(percorso_raw)
     
     if 'Testo_Completo' not in df.columns:
-        print("Errore: La colonna 'Testo_Completo' non esiste. Assicurati di aver lanciato il nuovo scraper.")
+        print("Errore: Manca la colonna 'Testo_Completo'. Hai lanciato il nuovo scraper?")
         return
         
-    print(f"Inizio analisi NLP su {len(df)} documenti legali completi. Questa operazione richiederà qualche secondo...")
+    print(f"Inizio analisi NLP su {len(df)} documenti legali. L'IA sta leggendo...")
     
-    # Applichiamo la funzione NLP a tutta la colonna dei testi completi
+    # Questo è il momento in cui l'IA lavora su tutto il database
     df['Entita_Coinvolte'] = df['Testo_Completo'].apply(estrai_entita)
     
-    # Salviamo il risultato
+    # Salviamo il CSV processato
     df.to_csv(percorso_processed, index=False)
-    print(f"\nAnalisi completata! Dati salvati in: {percorso_processed}")
+    print(f"\nAnalisi completata! Dati puliti salvati in: {percorso_processed}")
     
-    # Mostriamo un'anteprima veloce di chi sono i bersagli principali
+    # --- LA CLASSIFICA FINALE CORAZZATA ---
+    # Usiamo isinstance(lista, list) per evitare il famoso crash "NoneType is not iterable"
     tutte_entita = [ent for lista in df['Entita_Coinvolte'] if isinstance(lista, list) for ent in lista]
     classifica = Counter(tutte_entita)
-    print("\n--- TOP 5 ENTI/AZIENDE SOTTO LA LENTE DEL GARANTE ---")
+    
+    print("\n--- TOP 5 BERSAGLI/ATTORI REALI SOTTO LA LENTE DEL GARANTE ---")
     for ente, conteggio in classifica.most_common(5):
         print(f"- {ente} (Citato in {conteggio} provvedimenti)")
 
