@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import ast
+import sqlite3
 import plotly.express as px
 
 # --- CONFIGURAZIONE DELLA PAGINA ---
@@ -24,14 +25,34 @@ def carica_dati_ong():
 
 @st.cache_data 
 def carica_dati_garante():
+    """Carica dati del Garante da SQLite (Priority 0: più veloce di CSV)."""
     cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'gpdp_analyzed.csv')
-    if os.path.exists(percorso_csv):
-        df = pd.read_csv(percorso_csv)
-        # Convertiamo le liste salvate come testo in vere liste Python
+    percorso_db = os.path.join(cartella_script, '..', 'data', 'tech_advocacy.db')
+    percorso_csv_fallback = os.path.join(cartella_script, '..', 'data', 'processed', 'gpdp_analyzed.csv')
+    
+    # Prova prima SQLite (più veloce)
+    if os.path.exists(percorso_db):
+        try:
+            conn = sqlite3.connect(percorso_db)
+            df = pd.read_sql('SELECT * FROM provvedimenti_analyzed', conn)
+            conn.close()
+            
+            # Converti liste salvate come stringhe in liste Python
+            if 'Entita_Coinvolte' in df.columns:
+                df['Entita_Coinvolte'] = df['Entita_Coinvolte'].apply(
+                    lambda x: ast.literal_eval(x) if isinstance(x, str) else []
+                )
+            return df
+        except Exception as e:
+            st.warning(f"⚠️ Errore lettura SQLite: {e}. Fallback su CSV...")
+    
+    # Fallback su CSV se SQLite non disponibile
+    if os.path.exists(percorso_csv_fallback):
+        df = pd.read_csv(percorso_csv_fallback)
         if 'Entita_Coinvolte' in df.columns:
             df['Entita_Coinvolte'] = df['Entita_Coinvolte'].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else [])
         return df
+    
     return pd.DataFrame()
 
 df_ong = carica_dati_ong()

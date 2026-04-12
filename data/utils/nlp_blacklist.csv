@@ -1,0 +1,38 @@
+parola_esclusa,motivo,categoria
+Garante,Autorità generica troppo comune,istituzioni
+Garante Privacy,Autorità generica troppo comune,istituzioni
+Roma,Luogo generico,luoghi
+Italia,Nazione generica,luoghi
+Autorità,Parola generica,istituzioni
+Autorità Garante,Autorità generica,istituzioni
+Garante Per La Protezione Dei Dati,Autorità generica,istituzioni
+Provvedimento,Documento generico,rumore
+Provvedimenti,Documento generico,rumore
+Comunicato,Documento generico,rumore
+Comunicato Stampa,Documento generico,rumore
+Stampa,Medio generico,rumore
+Gdpr,Legge generica,leggi
+Privacy,Argomento generico,concetti
+Codice,Documento generico,rumore
+Gazzetta Ufficiale,Giornale ufficiale,rumore
+Parlamento,Istituzione generica,istituzioni
+Governo,Istituzione generica,istituzioni
+Piazza Venezia,Luogo specifico,luoghi
+Linee Guida,Documento generico,rumore
+Dati Personali,Concetto generico,concetti
+Ufficio,Parola generica,rumore
+Maggiori,Parola generica,rumore
+Chiese,Luogo generico,luoghi
+Leggi,Parola generica,rumore
+Informativa,Documento generico,rumore
+Pagina,Parola generica,rumore
+Sezione,Parola generica,rumore
+Articolo,Documento generico,rumore
+Decreto,Documento generico,rumore
+Regolamento,Documento generico,rumore
+Consiglio,Parola generica,rumore
+Commissione,Parola generica,rumore
+Ministero,Istituzione generica,istituzioni
+Nazione,Parola generica,rumore
+Paese,Parola generica,rumore
+Stato,Parola generica,rumore

@@ -1,29 +1,28 @@
-﻿import logging
-import os
+﻿import os
 from datetime import datetime
 
 import pandas as pd
 import requests
 
-logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s", "%Y-%m-%d %H:%M:%S")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.setLevel(logging.INFO)
+from utils.logger_config import setup_logger
 
-DEFAULT_QUERY = '"Garante Privacy" OR "intelligenza artificiale" OR "riconoscimento facciale" OR "diritti digitali"'
-GNEWS_URL = "https://gnews.io/api/v4/search"
+logger = setup_logger(__name__)
+
+from .gnews_config import DEFAULT_QUERY, GNEWS_URL
 
 
 def _format_published_at(published_at: str) -> str:
     if not published_at:
         return ""
     try:
-        return datetime.fromisoformat(published_at.rstrip("Z")).date().isoformat()
+        # Prova a parsare come ISO 8601 e formatta come data
+        dt_object = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
+        return dt_object.date().isoformat()
     except ValueError:
+        # Se fallisce, prova a estrarre la parte della data se presente un 'T'
         if "T" in published_at:
             return published_at.split("T")[0]
+        # Altrimenti, restituisci la stringa originale se non parsabile
         return published_at
 
 
@@ -51,14 +50,23 @@ def fetch_gnews(
     logger.info("📰 Avvio ricerca GNews: lang=%s country=%s max=%s", lang, country, max_results)
 
     try:
-        risposta = requests.get(GNEWS_URL, params=params, timeout=timeout)
+        return _make_gnews_request(params, timeout)
+    except ValueError as e:
+        logger.error("Errore nella richiesta GNews: %s", e)
+        return pd.DataFrame()
+    except requests.RequestException as e:
+        logger.error("Errore di connessione GNews: %s", e)
+        return pd.DataFrame()
 
-        if risposta.status_code in {401, 403}:
-            logger.error("Errore API %s: chiave non valida o limite superato", risposta.status_code)
-            return pd.DataFrame()
+def _make_gnews_request(params: dict, timeout: int) -> dict:
+    risposta = requests.get(GNEWS_URL, params=params, timeout=timeout)
 
-        risposta.raise_for_status()
-        dati_json = risposta.json()
+    if risposta.status_code in {401, 403}:
+        raise ValueError(f"Errore API {risposta.status_code}: chiave non valida o limite superato")
+
+    risposta.raise_for_status()  # Solleva un HTTPError per altri codici di stato di errore
+    return risposta.json()
+
         articoli = dati_json.get("articles", [])
 
         if not articoli:
