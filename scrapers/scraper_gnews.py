@@ -67,33 +67,7 @@ def _make_gnews_request(params: dict, timeout: int) -> dict:
     risposta.raise_for_status()  # Solleva un HTTPError per altri codici di stato di errore
     return risposta.json()
 
-        articoli = dati_json.get("articles", [])
 
-        if not articoli:
-            logger.warning("Nessun articolo trovato con la query fornita")
-            return pd.DataFrame()
-
-        notizie_estratte = []
-        for articolo in articoli:
-            source = articolo.get("source", {})
-            notizie_estratte.append(
-                {
-                    "Testata": source.get("name", ""),
-                    "Data": _format_published_at(articolo.get("publishedAt", "")),
-                    "Titolo": articolo.get("title", ""),
-                    "Riassunto": articolo.get("description", ""),
-                    "Link": articolo.get("url", ""),
-                }
-            )
-            logger.info("  - [%s] %s", source.get("name", ""), (articolo.get("title") or "")[:70])
-
-        df_news = pd.DataFrame(notizie_estratte)
-        logger.info("✅ Trovati %d articoli", len(df_news))
-        return df_news
-
-    except requests.RequestException as e:
-        logger.error("Errore connessione GNews: %s", e)
-        return pd.DataFrame()
 
 
 if __name__ == "__main__":

@@ -87,7 +87,7 @@ with tab_ong:
             col2.metric("Organizzazioni Attive", len(ong_selezionate))
         
         st.subheader("Ultimi Aggiornamenti ONG")
-        st.dataframe(df_filtrato_ong[['Data', 'ONG', 'Titolo', 'Link']], use_container_width=True)
+        st.dataframe(df_filtrato_ong[['Data', 'ONG', 'Titolo', 'Link']], width='stretch')
 
 # ==========================================
 # SCHEDA 2: GARANTE PRIVACY (La nuova analisi geografica)
@@ -119,7 +119,7 @@ with tab_garante:
                 fig = px.pie(conteggio_geo, values='Numero Provvedimenti', names='Area', hole=0.4,
                              color='Area', 
                              color_discrete_map={'Italia':'#2ca02c', 'Europa':'#1f77b4', 'USA / Internazionale':'#ff7f0e'})
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
                 
             with col_tabella:
                 st.markdown("**Filtra i documenti:**")
@@ -148,6 +148,6 @@ with tab_garante:
                 # Grafico a barre orizzontali
                 fig_bar = px.bar(dati_entita, x='Citazioni', y='Entità', orientation='h', text_auto=True)
                 fig_bar.update_layout(yaxis={'categoryorder':'total ascending'}) # Ordina dal basso all'alto
-                st.plotly_chart(fig_bar, use_container_width=True)
+                st.plotly_chart(fig_bar, width='stretch')
             else:
                 st.info("Nessuna entità trovata con i filtri attuali.")

@@ -23,9 +23,9 @@ def carica_blacklist(filepath):
             reader = csv.DictReader(f)
             for row in reader:
                 blacklist.add(row['parola_esclusa'].strip())
-        print(f"✅ Blacklist caricata: {len(blacklist)} parole escluse")
+        print(f"Blacklist caricata: {len(blacklist)} parole escluse")
     except FileNotFoundError:
-        print(f"⚠️ Blacklist non trovata in {filepath}. Uso blacklist di default.")
+        print(f"Blacklist non trovata in {filepath}. Uso blacklist di default.")
         blacklist = {
             "Garante", "Roma", "Italia", "Autorità", "Provvedimento", 
             "Comunicato", "Stampa", "Gdpr", "Privacy", "Codice"
@@ -35,6 +35,63 @@ def carica_blacklist(filepath):
 cartella_script = os.path.dirname(os.path.abspath(__file__))
 BLACKLIST_PATH = os.path.join(cartella_script, '..', 'data', 'utils', 'nlp_blacklist.csv')
 BLACKLIST = carica_blacklist(BLACKLIST_PATH)
+
+# ===== PRIORITY 2.1: Sentiment Analysis su Provvedimenti =====
+from transformers import pipeline
+
+# Carica modello sentiment analysis multilingua
+sentiment_pipe = pipeline("sentiment-analysis", 
+                          model="nlptown/bert-base-multilingual-uncased-sentiment")
+
+def classifica_sentiment_provvedimento(testo):
+    """Classifica tono: positivo (diritti protetti), negativo (libertà compromessa)."""
+    # Focus su prime frasi (headline effect)
+    testo_core = str(testo)[:500]  
+    try:
+        result = sentiment_pipe(testo_core, truncation=True)
+        label = result[0]['label']  # 5 stars = positive, 1 star = negative
+        
+        if label in ['5 stars', '4 stars']:
+            return 'POSITIVO (Diritti tutelati)'
+        elif label in ['1 stars', '2 stars']:
+            return 'NEGATIVO (Libertà ristretta)'
+        else:
+            return 'NEUTRALE'
+    except:
+        return 'NEUTRALE'
+
+# ===== PRIORITY 2.2: Riconoscimento Acronimi Legali e Tech =====
+ACRONIMI_LEGALI = {
+    'GDPR': 'Leggi e Regolamentazioni || EU',
+    'EDPB': 'Istituzioni || EU',
+    'CCPA': 'Leggi e Regolamentazioni || USA',
+    'LGPD': 'Leggi e Regolamentazioni || Brasile',
+    'RGPD': 'Leggi e Regolamentazioni || Francia',
+    'AMI': 'Tecnologie || IA',
+    'SARI': 'Tecnologie || Polizia'
+}
+
+def estrai_acronimi(testo):
+    """Estrae acronimi noti e aggiunge come entità."""
+    trovati = []
+    for sigla, categoria in ACRONIMI_LEGALI.items():
+        if sigla.upper() in str(testo).upper():
+            trovati.append(f"{sigla} || {categoria}")
+    return trovati
+
+# ===== PRIORITY 2.3: Keyword Extraction per Tematica =====
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+def estrai_topic_keywords(testo, num_keywords=5):
+    """Estrae parole-chiave principali per identificare tematica."""
+    try:
+        vectorizer = TfidfVectorizer(max_features=num_keywords, 
+                                      stop_words=['italiano', 'english'])
+        tfidf = vectorizer.fit_transform([str(testo)])
+        keywords = vectorizer.get_feature_names_out()
+        return list(keywords)
+    except:
+        return []
 
 # ===== PRIORITY 1.1: Funzione per pulire testo da GPDP =====
 def pulisci_testo_gpdp(testo):
@@ -186,14 +243,19 @@ def classifica_geografia(testo):
         return "Italia"
 
 def salva_in_sqlite(df, db_path):
-    """Salva dati analizzati in SQLite per query veloci (Priority 0)."""
+    """Salva dati analizzati in SQLite, convertendo liste in stringhe (Priority 0)."""
+    df_copy = df.copy()
+    for col in df_copy.columns:
+        if df_copy[col].apply(lambda x: isinstance(x, list)).any():
+            df_copy[col] = df_copy[col].apply(lambda x: ', '.join(x) if isinstance(x, list) else x)
+            
     try:
         conn = sqlite3.connect(db_path)
-        df.to_sql('provvedimenti_analyzed', conn, if_exists='replace', index=False)
+        df_copy.to_sql('provvedimenti_analyzed', conn, if_exists='replace', index=False)
         conn.close()
-        print(f"✅ Dati salvati in SQLite: {db_path}")
+        print(f"Dati salvati in SQLite: {db_path}")
     except Exception as e:
-        print(f"⚠️ Errore salvataggio SQLite: {e}")
+        print(f"Errore salvataggio SQLite: {e}")
 
 def processa_dati_garante():
     """Legge i testi completi dal CSV grezzo, applica l'IA e salva i risultati (con Priority 1 improvements)."""
@@ -210,24 +272,28 @@ def processa_dati_garante():
         print(f"File raw non trovato in: {percorso_raw}")
         return
         
-    print("📖 Lettura del database dei testi completi...")
+    print("Lettura del database dei testi completi...")
     df = pd.read_csv(percorso_raw)
     
     if 'Testo_Completo' not in df.columns:
         print("Errore: Manca la colonna 'Testo_Completo'. Hai lanciato il nuovo scraper?")
         return
     
-    print(f"🧠 Inizio analisi NLP su {len(df)} documenti legali (Priority 1 improvements attivate)...")
+    print(f"Inizio analisi NLP su {len(df)} documenti legali (Priority 1 improvements attivate)...")
     
     # Priority 1.1 + 1.2 + 1.3: Estrazione entità con pulizia, dedup e blacklist dinamica
-    df['Entita_Coinvolte'] = df['Testo_Completo'].apply(estrai_entita)
+    df['Entita_Coinvolte'] = df['Testo_Completo'].apply(lambda x: list(set(estrai_entita(x) + estrai_acronimi(x))))
 
     # --- CLASSIFICAZIONE GEOGRAFICA ---
     df['Ambito_Geografico'] = df['Testo_Completo'].apply(classifica_geografia)
+
+    # --- SENTIMENT E KEYWORDS (Priority 2 improvements) ---
+    df['Sentiment_Direzione'] = df['Testo_Completo'].apply(classifica_sentiment_provvedimento)
+    df['Parole_Chiave'] = df['Testo_Completo'].apply(estrai_topic_keywords)
     
     # Salviamo il CSV processato
     df.to_csv(percorso_processed, index=False)
-    print(f"✅ CSV processato salvato in: {percorso_processed}")
+    print(f"CSV processato salvato in: {percorso_processed}")
     
     # Priority 0: Salva anche in SQLite per query veloci
     salva_in_sqlite(df, percorso_db)
@@ -236,11 +302,11 @@ def processa_dati_garante():
     tutte_entita = [ent for lista in df['Entita_Coinvolte'] if isinstance(lista, list) for ent in lista]
     classifica = Counter(tutte_entita)
     
-    print("\n🏆 --- TOP 5 ATTORI SOTTO LA LENTE DEL GARANTE ---")
+    print("\n--- TOP 5 ATTORI SOTTO LA LENTE DEL GARANTE ---")
     for ente, conteggio in classifica.most_common(5):
         print(f"   {ente}: {conteggio} provvedimenti")
     
-    print(f"\n📊 Statistiche:")
+    print("\nStatistiche:")
     print(f"   - Documenti processati: {len(df)}")
     print(f"   - Entità uniche estratte: {len(classifica)}")
     enti_list = [e for lista in df['Entita_Coinvolte'] if isinstance(lista, list) for e in lista]
