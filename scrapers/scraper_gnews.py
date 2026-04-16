@@ -8,8 +8,7 @@ from utils.logger_config import setup_logger
 
 logger = setup_logger(__name__)
 
-from .gnews_config import DEFAULT_QUERY, GNEWS_URL
-
+from scrapers.gnews_config import DEFAULT_QUERY, GNEWS_URL
 
 def _format_published_at(published_at: str) -> str:
     if not published_at:
@@ -50,7 +49,21 @@ def fetch_gnews(
     logger.info("📰 Avvio ricerca GNews: lang=%s country=%s max=%s", lang, country, max_results)
 
     try:
-        return _make_gnews_request(params, timeout)
+        # 1. Otteniamo il dizionario grezzo dalla richiesta
+        dati_grezzi = _make_gnews_request(params, timeout)
+        
+        # 2. Estraiamo la lista degli articoli (la chiave 'articles' di GNews)
+        lista_articoli = dati_grezzi.get("articles", [])
+        
+        # 3. Trasformiamo la lista in un vero DataFrame Pandas!
+        df = pd.DataFrame(lista_articoli)
+        
+        # 4. Usiamo la tua funzione per pulire le date, se il DataFrame non è vuoto
+        if not df.empty and "publishedAt" in df.columns:
+            df["publishedAt"] = df["publishedAt"].apply(_format_published_at)
+            
+        return df
+
     except ValueError as e:
         logger.error("Errore nella richiesta GNews: %s", e)
         return pd.DataFrame()

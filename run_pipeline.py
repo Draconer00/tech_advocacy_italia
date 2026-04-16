@@ -1,11 +1,20 @@
 import os
 import subprocess
 import sys
+from dotenv import load_dotenv # Aggiungi questa riga
+
+load_dotenv() # Aggiungi questa riga per caricare le chiavi dal file .env
 
 def run_command(command):
     print(f"Executing: {' '.join(command)}")
     try:
-        result = subprocess.run(command, check=True, capture_output=True, text=True)
+        env = os.environ.copy()
+        env["PYTHONPATH"] = os.getcwd()
+        # 1. Forza i "figli" (gli scraper) a stampare le emoji in UTF-8
+        env["PYTHONIOENCODING"] = "utf-8" 
+        
+        # 2. Aggiungi encoding="utf-8" per decifrare correttamente i risultati
+        result = subprocess.run(command, check=True, capture_output=True, text=True, env=env, encoding="utf-8")
         print(result.stdout)
     except subprocess.CalledProcessError as e:
         print(f"Error executing command: {e}")
