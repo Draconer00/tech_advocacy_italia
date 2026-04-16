@@ -5,16 +5,27 @@ import os
 def scrape_comunicati_ong():
     """
     Estrae le ultime campagne dai feed RSS delle principali ONG 
-    italiane ed europee (Tech Advocacy).
+    italiane ed europee (Tech Advocacy e Diritti Umani).
     """
     # Il nostro Radar espanso
     fonti_ong = {
+        # --- Core Tech Advocacy & Privacy ---
         "Privacy Network": "https://www.privacynetwork.it/feed/",
         "Hermes Center": "https://www.hermescenter.org/feed/",
-        "The Good Lobby Italia": "https://www.thegoodlobby.it/feed/",
         "EDRi (Europa)": "https://edri.org/feed/",
         "Noyb (Privacy UE)": "https://noyb.eu/en/rss.xml",
-        "AlgorithmWatch": "https://algorithmwatch.org/en/feed/"
+        "AlgorithmWatch": "https://algorithmwatch.org/en/feed/",
+        "AI Forensics": "https://aiforensics.org/feed.xml",
+        "Slow Web": "https://www.slow-web.it/feed/",
+        "NINA": "https://ninabot.org/feed/", # Not Intelligent Not Artificial
+        
+        # --- Diritti Civili, Sociali & Trasparenza ---
+        "The Good Lobby Italia": "https://www.thegoodlobby.it/feed/",
+        "Amnesty Italia": "https://www.amnesty.it/feed/",
+        "Antigone": "https://www.antigone.it/news?format=feed&type=rss",
+        "Italiani Senza Cittadinanza": "https://italianisenzacittadinanza.it/feed/",
+        "SOMO (Multinazionali)": "https://www.somo.nl/feed/",
+        "STRALI": "https://www.strali.org/blog-feed.xml" 
     }
     
     tutte_le_notizie = []
