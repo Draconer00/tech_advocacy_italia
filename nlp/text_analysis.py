@@ -291,6 +291,16 @@ def processa_dati_garante():
     df['Sentiment_Direzione'] = df['Testo_Completo'].apply(classifica_sentiment_provvedimento)
     df['Parole_Chiave'] = df['Testo_Completo'].apply(estrai_topic_keywords)
     
+    # Priority 3.1: Topic Modeling con BERTopic
+    print("Inizio Topic Modeling con BERTopic...")
+    texts_for_topic_modeling = df["Testo_Completo"].tolist()
+    topics, topic_labels = topic_modeling(texts_for_topic_modeling)
+    df["Topic_Emergente_ID"] = topics
+    
+    # Mappa gli ID dei topic alle loro etichette testuali
+    topic_id_to_label = {i: label for i, label in enumerate(topic_labels)}
+    df["Topic_Etichetta"] = df["Topic_Emergente_ID"].map(topic_id_to_label)
+    
     # Salviamo il CSV processato
     df.to_csv(percorso_processed, index=False)
     print(f"CSV processato salvato in: {percorso_processed}")
