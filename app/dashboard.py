@@ -4,6 +4,8 @@ import os
 import ast
 import sqlite3
 import plotly.express as px
+from collections import Counter
+from datetime import datetime
 
 # --- CONFIGURAZIONE DELLA PAGINA ---
 st.set_page_config(page_title="Radar Diritti Digitali", page_icon="⚖️", layout="wide")
@@ -55,11 +57,129 @@ def carica_dati_garante():
     
     return pd.DataFrame()
 
+@st.cache_data
+def carica_dati_unificati():
+    """Unisce tutti i dati da TUTTE le fonti in un singolo dataframe standardizzato"""
+    df_gpdp = carica_dati_garante()
+    df_ong = carica_dati_ong()
+    
+    dati_unificati = []
+    
+    # Normalizza dati GPDP
+    for _, row in df_gpdp.iterrows():
+        dati_unificati.append({
+            'data': row.get('data_pubblicazione', datetime.now().date().isoformat()),
+            'titolo': row.get('titolo', ''),
+            'fonte': 'Garante Privacy',
+            'tipo': 'Provvedimento',
+            'url': row.get('url', ''),
+            'sentiment': row.get('Sentiment_Direzione', 'NEUTRALE'),
+            'ambito_geografico': row.get('Ambito_Geografico', 'Italia'),
+            'livello_allarme': 2
+        })
+    
+    # Normalizza dati ONG
+    for _, row in df_ong.iterrows():
+        # Supporto sia nuovo schema che vecchio schema ONG
+        nome_ong = row.get('nome_organizzazione', row.get('ONG', 'Organizzazione'))
+        
+        dati_unificati.append({
+            'data': row.get('data_pubblicazione', row.get('Data', datetime.now().date().isoformat())),
+            'titolo': row.get('titolo', row.get('Titolo', '')),
+            'fonte': nome_ong,
+            'tipo': 'Comunicato ONG',
+            'url': row.get('url', row.get('Link', '')),
+            'sentiment': 'NEUTRALE',
+            'ambito_geografico': row.get('area_geografica', 'Italia'),
+            'livello_allarme': row.get('livello_allarme', 1)
+        })
+
+    df = pd.DataFrame(dati_unificati)
+
+    df['data'] = pd.to_datetime(df['data'], errors='coerce').dt.date
+    return df.sort_values('data', ascending=False).reset_index(drop=True)
+
+
+df_unificato = carica_dati_unificati()
 df_ong = carica_dati_ong()
 df_gpdp = carica_dati_garante()
 
 # --- CREAZIONE DELLE SCHEDE (TABS) ---
-tab_ong, tab_garante = st.tabs(["📢 Campagne ONG", "⚖️ Provvedimenti Garante"])
+tab_home, tab_ong, tab_garante = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante"])
+
+# ==========================================
+# SCHEDA 0: HOME RADAR UNIFICATO
+# ==========================================
+with tab_home:
+    st.header("📊 Panoramica Generale")
+    
+    # --- KPI PRINCIPALI ---
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("📄 Documenti ultimi 7 giorni", len(df_unificato[df_unificato['data'] >= (datetime.now().date() - pd.Timedelta(days=7))]))
+    col2.metric("🔍 Fonti monitorate", df_unificato['fonte'].nunique())
+    col3.metric("🌍 Aree geografiche", df_unificato['ambito_geografico'].nunique())
+    col4.metric("⚠️ Livello allarme medio", round(df_unificato['livello_allarme'].mean(), 1))
+    
+    st.divider()
+    
+    # --- FILTRI UNIVERSALI ---
+    st.subheader("🔍 Filtri")
+    col_f1, col_f2, col_f3 = st.columns(3)
+    
+    with col_f1:
+        fonti_selezionate = st.multiselect("Fonte", options=df_unificato['fonte'].unique(), default=df_unificato['fonte'].unique())
+    with col_f2:
+        aree_selezionate = st.multiselect("Area Geografica", options=df_unificato['ambito_geografico'].unique(), default=df_unificato['ambito_geografico'].unique())
+    with col_f3:
+        livello_allarme = st.slider("Livello Allarme Minimo", min_value=1, max_value=3, value=1)
+    
+    # Applica filtri
+    df_filtrato = df_unificato[
+        df_unificato['fonte'].isin(fonti_selezionate) &
+        df_unificato['ambito_geografico'].isin(aree_selezionate) &
+        (df_unificato['livello_allarme'] >= livello_allarme)
+    ]
+    
+    st.divider()
+    
+    # --- TIMELINE GENERALE ---
+    st.subheader("📅 Timeline Tutti gli Eventi")
+    
+    eventi_per_giorno = df_filtrato.groupby('data').size().reset_index(name='conteggio')
+    
+    # Forziamo l'asse X come data giornaliera, evitiamo la formattazione automatica in secondi
+    fig_timeline = px.line(
+        eventi_per_giorno, 
+        x='data', 
+        y='conteggio', 
+        title='Eventi per giorno', 
+        markers=True,
+        labels={'conteggio': 'Numero eventi'}
+    )
+    
+    # ✅ Correzione asse orizzontale: forza formato data e nascondi ore/minuti/secondi
+    fig_timeline.update_layout(
+        xaxis=dict(
+            type='date',
+            tickformat='%d/%m/%Y',
+            dtick='D1', # Un tick al giorno
+            tickmode='linear',
+            showgrid=True
+        ),
+        hovermode='x unified'
+    )
+    
+    st.plotly_chart(fig_timeline, width='stretch')
+    
+    st.divider()
+    
+    # --- ULTIMI EVENTI ---
+    st.subheader("📌 Ultimi 20 Eventi")
+    st.dataframe(
+        df_filtrato[['data', 'fonte', 'tipo', 'titolo', 'livello_allarme']].head(20),
+        hide_index=True,
+        width='stretch'
+    )
 
 # ==========================================
 # SCHEDA 1: ORGANIZZAZIONI CIVICHE (Il tuo codice originale)
