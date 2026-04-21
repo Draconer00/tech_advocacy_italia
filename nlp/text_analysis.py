@@ -4,8 +4,11 @@ import os
 import re
 import sqlite3
 import csv
+import time
+import psutil
 from collections import Counter
 from difflib import SequenceMatcher
+from functools import wraps
 
 print("Caricamento del modello linguistico (spaCy)...")
 try:
@@ -35,6 +38,97 @@ def carica_blacklist(filepath):
 cartella_script = os.path.dirname(os.path.abspath(__file__))
 BLACKLIST_PATH = os.path.join(cartella_script, '..', 'data', 'utils', 'nlp_blacklist.csv')
 BLACKLIST = carica_blacklist(BLACKLIST_PATH)
+
+# ==============================================
+# 📊 METRICHE DI PERFORMANCE NLP
+# ==============================================
+class PerformanceMetrics:
+    """Colleziona metriche di efficienza e qualità per monitoraggio"""
+    def __init__(self):
+        self.start_time = time.time()
+        self.documents_processed = 0
+        self.total_entities = 0
+        self.time_per_doc = []
+        self.memory_usage = []
+    
+    def timer(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            start = time.perf_counter()
+            result = func(*args, **kwargs)
+            elapsed = time.perf_counter() - start
+            metrics.time_per_doc.append(elapsed)
+            metrics.documents_processed +=1
+            return result
+        return wrapper
+    
+    def get_summary(self):
+        avg_time = sum(self.time_per_doc) / len(self.time_per_doc) if self.time_per_doc else 0
+        avg_entities = self.total_entities / self.documents_processed if self.documents_processed else 0
+        memory_rss = psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024
+        
+        return {
+            'documenti_totali': self.documents_processed,
+            'tempo_medio_doc_ms': round(avg_time * 1000, 2),
+            'entita_medie_doc': round(avg_entities, 1),
+            'memoria_utilizzata_mb': round(memory_rss, 1),
+            'tempo_totale_elaborazione_s': round(time.time() - self.start_time, 1)
+        }
+    
+    def get_quality_metrics(self, all_entities):
+        """Calcola metriche di qualità specifiche per NLP"""
+        entities_count = Counter(all_entities)
+        
+        # Rumore: entità che compaiono solo 1 volta
+        singletons = sum(1 for e, cnt in entities_count.items() if cnt == 1)
+        noise_ratio = singletons / len(entities_count) if entities_count else 0
+        
+        # Coverage: distribuzione delle entità
+        top_10_entities = sum(cnt for e, cnt in entities_count.most_common(10))
+        coverage_top_10 = top_10_entities / len(all_entities) if all_entities else 0
+        
+        # Entropia (diversità delle entità)
+        import math
+        total = len(all_entities)
+        entropia = -sum( (cnt/total) * math.log2(cnt/total) for cnt in entities_count.values() )
+        
+        return {
+            'rumore_percentuale': round(noise_ratio * 100, 1),
+            'coverage_top10_percentuale': round(coverage_top_10 * 100, 1),
+            'entropia_distribuzione': round(entropia, 2),
+            'entita_totali_trovate': len(all_entities),
+            'entita_uniche': len(entities_count)
+        }
+    
+    def print_report(self, all_entities=None):
+        s = self.get_summary()
+        print("\n" + "="*60)
+        print("📊 REPORT COMPLETO PERFORMANCE E QUALITÀ NLP")
+        print("="*60)
+        
+        print("\n⚡ PERFORMANCE RUNTIME:")
+        print(f"  ✅ Documenti processati:    {s['documenti_totali']}")
+        print(f"  ⏱  Tempo medio per doc:    {s['tempo_medio_doc_ms']} ms")
+        print(f"  💾 Memoria utilizzata:     {s['memoria_utilizzata_mb']} MB")
+        print(f"  ⌛ Tempo totale:        {s['tempo_totale_elaborazione_s']} secondi")
+        
+        if all_entities:
+            q = self.get_quality_metrics(all_entities)
+            print("\n🎯 QUALITÀ ANALISI NLP:")
+            print(f"  🔍 Entità totali trovate:   {q['entita_totali_trovate']}")
+            print(f"  📌 Entità uniche:          {q['entita_uniche']}")
+            print(f"  📉 Rapporto Rumore:        {q['rumore_percentuale']} %")
+            print(f"  🎯 Coverage Top 10:        {q['coverage_top10_percentuale']} %")
+            print(f"  🧩 Entropia Distribuzione: {q['entropia_distribuzione']}")
+        
+        print("\n" + "="*60)
+        print("📘 Interpretazione metriche:")
+        print("  • Rumore < 25% = Ottimo | < 40% = Buono")
+        print("  • Entropia > 3 = Buona diversità tematica")
+        print("  • Coverage > 30% = Concentrazione attori principali")
+        print("="*60)
+
+metrics = PerformanceMetrics()
 
 # ===== PRIORITY 2.1: Sentiment Analysis su Provvedimenti =====
 from transformers import pipeline
@@ -92,6 +186,37 @@ def estrai_topic_keywords(testo, num_keywords=5):
         return list(keywords)
     except:
         return []
+
+# ===== PRIORITY 3.1: Topic Modeling BERTopic =====
+def topic_modeling(testi_lista):
+    """
+    Implementa Topic Modeling non supervisionato.
+    Teoria: BERTopic usa embedding semantici + clustering HDBSCAN + c-TF-IDF
+    per generare topic interpretabili senza etichette predefinite.
+    A differenza di LDA funziona bene anche con pochi documenti e mantiene contesto semantico.
+    """
+    try:
+        from bertopic import BERTopic
+        
+        topic_model = BERTopic(
+            language="italian",
+            min_topic_size=3,
+            verbose=False,
+            calculate_probabilities=True
+        )
+        
+        topics, probabilita = topic_model.fit_transform(testi_lista)
+        etichette = topic_model.generate_topic_labels(nr_words=3)
+        
+        return topics, etichette
+    except ImportError:
+        print("⚠️  BERTopic non installato. Skip topic modeling.")
+        print("   Per attivare: pip install bertopic")
+        # Fallback: tutti topic 0
+        return [0]*len(testi_lista), ["Generico"]
+    except Exception as e:
+        print(f"⚠️  Errore Topic Modeling: {str(e)}")
+        return [0]*len(testi_lista), ["Generico"]
 
 # ===== PRIORITY 1.1: Funzione per pulire testo da GPDP =====
 def pulisci_testo_gpdp(testo):
@@ -176,6 +301,7 @@ def categorizza_entita(nome, etichetta_spacy):
     # 6. Default
     return "Aziende e Org Private"
 
+@PerformanceMetrics.timer
 def estrai_entita(testo):
     if not isinstance(testo, str) or len(testo) < 10:
         return []
@@ -322,6 +448,12 @@ def processa_dati_garante():
     enti_list = [e for lista in df['Entita_Coinvolte'] if isinstance(lista, list) for e in lista]
     duplicati_rimosse = len(enti_list) - len(classifica) if len(enti_list) > 0 else 0
     print(f"   - Entità duplicate rimosse: ~{duplicati_rimosse}")
+    
+    # Aggiorna contatori entità totali
+    metrics.total_entities = len(tutte_entita)
+    
+    # Stampa report performance finale
+    metrics.print_report(tutte_entita)
 
 if __name__ == "__main__":
     processa_dati_garante()
