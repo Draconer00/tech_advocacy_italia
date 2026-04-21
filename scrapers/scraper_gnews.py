@@ -1,4 +1,5 @@
 ﻿import os
+import hashlib
 from datetime import datetime
 
 import pandas as pd
@@ -55,13 +56,30 @@ def fetch_gnews(
         # 2. Estraiamo la lista degli articoli (la chiave 'articles' di GNews)
         lista_articoli = dati_grezzi.get("articles", [])
         
-        # 3. Trasformiamo la lista in un vero DataFrame Pandas!
-        df = pd.DataFrame(lista_articoli)
+        # 3. Applichiamo lo schema METADATI STANDARDIZZATO
+        articoli_normalizzati = []
         
-        # 4. Usiamo la tua funzione per pulire le date, se il DataFrame non è vuoto
-        if not df.empty and "publishedAt" in df.columns:
-            df["publishedAt"] = df["publishedAt"].apply(_format_published_at)
+        for articolo in lista_articoli:
+            testo_completo = f"{articolo.get('title', '')} {articolo.get('description', '')}"
+            hash_contenuto = hashlib.sha256(testo_completo.encode('utf-8')).hexdigest()
             
+            articoli_normalizzati.append({
+                'id_univoco': hash_contenuto,
+                'fonte': 'gnews',
+                'data_pubblicazione': _format_published_at(articolo.get('publishedAt', '')),
+                'data_scraping': datetime.now().isoformat(),
+                'titolo': articolo.get('title', ''),
+                'url': articolo.get('url', ''),
+                'tipo_contenuto': 'notizia',
+                'lingua': lang,
+                'testo_completo': testo_completo,
+                'hash_contenuto': hash_contenuto,
+                'fonte_articolo': articolo.get('source', {}).get('name', '')
+            })
+
+        df = pd.DataFrame(articoli_normalizzati)
+        logger.info(f"✅ Scaricati {len(df)} articoli normalizzati")
+        
         return df
 
     except ValueError as e:

@@ -7,37 +7,101 @@ on:
   workflow_dispatch: # Questo pulsante ci permette di avviarlo anche a mano da GitHub!
 
 jobs:
-  aggiorna-dati:
-    runs-on: ubuntu-latest # Usa un server Linux gratuito
+
+  # ==============================================
+  # 🕵️ SCRAPER GPDP (JOB SEPARATO E PARALLELO)
+  # ==============================================
+  scraper-gpdp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    continue-on-error: true
+    
+    steps:
+      - name: 📥 Clona il repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configura Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip' # ✅ CACHE AUTOMATICA DELLE DIPENDENZE
+
+      - name: 📦 Installa librerie
+        run: |
+          pip install -r requirements.txt
+          python -m spacy download it_core_news_md
+
+      - name: 🕵️ Scraping Garante Privacy
+        run: python scrapers/scraper_gpdp.py
+        continue-on-error: true
+
+      - name: 💾 Salva dati GPDP
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🤖 Aggiornamento dati GPDP"
+          file_pattern: data/raw/gpdp*.csv
+
+  # ==============================================
+  # 📢 SCRAPER ONG (JOB SEPARATO E PARALLELO)
+  # ==============================================
+  scraper-ong:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    continue-on-error: true
+    
+    steps:
+      - name: 📥 Clona il repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configura Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: 📦 Installa librerie
+        run: pip install -r requirements.txt
+
+      - name: 📢 Scraping ONG
+        run: python scrapers/scraper_ong.py
+        continue-on-error: true
+
+      - name: 💾 Salva dati ONG
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🤖 Aggiornamento dati ONG"
+          file_pattern: data/raw/ong*.csv
+
+  # ==============================================
+  # 🧠 ANALISI NLP (SI AVVIA DOPO TUTTI GLI SCRAPER)
+  # ==============================================
+  analisi-nlp:
+    needs: [scraper-gpdp, scraper-ong]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: 📥 Clona il repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Prendi tutti i commit precedenti
 
       - name: 🐍 Configura Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
 
-      - name: 📦 Installa le librerie
+      - name: 📦 Installa librerie
         run: |
-          python -m pip install --upgrade pip
           pip install -r requirements.txt
-          python -m spacy download it_core_news_md # Dobbiamo scaricare il cervello di spacy sul server!
+          python -m spacy download it_core_news_md
 
-      - name: 🕵️ Esegui lo Scraper del Garante
-        run: python scrapers/scraper_gpdp.py
-
-      - name: 📢 Esegui lo Scraper delle ONG
-        run: python scrapers/scraper_ong.py
-
-      - name: 🧠 Esegui l'Analisi Testuale (NLP)
+      - name: 🧠 Esegui Analisi Testuale NLP
         run: python nlp/text_analysis.py
 
-      - name: 💾 Salva e pubblica i nuovi dati
-        run: |
-          git config --global user.name "Advocacy Bot"
-          git config --global user.email "bot@techadvocacy.it"
-          git add data/
-          git commit -m "🤖 Aggiornamento quotidiano dati e analisi NLP [Auto]" || echo "Nessun nuovo dato da salvare oggi"
-          git push
+      - name: 💾 Salva risultati analisi
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🤖 Aggiornamento analisi NLP"
+          file_pattern: data/processed/*.csv data/*.db

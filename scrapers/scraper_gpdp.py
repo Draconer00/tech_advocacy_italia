@@ -3,6 +3,9 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 import os
+import hashlib
+from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def estrai_testo_completo(url, session):
     """
@@ -79,7 +82,8 @@ def scrape_provvedimenti_garante():
         
         parole_escluse = ["agenda", "eventi", "newsletter", "convegno", "seminario", "podcast"]
         link_trovati = 0
-        
+        links_da_scaricare = []
+
         for tag_a in tutti_i_link:
             link = tag_a['href']
             titolo = tag_a.text.strip()
@@ -90,20 +94,47 @@ def scrape_provvedimenti_garante():
                     if link.startswith("/"):
                         link = "https://www.garanteprivacy.it" + link
                     
-                    if not any(p['Link'] == link for p in provvedimenti):
-                        print(f"Trovato: {titolo[:50]}... -> Download in corso...")
-                        
-                        testo = estrai_testo_completo(link, session)
-                        
-                        provvedimenti.append({
-                            'Titolo': titolo,
-                            'Link': link,
-                            'Testo_Completo': testo
-                        })
+                    if link not in [p['link'] for p in links_da_scaricare]:
+                        links_da_scaricare.append({'link': link, 'titolo': titolo})
                         link_trovati += 1
                         
                         if link_trovati >= 10: 
                             break
+
+        print(f"Trovati {len(links_da_scaricare)} provvedimenti. Inizio download parallelo...")
+
+        # ✅ PARALLELIZZAZIONE 4 WORKERS
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = {
+                executor.submit(estrai_testo_completo, item['link'], session): item
+                for item in links_da_scaricare
+            }
+
+            for future in as_completed(futures):
+                item = futures[future]
+                try:
+                    testo = future.result()
+
+                    # ✅ HASH UNIVOCO E METADATI STANDARDIZZATI
+                    hash_contenuto = hashlib.sha256(testo.encode('utf-8')).hexdigest()
+
+                    provvedimenti.append({
+                        'id_univoco': hash_contenuto,
+                        'fonte': 'gpdp',
+                        'data_pubblicazione': datetime.now().date().isoformat(),
+                        'data_scraping': datetime.now().isoformat(),
+                        'titolo': item['titolo'],
+                        'url': item['link'],
+                        'tipo_contenuto': 'provvedimento',
+                        'lingua': 'it',
+                        'testo_completo': testo,
+                        'hash_contenuto': hash_contenuto
+                    })
+                    
+                    print(f"✅ Download completato: {item['titolo'][:45]}...")
+                    
+                except Exception as e:
+                    print(f"❌ Errore download {item['link']}: {str(e)}")
                             
         df_gpdp = pd.DataFrame(provvedimenti)
         print(f"\nSuccesso! Scaricati {len(df_gpdp)} provvedimenti completi.")
