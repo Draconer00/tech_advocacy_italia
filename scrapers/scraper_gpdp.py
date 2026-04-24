@@ -146,6 +146,7 @@ def scrape_provvedimenti_garante():
 
 if __name__ == "__main__":
     df_test = scrape_provvedimenti_garante()
+    
     if not df_test.empty:
         cartella_script = os.path.dirname(os.path.abspath(__file__))
         cartella_raw = os.path.join(cartella_script, '..', 'data', 'raw')
@@ -154,5 +155,11 @@ if __name__ == "__main__":
         percorso_salvataggio = os.path.join(cartella_raw, 'gpdp_sample.csv')
         df_test.to_csv(percorso_salvataggio, index=False)
         
-        print("\nEstratto del VERO testo scaricato (prime 400 lettere):")
-        print(df_test['Testo_Completo'].iloc[0][:400] + "...\n")
+        print("\nLista delle colonne salvate:", df_test.columns.tolist())
+        
+        if 'testo_completo' in df_test.columns:
+            print("\nEstratto del VERO testo scaricato (prime 400 lettere):")
+            print(str(df_test['testo_completo'].iloc[0])[:400] + "...\n")
+            
+        print(f"Dati salvati in modo sicuro in: {percorso_salvataggio}")
+
