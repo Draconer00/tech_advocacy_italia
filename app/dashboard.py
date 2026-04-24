@@ -173,6 +173,73 @@ with tab_home:
     
     st.divider()
     
+    # === SISTEMA HUMAN-IN-THE-LOOP ===
+    st.subheader("🔧 Correggi Classificazione (Active Learning)")
+    
+    # Inizializza stato sessione per modifiche
+    if 'modifiche_correzione' not in st.session_state:
+        st.session_state.modifiche_correzione = []
+    
+    # Categorie disponibili per correzione
+    CATEGORIE_GEOGRAFICHE = ["Italia", "Europa", "USA / Internazionale", "Asia", "Generico"]
+    
+    # Prepara dataframe per editor
+    df_correzione = df_filtrato[['data', 'fonte', 'titolo', 'ambito_geografico']].head(30).copy()
+    df_correzione['errore_segnalato'] = False
+    df_correzione['categoria_corretta'] = "Non modificato"
+    
+    # Usa data_editor invece di dataframe per modifiche interattive
+    col_edit, col_save = st.columns([4,1])
+    
+    with col_edit:
+        df_modificato = st.data_editor(
+            df_correzione,
+            column_config={
+                "data": st.column_config.DateColumn("Data", disabled=True),
+                "fonte": st.column_config.TextColumn("Fonte", disabled=True),
+                "titolo": st.column_config.TextColumn("Titolo", disabled=True, width="large"),
+                "ambito_geografico": st.column_config.TextColumn("Classificazione AI", disabled=True),
+                "errore_segnalato": st.column_config.CheckboxColumn("✅ Segnala Errore"),
+                "categoria_corretta": st.column_config.SelectboxColumn(
+                    "🎯 Categoria Corretta",
+                    options=CATEGORIE_GEOGRAFICHE
+                )
+            },
+            hide_index=True,
+            width='stretch',
+            disabled=["data", "fonte", "titolo", "ambito_geografico"]
+        )
+    
+    with col_save:
+        st.markdown("<br>", unsafe_allow_html=True)
+        salva_correzioni = st.button("💾 Salva Correzioni", type="primary", use_container_width=True)
+        
+        if salva_correzioni:
+            # Estrai solo le righe modificate
+            modifiche = df_modificato[df_modificato['errore_segnalato'] == True].copy()
+            
+            if len(modifiche) > 0:
+                # Aggiungi metadata
+                modifiche['timestamp_correzione'] = datetime.now().isoformat()
+                modifiche['utente'] = "Operatore"
+                
+                # Percorso file feedback
+                cartella_script = os.path.dirname(os.path.abspath(__file__))
+                percorso_feedback = os.path.join(cartella_script, '..', 'data', 'processed', 'training_data_feedback.csv')
+                
+                # Append al file (o crea se non esiste)
+                if os.path.exists(percorso_feedback):
+                    modifiche.to_csv(percorso_feedback, mode='a', header=False, index=False)
+                else:
+                    modifiche.to_csv(percorso_feedback, mode='w', header=True, index=False)
+                
+                st.success(f"✅ Salvataggi {len(modifiche)} correzioni. Saranno usate per il prossimo fine-tuning del modello.")
+                st.balloons()
+            else:
+                st.info("Nessuna modifica selezionata per il salvataggio.")
+    
+    st.divider()
+    
     # --- ULTIMI EVENTI ---
     st.subheader("📌 Ultimi 20 Eventi")
     st.dataframe(
@@ -207,7 +274,7 @@ with tab_ong:
             col2.metric("Organizzazioni Attive", len(ong_selezionate))
         
         st.subheader("Ultimi Aggiornamenti ONG")
-        st.dataframe(df_filtrato_ong[['Data', 'nome_organizzazione', 'Titolo', 'Link']], width='stretch')
+        st.dataframe(df_filtrato_ong[['data_pubblicazione', 'nome_organizzazione', 'titolo', 'url']], width='stretch')
 
 # ==========================================
 # SCHEDA 2: GARANTE PRIVACY (La nuova analisi geografica)
@@ -250,7 +317,7 @@ with tab_garante:
                 else:
                     df_filtrato_gpdp = df_gpdp
                     
-                st.dataframe(df_filtrato_gpdp[['Titolo', 'Ambito_Geografico']], hide_index=True)
+                st.dataframe(df_filtrato_gpdp[['titolo', 'Ambito_Geografico']], hide_index=True)
         else:
             st.info("Esegui text_analysis.py per abilitare la classificazione geografica.")
             df_filtrato_gpdp = df_gpdp # Fallback se manca la colonna
