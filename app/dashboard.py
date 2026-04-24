@@ -81,7 +81,7 @@ def carica_dati_unificati():
     # Normalizza dati ONG
     for _, row in df_ong.iterrows():
         # Supporto sia nuovo schema che vecchio schema ONG
-        nome_ong = row.get('nome_organizzazione', row.get('ONG', 'Organizzazione'))
+        nome_ong = row.get('nome_organizzazione', row.get('nome_organizzazione', 'Organizzazione'))
         
         dati_unificati.append({
             'data': row.get('data_pubblicazione', row.get('Data', datetime.now().date().isoformat())),
@@ -195,11 +195,11 @@ with tab_ong:
             st.subheader("Filtra i Dati")
             ong_selezionate = st.multiselect(
                 "Scegli le Organizzazioni:", 
-                options=df_ong['ONG'].unique(),
-                default=df_ong['ONG'].unique()
+                options=df_ong['nome_organizzazione'].unique(),
+                default=df_ong['nome_organizzazione'].unique()
             )
         
-        df_filtrato_ong = df_ong[df_ong['ONG'].isin(ong_selezionate)]
+        df_filtrato_ong = df_ong[df_ong['nome_organizzazione'].isin(ong_selezionate)]
         
         with col_metriche:
             col1, col2 = st.columns(2)
@@ -207,7 +207,7 @@ with tab_ong:
             col2.metric("Organizzazioni Attive", len(ong_selezionate))
         
         st.subheader("Ultimi Aggiornamenti ONG")
-        st.dataframe(df_filtrato_ong[['Data', 'ONG', 'Titolo', 'Link']], width='stretch')
+        st.dataframe(df_filtrato_ong[['Data', 'nome_organizzazione', 'Titolo', 'Link']], width='stretch')
 
 # ==========================================
 # SCHEDA 2: GARANTE PRIVACY (La nuova analisi geografica)
