@@ -401,25 +401,25 @@ def processa_dati_garante():
     print("Lettura del database dei testi completi...")
     df = pd.read_csv(percorso_raw)
     
-    if 'Testo_Completo' not in df.columns:
-        print("Errore: Manca la colonna 'Testo_Completo'. Hai lanciato il nuovo scraper?")
+    if 'testo_completo' not in df.columns:
+        print("Errore: Manca la colonna 'testo_completo'. Hai lanciato il nuovo scraper?")
         return
     
     print(f"Inizio analisi NLP su {len(df)} documenti legali (Priority 1 improvements attivate)...")
     
     # Priority 1.1 + 1.2 + 1.3: Estrazione entità con pulizia, dedup e blacklist dinamica
-    df['Entita_Coinvolte'] = df['Testo_Completo'].apply(lambda x: list(set(estrai_entita(x) + estrai_acronimi(x))))
+    df['Entita_Coinvolte'] = df['testo_completo'].apply(lambda x: list(set(estrai_entita(x) + estrai_acronimi(x))))
 
     # --- CLASSIFICAZIONE GEOGRAFICA ---
-    df['Ambito_Geografico'] = df['Testo_Completo'].apply(classifica_geografia)
+    df['Ambito_Geografico'] = df['testo_completo'].apply(classifica_geografia)
 
     # --- SENTIMENT E KEYWORDS (Priority 2 improvements) ---
-    df['Sentiment_Direzione'] = df['Testo_Completo'].apply(classifica_sentiment_provvedimento)
-    df['Parole_Chiave'] = df['Testo_Completo'].apply(estrai_topic_keywords)
+    df['Sentiment_Direzione'] = df['testo_completo'].apply(classifica_sentiment_provvedimento)
+    df['Parole_Chiave'] = df['testo_completo'].apply(estrai_topic_keywords)
     
     # Priority 3.1: Topic Modeling con BERTopic
     print("Inizio Topic Modeling con BERTopic...")
-    texts_for_topic_modeling = df["Testo_Completo"].tolist()
+    texts_for_topic_modeling = df["testo_completo"].tolist()
     topics, topic_labels = topic_modeling(texts_for_topic_modeling)
     df["Topic_Emergente_ID"] = topics
     
