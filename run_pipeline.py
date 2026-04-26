@@ -56,7 +56,12 @@ def main():
     subprocess.run(["git", "commit", "-m", "chore: automated pipeline update"], capture_output=True)
     run_command(["git", "push"])
     
-    print("\n--- Pipeline Completed Successfully ---")
+    # 5. Avvia Dashboard
+    print("\n--- Avvio Dashboard ---")
+    print("✅ Pipeline completata. Apertura dashboard in corso...")
+    run_command([sys.executable, "-m", "streamlit", "run", "app/dashboard.py"])
+    
+    print("\n--- Pipeline Completata con Successo ---")
 
 if __name__ == "__main__":
     main()
