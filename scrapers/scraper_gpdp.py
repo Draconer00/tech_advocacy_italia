@@ -80,7 +80,7 @@ def scrape_provvedimenti_garante():
         provvedimenti = []
         tutti_i_link = zuppa.find_all('a', href=True)
         
-        parole_escluse = ["agenda", "eventi", "newsletter", "convegno", "seminario", "podcast"]
+        parole_escluse = ["agenda", "eventi", "newsletter", "convegno", "seminario", "podcast", "comunicato", "comunicati", "stampa", "notizia", "news", "avviso", "annuncio"]
         link_trovati = 0
         links_da_scaricare = []
 

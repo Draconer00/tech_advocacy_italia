@@ -4,8 +4,12 @@ import os
 import ast
 import sqlite3
 import plotly.express as px
+import networkx as nx
+from pyvis.network import Network
+import streamlit.components.v1 as components
 from collections import Counter
 from datetime import datetime
+import numpy as np
 
 # --- CONFIGURAZIONE DELLA PAGINA ---
 st.set_page_config(page_title="Radar Diritti Digitali", page_icon="⚖️", layout="wide")
@@ -105,7 +109,7 @@ df_ong = carica_dati_ong()
 df_gpdp = carica_dati_garante()
 
 # --- CREAZIONE DELLE SCHEDE (TABS) ---
-tab_home, tab_ong, tab_garante = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante"])
+tab_home, tab_ong, tab_garante, tab_network = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante", "🕸️ Network Temi"])
 
 # ==========================================
 # SCHEDA 0: HOME RADAR UNIFICATO
@@ -338,3 +342,67 @@ with tab_garante:
                 st.plotly_chart(fig_bar, width='stretch')
             else:
                 st.info("Nessuna entità trovata con i filtri attuali.")
+
+
+# ==========================================
+# SCHEDA 3: NETWORK MAP ONG <-> TEMI
+# ==========================================
+with tab_network:
+    st.header("🕸️ Mappa Network Relazioni ONG - Notizie")
+    st.markdown("""
+    Questa visualizzazione mostra il grafo di relazioni tra le Organizzazioni e i temi delle notizie.
+    ✅ **Nodi rossi**: ONG
+    ✅ **Nodi blu**: Temi / Argomenti
+    ✅ **Distanza**: Indica quanto vicino è il tema agli argomenti di cui si occupa l'ONG
+    """)
+
+    if df_ong.empty:
+        st.warning("Nessun dato ONG disponibile per costruire il network")
+    else:
+        # Importa profili ONG
+        from scrapers.scraper_ong import PROFILI_ONG
+
+        # Crea grafo NetworkX
+        G = nx.Graph()
+
+        # Aggiungi nodi ONG
+        for nome_ong, dati_ong in PROFILI_ONG.items():
+            G.add_node(nome_ong, 
+                      color='#ff4b4b', 
+                      size=25,
+                      title=f"{nome_ong}\n{dati_ong['descrizione'][:120]}...",
+                      group='ONG')
+            
+            # Aggiungi temi come nodi e collegamenti
+            for tema in dati_ong.get('focus', []):
+                if tema not in G:
+                    G.add_node(tema, color='#4b8bff', size=15, group='Tema')
+                # Peso della connessione: 1 = correlazione diretta
+                G.add_edge(nome_ong, tema, value=1, title=f"Focus principale")
+
+        # Aggiungi notizie e connettili in base alla similarità
+        for _, notizia in df_ong.head(30).iterrows():
+            titolo = notizia['titolo'][:50] + "..."
+            nome_ong = notizia['nome_organizzazione']
+            
+            if nome_ong in G:
+                G.add_node(titolo, color='#4bff8b', size=10, group='Notizia')
+                G.add_edge(nome_ong, titolo, value=0.7, title="Notizia pubblicata")
+
+        # Converti in grafo PyVis interattivo
+        net = Network(height='750px', width='100%', bgcolor='#222222', font_color='white')
+        net.from_nx(G)
+        
+        # Impostazioni fisica del grafo
+        net.repulsion(node_distance=180, central_gravity=0.02, spring_length=100, spring_strength=0.05)
+        
+        # Genera e visualizza
+        path_html = 'network_graph.html'
+        net.save_graph(path_html)
+        
+        with open(path_html, 'r', encoding='utf-8') as f:
+            components.html(f.read(), height=800)
+
+        os.remove(path_html)
+
+        st.info("💡 Puoi trascinare i nodi, zoomare e cliccare per vedere i dettagli")
