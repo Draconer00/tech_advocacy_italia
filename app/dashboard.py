@@ -394,6 +394,9 @@ with tab_mappa_posizionamento:
             centroidi_ong.rename(columns={'nome': 'titolo'})
         ])
 
+        # Riempie valori NaN per le notizie con dimensione fissa piccola
+        df_plot['numero_articoli'] = df_plot['numero_articoli'].fillna(3)
+
         # Crea scatter plot interattivo
         fig = px.scatter(
             df_plot,
