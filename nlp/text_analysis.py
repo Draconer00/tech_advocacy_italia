@@ -345,6 +345,67 @@ def estrai_entita(testo):
     entita_deduplicate = deduplica_entita(list(set(entita_trovate)))
     return entita_deduplicate
 
+def calcola_score_posizionamento(testo: str) -> tuple[float, float]:
+    """
+    Calcola i due score per la mappa di posizionamento.
+    
+    Valori restituiti:
+    score_geografia: -1.0 = Italia 🇮🇹  ...  +1.0 = Mondo 🌍
+    score_tech_legale: -1.0 = Legale ⚖️  ...  +1.0 = Tecnico ⚙️
+    
+    Entrambi sono valori continui float tra -1.0 e +1.0
+    """
+    testo_lower = str(testo).lower()
+    
+    # ========================================
+    # Asse X: GEOGRAFIA
+    # ========================================
+    punti_geo = 0.0
+    
+    # Punti negativi = Italia
+    parole_italia = ["italia", "italiano", "roma", "governo italiano", "garante privacy", "agcom"]
+    for p in parole_italia:
+        if p in testo_lower: punti_geo -= 0.25
+    
+    # Punti neutri = Europa
+    parole_europa = ["unione europea", "ue", "bruxelles", "commissione europea", "edpb", "gdpr"]
+    for p in parole_europa:
+        if p in testo_lower: punti_geo += 0.0
+    
+    # Punti positivi = Internazionale
+    parole_mondo = ["stati uniti", "usa", "mondo", "internazionale", "globale", "cina", "silicon valley"]
+    for p in parole_mondo:
+        if p in testo_lower: punti_geo += 0.25
+    
+    # Normalizza tra -1.0 e +1.0
+    score_geografia = max(-1.0, min(1.0, punti_geo))
+
+    # ========================================
+    # Asse Y: TECNICO vs LEGALE
+    # ========================================
+    punti_tl = 0.0
+    
+    # Punti negativi = Legale
+    parole_legale = ["legge", "normativa", "provvedimento", "multa", "sentenza", "regolamento", "tribunale", "avvocato"]
+    for p in parole_legale:
+        if p in testo_lower: punti_tl -= 0.25
+    
+    # Punti positivi = Tecnico
+    parole_tecnico = ["algoritmo", "codice", "crittografia", "software", "hardware", "ai", "intelligenza artificiale", "sicurezza informatica"]
+    for p in parole_tecnico:
+        if p in testo_lower: punti_tl += 0.25
+    
+    # Normalizza tra -1.0 e +1.0
+    score_tech_legale = max(-1.0, min(1.0, punti_tl))
+    
+    # Aggiungi piccolo rumore per evitare sovrapposizioni perfette
+    import random
+    score_geografia += random.uniform(-0.05, 0.05)
+    score_tech_legale += random.uniform(-0.05, 0.05)
+    
+    return (score_tech_legale, score_geografia)
+
+
 def classifica_geografia(testo):
     """
     Analizza il testo per capire se il provvedimento ha respiro internazionale, 

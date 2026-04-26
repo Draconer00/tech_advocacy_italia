@@ -161,9 +161,62 @@ PROFILI_ONG = {
         "area_geografica": "Unione Europea",
         "descrizione": "Monitoraggio indipendente dell'implementazione dell'AI Act",
         "focus": ["AI Act", "regolamentazione IA", "conformità"],
-        "url_sito": "https://artificialintelligenceact.eu"
+        "url_sito": "https://artificialintelligenceact.eu",
+        "posizione_geografica": 0.7,
+        "posizione_tipologica": 0.8
     }
 }
+
+
+def calcola_coordinate_assi(testo: str) -> tuple[float, float]:
+    """
+    Calcola le coordinate sul piano cartesiano per qualsiasi testo.
+    
+    Asse X (0.0 -> 1.0):  0 = Italia 🇮🇹  ...  1 = Internazionale 🌍
+    Asse Y (0.0 -> 1.0):  0 = Tecnico ⚙️  ...  1 = Legale ⚖️
+    
+    Restituisce tuple (x, y) con valori continui tra 0 e 1
+    """
+    testo_lower = testo.lower()
+    
+    # Punteggio Asse X (Geografico)
+    punteggio_x = 0.0
+    
+    parole_italia = ["italia", "italiano", "roma", "governo italiano"]
+    parole_europa = ["europa", "ue", "unione europea", "bruxelles", "commissione europea"]
+    parole_internazionale = ["mondo", "internazionale", "globale", "stati uniti", "cina"]
+    
+    for p in parole_italia:
+        if p in testo_lower: punteggio_x += 0.0
+    for p in parole_europa:
+        if p in testo_lower: punteggio_x += 0.5
+    for p in parole_internazionale:
+        if p in testo_lower: punteggio_x += 1.0
+    
+    # Punteggio Asse Y (Tipologico)
+    punteggio_y = 0.0
+    
+    parole_tecnico = ["algoritmo", "tecnico", "codice", "crittografia", "sicurezza", "software"]
+    parole_misto = ["dati", "privacy", "gdpr", "intelligenza artificiale", "sorveglianza"]
+    parole_legale = ["legge", "legale", "normativa", "sentenza", "multa", "provvedimento", "regolamento"]
+    
+    for p in parole_tecnico:
+        if p in testo_lower: punteggio_y += 0.0
+    for p in parole_misto:
+        if p in testo_lower: punteggio_y += 0.5
+    for p in parole_legale:
+        if p in testo_lower: punteggio_y += 1.0
+    
+    # Normalizza tra 0 e 1
+    punteggio_x = min(1.0, max(0.0, punteggio_x))
+    punteggio_y = min(1.0, max(0.0, punteggio_y))
+    
+    # Aggiungi piccolo offset casuale per evitare sovrapposizioni perfette
+    import random
+    punteggio_x += random.uniform(-0.03, 0.03)
+    punteggio_y += random.uniform(-0.03, 0.03)
+    
+    return (punteggio_x, punteggio_y)
 
 
 def _classifica_livello_allarme(titolo: str) -> int:

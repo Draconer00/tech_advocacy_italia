@@ -109,7 +109,7 @@ df_ong = carica_dati_ong()
 df_gpdp = carica_dati_garante()
 
 # --- CREAZIONE DELLE SCHEDE (TABS) ---
-tab_home, tab_ong, tab_garante, tab_network = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante", "🕸️ Network Temi"])
+tab_home, tab_ong, tab_garante, tab_network, tab_mappa_posizionamento = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante", "🕸️ Network Temi", "📍 Mappa Posizionamento"])
 
 # ==========================================
 # SCHEDA 0: HOME RADAR UNIFICATO
@@ -345,6 +345,95 @@ with tab_garante:
 
 
 # ==========================================
+# SCHEDA 4: MAPPA DI POSIZIONAMENTO CARTESIANO
+# ==========================================
+with tab_mappa_posizionamento:
+    st.header("📍 Mappa di Posizionamento")
+    st.markdown("""
+    Piano cartesiano bidimensionale dove ogni elemento viene posizionato in base a due assi:
+    
+    | Asse | Estremo Sinistro | Estremo Destro |
+    |------|------------------|----------------|
+    | 🡪 **Asse X Orizzontale** | `-1 = Italia 🇮🇹` | `+1 = Mondo 🌍` |
+    | 🡩 **Asse Y Verticale** | `-1 = Legale ⚖️` | `+1 = Tecnico ⚙️` |
+    
+    ✅ Punti grigi piccoli = Singole notizie
+    ✅ Punti colorati grandi = Centroidi delle ONG
+    ✅ La dimensione del punto dipende dal numero di articoli pubblicati
+    """)
+
+    # Importa funzione calcolo score
+    import sys
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+    from nlp.text_analysis import calcola_score_posizionamento
+    from scrapers.scraper_ong import PROFILI_ONG
+
+    if df_ong.empty:
+        st.warning("Nessun dato ONG disponibile")
+    else:
+        # Prepara dati notizie
+        df_notizie = df_ong.copy()
+        df_notizie[['score_tech_legale', 'score_geografia']] = df_notizie.apply(
+            lambda row: pd.Series(calcola_score_posizionamento(row['titolo'] + " " + row.get('descrizione_organizzazione', ''))),
+            axis=1
+        )
+        df_notizie['tipo'] = 'Notizia'
+
+        # Calcola centroidi ONG
+        centroidi_ong = df_notizie.groupby('nome_organizzazione').agg({
+            'score_tech_legale': 'mean',
+            'score_geografia': 'mean',
+            'titolo': 'count'
+        }).reset_index()
+        centroidi_ong.columns = ['nome', 'score_tech_legale', 'score_geografia', 'numero_articoli']
+        centroidi_ong['tipo'] = 'ONG'
+
+        # Unisci i due dataframe
+        df_plot = pd.concat([
+            df_notizie[['score_tech_legale', 'score_geografia', 'titolo', 'tipo']],
+            centroidi_ong.rename(columns={'nome': 'titolo'})
+        ])
+
+        # Crea scatter plot interattivo
+        fig = px.scatter(
+            df_plot,
+            x='score_geografia',
+            y='score_tech_legale',
+            color='tipo',
+            size='numero_articoli' if 'numero_articoli' in df_plot.columns else None,
+            size_max=30,
+            opacity=0.7,
+            hover_data=['titolo'],
+            color_discrete_map={
+                'Notizia': '#666666',
+                'ONG': '#ff4b4b'
+            },
+            range_x=[-1.1, 1.1],
+            range_y=[-1.1, 1.1],
+            title='Mappa di Posizionamento delle Organizzazioni e Notizie'
+        )
+
+        # Aggiungi linee degli assi al centro
+        fig.add_hline(y=0, line_dash="dash", line_color="#444444")
+        fig.add_vline(x=0, line_dash="dash", line_color="#444444")
+
+        # Configura layout
+        fig.update_layout(
+            xaxis_title="🌍 Geografia: Italia ↔ Mondo",
+            yaxis_title="⚙️ Tipo: Legale ↔ Tecnico",
+            showlegend=True,
+            height=700,
+            paper_bgcolor="#0e0e0e",
+            plot_bgcolor="#0e0e0e",
+            font_color="#ffffff"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.info("💡 Passa con il mouse sopra i punti per vedere i dettagli. Le ONG si trovano nella media della posizione di tutte le loro notizie.")
+
+
+# ==========================================
 # SCHEDA 3: NETWORK MAP ONG <-> TEMI
 # ==========================================
 with tab_network:
@@ -383,14 +472,28 @@ with tab_network:
                 # Peso della connessione: 1 = correlazione diretta
                 G.add_edge(nome_ong, tema, value=1, title=f"Focus principale")
 
-        # Aggiungi notizie e connettili in base alla similarità
+        # Aggiungi notizie e connettili AI TEMI (NON direttamente alle ONG)
+        parole_tema = []
+        for _, dati_ong in PROFILI_ONG.items():
+            parole_tema.extend(dati_ong.get('focus', []))
+        parole_tema = list(set(parole_tema))
+
         for _, notizia in df_ong.head(30).iterrows():
             titolo = notizia['titolo'][:50] + "..."
-            nome_ong = notizia['nome_organizzazione']
+            testo_notizia = notizia['titolo'].lower()
             
-            if nome_ong in G:
-                G.add_node(titolo, color='#4bff8b', size=10, group='Notizia')
-                G.add_edge(nome_ong, titolo, value=0.7, title="Notizia pubblicata")
+            # Cerca corrispondenza tematica
+            tema_associato = None
+            max_match = 0
+            
+            for tema in parole_tema:
+                if tema.lower() in testo_notizia:
+                    tema_associato = tema
+                    break
+            
+            if tema_associato and tema_associato in G:
+                G.add_node(titolo, color='#4bff8b', size=8, group='Notizia', shape='diamond')
+                G.add_edge(tema_associato, titolo, value=0.5, title="Argomento correlato")
 
         # Statistiche Network
         col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
@@ -413,18 +516,19 @@ with tab_network:
         
         net.from_nx(G)
         
-        # Impostazioni fisica BRUTALISTA MINIMALE
+        # Impostazioni stile Y2K BRUTALIST
         net.set_options("""
         {
           "physics": {
             "barnesHut": {
-              "gravitationalConstant": -2200,
-              "centralGravity": 0.4,
-              "springLength": 130,
-              "springConstant": 0.03,
-              "damping": 0.9
+              "gravitationalConstant": -3200,
+              "centralGravity": 0.08,
+              "springLength": 160,
+              "springConstant": 0.009,
+              "damping": 0.95,
+              "avoidOverlap": 0.3
             },
-            "minVelocity": 0.75
+            "minVelocity": 0.1
           },
           "interaction": {
             "hideEdgesOnDrag": false,
@@ -432,30 +536,35 @@ with tab_network:
             "hover": true,
             "multiselect": true,
             "navigationButtons": false,
-            "tooltipDelay": 100,
-            "zoomView": false
+            "tooltipDelay": 50,
+            "zoomView": true,
+            "zoomSpeed": 0.25,
+            "dragView": true
           },
           "nodes": {
             "borderWidth": 2,
             "borderWidthSelected": 4,
+            "shape": "diamond",
+            "size": 14,
             "font": {
-              "size": 12,
-              "face": "monospace",
-              "color": "#ffffff"
+              "size": 10,
+              "face": "Verdana",
+              "color": "#ffffff",
+              "strokeWidth": 1,
+              "strokeColor": "#000000"
             },
             "shadow": false
           },
           "edges": {
             "color": {
               "inherit": false,
-              "color": "#333333",
-              "highlight": "#666666",
-              "hover": "#444444"
+              "color": "#44ff00",
+              "highlight": "#00ffff",
+              "hover": "#ff00ff"
             },
             "width": 1,
-            "smooth": {
-              "type": "continuous"
-            }
+            "dashes": [5,3],
+            "smooth": false
           }
         }
         """)
@@ -467,10 +576,16 @@ with tab_network:
         with open(path_html, 'r', encoding='utf-8') as f:
             html_content = f.read()
             
-        # Disabilita zoom out oltre i limiti
+        # Sfondo particellare e limiti zoom
         html_content = html_content.replace(
             'var options = {',
-            'var options = {\n  zoomMax: 1.5,\n  zoomMin: 0.6,'
+            'var options = {\n  zoomMax: 2.2,\n  zoomMin: 0.35,'
+        )
+        
+        # Sfondo statico pixel puntinato Y2K + ASSI FISSI
+        html_content = html_content.replace(
+            'background-color: #0a0a0a;',
+            'background: #000000;\nbackground-image: linear-gradient(rgba(30,30,30,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(30,30,30,0.3) 1px, transparent 1px), radial-gradient(#111111 1px, #000000 1px);\nbackground-size: 100% 100%, 100% 100%, 8px 8px;\nbackground-position: center center, center center, 0 0;'
         )
         
         components.html(html_content, height=750)
