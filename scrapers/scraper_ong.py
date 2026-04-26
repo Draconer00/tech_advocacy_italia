@@ -106,6 +106,62 @@ PROFILI_ONG = {
         "descrizione": "Studi e ricerche su lavoro, diritti e trasformazioni sociali",
         "focus": ["lavoro", "economia"],
         "url_sito": "https://strali.org"
+    },
+    "Access Now": {
+        "tipo_organizzazione": "Organizzazione Internazionale",
+        "area_geografica": "Internazionale",
+        "descrizione": "Difende i diritti digitali nel mondo intero",
+        "focus": ["internet freedom", "shutdown", "sorveglianza"],
+        "url_sito": "https://www.accessnow.org"
+    },
+    "Electronic Frontier Foundation": {
+        "tipo_organizzazione": "Organizzazione Legale",
+        "area_geografica": "Internazionale",
+        "descrizione": "Prima organizzazione mondiale per la difesa dei diritti digitali",
+        "focus": ["libertà digitale", "criptografia", "brevetti"],
+        "url_sito": "https://www.eff.org"
+    },
+    "Privacy International": {
+        "tipo_organizzazione": "Organizzazione di Ricerca",
+        "area_geografica": "Internazionale",
+        "descrizione": "Monitora lo stato della privacy a livello globale",
+        "focus": ["sorveglianza di massa", "dati personali", "AI"],
+        "url_sito": "https://privacyinternational.org"
+    },
+    "Open Rights Group": {
+        "tipo_organizzazione": "Organizzazione Advocacy",
+        "area_geografica": "Regno Unito",
+        "descrizione": "Organizzazione britannica per i diritti digitali",
+        "focus": ["GDPR", "sorveglianza", "open data"],
+        "url_sito": "https://www.openrightsgroup.org"
+    },
+    "EDPS Garante Privacy UE": {
+        "tipo_organizzazione": "Istituzione Europea",
+        "area_geografica": "Unione Europea",
+        "descrizione": "Garante Europeo per la Protezione dei Dati",
+        "focus": ["GDPR", "applicazione normativa", "IA"],
+        "url_sito": "https://edps.europa.eu"
+    },
+    "Commissione Europea DG Connect": {
+        "tipo_organizzazione": "Istituzione Europea",
+        "area_geografica": "Unione Europea",
+        "descrizione": "Direzione Generale Rete e Contenuti Digitali",
+        "focus": ["AI Act", "Digital Services Act", "DMA"],
+        "url_sito": "https://digital-strategy.ec.europa.eu"
+    },
+    "Consiglio d'Europa": {
+        "tipo_organizzazione": "Istituzione Internazionale",
+        "area_geografica": "Europa",
+        "descrizione": "Convenzione Diritti Umani e diritto tecnologico",
+        "focus": ["diritti umani", "governance AI", "etica"],
+        "url_sito": "https://www.coe.int"
+    },
+    "AI Act Monitor": {
+        "tipo_organizzazione": "Monitoraggio Normativo",
+        "area_geografica": "Unione Europea",
+        "descrizione": "Monitoraggio indipendente dell'implementazione dell'AI Act",
+        "focus": ["AI Act", "regolamentazione IA", "conformità"],
+        "url_sito": "https://artificialintelligenceact.eu"
     }
 }
 
@@ -149,7 +205,19 @@ def scrape_comunicati_ong():
         "Antigone": "https://www.antigone.it/news?format=feed&type=rss",
         "Italiani Senza Cittadinanza": "https://italianisenzacittadinanza.it/feed/",
         "SOMO (Multinazionali)": "https://www.somo.nl/feed/",
-        "STRALI": "https://www.strali.org/blog-feed.xml" 
+        "STRALI": "https://www.strali.org/blog-feed.xml",
+        
+        # --- Organizzazioni Internazionali ---
+        "Access Now": "https://www.accessnow.org/feed/",
+        "Electronic Frontier Foundation": "https://www.eff.org/rss/updates.xml",
+        "Privacy International": "https://privacyinternational.org/rss.xml",
+        "Open Rights Group": "https://www.openrightsgroup.org/feed/",
+        
+        # --- Istituzioni Europee ---
+        "EDPS Garante Privacy UE": "https://edps.europa.eu/news/rss_en.xml",
+        "Commissione Europea DG Connect": "https://digital-strategy.ec.europa.eu/en/rss.xml",
+        "Consiglio d'Europa": "https://www.coe.int/en/web/hrcouncil/rss",
+        "AI Act Monitor": "https://artificialintelligenceact.eu/feed/"
     }
     
     tutte_le_notizie = []

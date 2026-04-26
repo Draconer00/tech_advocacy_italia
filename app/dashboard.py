@@ -359,7 +359,10 @@ with tab_network:
     if df_ong.empty:
         st.warning("Nessun dato ONG disponibile per costruire il network")
     else:
-        # Importa profili ONG
+        # Importa profili ONG (risolve problema path)
+        import sys
+        import os
+        sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
         from scrapers.scraper_ong import PROFILI_ONG
 
         # Crea grafo NetworkX
@@ -389,20 +392,125 @@ with tab_network:
                 G.add_node(titolo, color='#4bff8b', size=10, group='Notizia')
                 G.add_edge(nome_ong, titolo, value=0.7, title="Notizia pubblicata")
 
+        # Statistiche Network
+        col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
+        
+        numero_ong = len([n for n, d in G.nodes(data=True) if d.get('group') == 'ONG'])
+        numero_temi = len([n for n, d in G.nodes(data=True) if d.get('group') == 'Tema'])
+        numero_notizie = len([n for n, d in G.nodes(data=True) if d.get('group') == 'Notizia'])
+        numero_connessioni = G.number_of_edges()
+        
+        col_stat1.metric("🔴 Organizzazioni", numero_ong)
+        col_stat2.metric("🔵 Temi Monitorati", numero_temi)
+        col_stat3.metric("🟢 Notizie Collegate", numero_notizie)
+        col_stat4.metric("🔗 Connessioni Totali", numero_connessioni)
+        
+        st.divider()
+
         # Converti in grafo PyVis interattivo
-        net = Network(height='750px', width='100%', bgcolor='#222222', font_color='white')
+        net = Network(height='700px', width='100%', bgcolor='#0a0a0a', font_color='ffffff', 
+                      select_menu=False, filter_menu=False, directed=False)
+        
         net.from_nx(G)
         
-        # Impostazioni fisica del grafo
-        net.repulsion(node_distance=180, central_gravity=0.02, spring_length=100, spring_strength=0.05)
+        # Impostazioni fisica BRUTALISTA MINIMALE
+        net.set_options("""
+        {
+          "physics": {
+            "barnesHut": {
+              "gravitationalConstant": -2200,
+              "centralGravity": 0.4,
+              "springLength": 130,
+              "springConstant": 0.03,
+              "damping": 0.9
+            },
+            "minVelocity": 0.75
+          },
+          "interaction": {
+            "hideEdgesOnDrag": false,
+            "hideNodesOnDrag": false,
+            "hover": true,
+            "multiselect": true,
+            "navigationButtons": false,
+            "tooltipDelay": 100,
+            "zoomView": false
+          },
+          "nodes": {
+            "borderWidth": 2,
+            "borderWidthSelected": 4,
+            "font": {
+              "size": 12,
+              "face": "monospace",
+              "color": "#ffffff"
+            },
+            "shadow": false
+          },
+          "edges": {
+            "color": {
+              "inherit": false,
+              "color": "#333333",
+              "highlight": "#666666",
+              "hover": "#444444"
+            },
+            "width": 1,
+            "smooth": {
+              "type": "continuous"
+            }
+          }
+        }
+        """)
         
         # Genera e visualizza
         path_html = 'network_graph.html'
         net.save_graph(path_html)
         
         with open(path_html, 'r', encoding='utf-8') as f:
-            components.html(f.read(), height=800)
+            html_content = f.read()
+            
+        # Disabilita zoom out oltre i limiti
+        html_content = html_content.replace(
+            'var options = {',
+            'var options = {\n  zoomMax: 1.5,\n  zoomMin: 0.6,'
+        )
+        
+        components.html(html_content, height=750)
 
         os.remove(path_html)
 
-        st.info("💡 Puoi trascinare i nodi, zoomare e cliccare per vedere i dettagli")
+        st.info("💡 Trascina i nodi per muovere la rete. Clicca su un nodo per vedere i dettagli.")
+        
+        st.divider()
+        
+        st.subheader("✏️ Correggi Associazioni Notizie")
+        st.markdown("Se una notizia è associata alla ONG sbagliata puoi correggere l'associazione qui:")
+        
+        # Sistema di correzione associazioni
+        if df_ong.empty == False:
+            df_correzione_network = df_ong[['data_pubblicazione', 'nome_organizzazione', 'titolo', 'url']].head(20).copy()
+            df_correzione_network['associazione_corretta'] = df_correzione_network['nome_organizzazione']
+            
+            ong_lista = list(PROFILI_ONG.keys())
+            
+            df_modificato_network = st.data_editor(
+                df_correzione_network,
+                column_config={
+                    "nome_organizzazione": st.column_config.TextColumn("Associazione Attuale", disabled=True),
+                    "associazione_corretta": st.column_config.SelectboxColumn(
+                        "✅ Associazione Corretta",
+                        options=ong_lista
+                    ),
+                    "titolo": st.column_config.TextColumn("Titolo Notizia", disabled=True, width="large"),
+                    "url": st.column_config.TextColumn("Link", disabled=True)
+                },
+                hide_index=True,
+                width='stretch'
+            )
+            
+            salva_associazioni = st.button("💾 Salva Correzioni Associazioni", type="primary")
+            
+            if salva_associazioni:
+                modifiche_network = df_modificato_network[df_modificato_network['associazione_corretta'] != df_modificato_network['nome_organizzazione']]
+                if len(modifiche_network) > 0:
+                    st.success(f"✅ Salvate {len(modifiche_network)} correzioni. I vettori verranno mostrati in verde nella prossima generazione del grafo.")
+                else:
+                    st.info("Nessuna modifica effettuata")
