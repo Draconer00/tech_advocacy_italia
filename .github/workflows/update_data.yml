@@ -1,15 +1,14 @@
 name: Radar Advocacy - Automazione Dati
 
-# Quando deve partire?
 on:
   schedule:
-    - cron: '0 2 * * *' # Tutti i giorni alle 02:00 (ora UTC)
-  workflow_dispatch: # Questo pulsante ci permette di avviarlo anche a mano da GitHub!
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 jobs:
 
   # ==============================================
-  # 🕵️ SCRAPER GPDP (JOB SEPARATO E PARALLELO)
+  # 🕵️ SCRAPER GPDP (SOLO RACCOLTA, NO COMMIT)
   # ==============================================
   scraper-gpdp:
     runs-on: ubuntu-latest
@@ -24,25 +23,24 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: 'pip' # ✅ CACHE AUTOMATICA DELLE DIPENDENZE
+          cache: 'pip'
 
       - name: 📦 Installa librerie
-        run: |
-          pip install -r requirements.txt
-          python -m spacy download it_core_news_md
+        run: pip install -r requirements.txt
 
       - name: 🕵️ Scraping Garante Privacy
         run: python scrapers/scraper_gpdp.py
         continue-on-error: true
 
-      - name: 💾 Salva dati GPDP
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - name: 📤 Carica Dati GPDP nel Cassetto Temporaneo (Artifact)
+        uses: actions/upload-artifact@v4
         with:
-          commit_message: "🤖 Aggiornamento dati GPDP"
-          file_pattern: data/raw/gpdp*.csv
+          name: raw-gpdp-data
+          path: data/raw/gpdp*.csv
+          retention-days: 1 # I dati grezzi vivono qui solo per 1 giorno
 
   # ==============================================
-  # 📢 SCRAPER ONG (JOB SEPARATO E PARALLELO)
+  # 📢 SCRAPER ONG (SOLO RACCOLTA, NO COMMIT)
   # ==============================================
   scraper-ong:
     runs-on: ubuntu-latest
@@ -66,25 +64,28 @@ jobs:
         run: python scrapers/scraper_ong.py
         continue-on-error: true
 
-      - name: 💾 Salva dati ONG
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - name: 📤 Carica Dati ONG nel Cassetto Temporaneo (Artifact)
+        uses: actions/upload-artifact@v4
         with:
-          commit_message: "🤖 Aggiornamento dati ONG"
-          file_pattern: data/raw/ong*.csv
+          name: raw-ong-data
+          path: data/raw/ong*.csv
+          retention-days: 1
 
-  # ==============================================
-  # 🧠 ANALISI NLP (SI AVVIA DOPO TUTTI GLI SCRAPER)
+# ==============================================
+  # 🧠 ANALISI NLP & SALVATAGGIO FINALE 
   # ==============================================
   analisi-nlp:
     needs: [scraper-gpdp, scraper-ong]
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: write # Obbligatorio per permettere al bot di fare il commit
 
     steps:
       - name: 📥 Clona il repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Prendi tutti i commit precedenti
+          fetch-depth: 0
 
       - name: 🐍 Configura Python
         uses: actions/setup-python@v5
@@ -92,16 +93,37 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
+      # ✅ NUOVO BLOCCO: CACHE PER I MODELLI PESANTI (HUGGINGFACE)
+      - name: 🗄️ Cache Modelli AI (HuggingFace)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          # La chiave cambia solo se modifichi il file requirements.txt
+          key: ${{ runner.os }}-hf-models-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-hf-models-
+
       - name: 📦 Installa librerie
         run: |
           pip install -r requirements.txt
           python -m spacy download it_core_news_md
 
+      - name: 📥 Scarica Dati GPDP dal Cassetto
+        uses: actions/download-artifact@v4
+        with:
+          name: raw-gpdp-data
+          path: data/raw/
+
+      - name: 📥 Scarica Dati ONG dal Cassetto
+        uses: actions/download-artifact@v4
+        with:
+          name: raw-ong-data
+          path: data/raw/
+
       - name: 🧠 Esegui Analisi Testuale NLP
         run: python nlp/text_analysis.py
 
-      - name: 💾 Salva risultati analisi
+      - name: 💾 UNICO COMMIT FINALE (Raw + Processed)
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "🤖 Aggiornamento analisi NLP"
-          file_pattern: data/processed/*.csv data/*.db
+          commit_message: "🤖 Pipeline Dati Completata: Raw & NLP"

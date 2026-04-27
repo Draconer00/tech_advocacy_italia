@@ -397,20 +397,13 @@ with tab_mappa_posizionamento:
         # Riempie valori NaN per le notizie con dimensione fissa piccola
         df_plot['numero_articoli'] = df_plot['numero_articoli'].fillna(3)
 
-        # ✅ Normalizzazione MIN-MAX per espandere tutta la scala -1 / +1
-        def normalizza_serie(s):
-            min_val = s.min()
-            max_val = s.max()
-            if max_val == min_val:
-                return s * 0
-            return 2 * ((s - min_val) / (max_val - min_val)) - 1
-
-        df_plot['score_tech_legale'] = normalizza_serie(df_plot['score_tech_legale'])
-        df_plot['score_geografia'] = normalizza_serie(df_plot['score_geografia'])
-
+        # ✅ Scala FISSA ASSOLUTA - nessuna normalizzazione dinamica
+        # I valori rimangono stabili nel tempo, comparabili tra esecuzioni diverse
+        # Range: -1.0 / +1.0 definito una volta per sempre nel modello
+        
         # ✅ Jitter leggero per separare i punti sovrapposti
-        df_plot['score_tech_legale'] += np.random.normal(0, 0.03, size=len(df_plot))
-        df_plot['score_geografia'] += np.random.normal(0, 0.03, size=len(df_plot))
+        df_plot['score_tech_legale'] += np.random.normal(0, 0.025, size=len(df_plot))
+        df_plot['score_geografia'] += np.random.normal(0, 0.025, size=len(df_plot))
 
         # Crea scatter plot interattivo
         fig = px.scatter(
@@ -438,20 +431,22 @@ with tab_mappa_posizionamento:
                 y=row['score_tech_legale'],
                 text=row['nome'],
                 showarrow=True,
-                arrowhead=2,
-                arrowsize=1,
-                arrowwidth=2,
+                arrowhead=1,
+                arrowsize=0.8,
+                arrowwidth=1,
                 arrowcolor="#ffff00",
                 font=dict(
                     family="Verdana",
-                    size=11,
+                    size=10,
                     color="#ffff00"
                 ),
-                bgcolor="#000000",
+                bgcolor="rgba(0,0,0,0.85)",
                 bordercolor="#ffff00",
                 borderwidth=1,
-                xshift=25,
-                yshift=15
+                xanchor='left',
+                yanchor='bottom',
+                xshift=8,
+                yshift=8
             )
 
         # Aggiungi linee degli assi al centro

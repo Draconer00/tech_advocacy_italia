@@ -2,8 +2,12 @@ import feedparser
 import pandas as pd
 import os
 import hashlib
+import pickle
+import numpy as np
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 
 # ✅ DIZIONARIO PROFILI ORGANIZZAZIONI
 # Ogni ONG può autodefinirsi e aggiungere la propria descrizione
@@ -234,11 +238,66 @@ def _classifica_livello_allarme(titolo: str) -> int:
         return 1
 
 
+# ✅ DEDUPLICAZIONE SEMANTICA
+SIMILARITY_THRESHOLD = 0.88
+EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
+
+model = None
+def get_embedding_model():
+    global model
+    if model is None:
+        print(f"✅ Caricamento modello embedding: {EMBEDDING_MODEL}")
+        model = SentenceTransformer(EMBEDDING_MODEL, device='cpu')
+    return model
+
+def load_embeddings_cache():
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    cache_path = os.path.join(cartella_script, '..', 'data', 'processed', 'embeddings_cache.pkl')
+    if os.path.exists(cache_path):
+        with open(cache_path, 'rb') as f:
+            return pickle.load(f)
+    return {}
+
+def save_embeddings_cache(cache):
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    cache_path = os.path.join(cartella_script, '..', 'data', 'processed', 'embeddings_cache.pkl')
+    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+    with open(cache_path, 'wb') as f:
+        pickle.dump(cache, f)
+
+def is_duplicate_semantic(testo: str) -> bool:
+    model = get_embedding_model()
+    cache = load_embeddings_cache()
+    
+    # Calcola embedding nuova notizia
+    new_embedding = model.encode(testo, show_progress_bar=False)
+    
+    # Se cache vuota non ci sono duplicati
+    if not cache:
+        cache[hash(testo)] = new_embedding
+        save_embeddings_cache(cache)
+        return False
+    
+    # Calcola similarità con tutti gli embedding esistenti
+    all_embeddings = np.array(list(cache.values()))
+    similarities = cosine_similarity(new_embedding.reshape(1, -1), all_embeddings)[0]
+    max_similarity = np.max(similarities)
+    
+    if max_similarity > SIMILARITY_THRESHOLD:
+        return True
+    
+    # Aggiungi alla cache se non duplicato
+    cache[hash(testo)] = new_embedding
+    save_embeddings_cache(cache)
+    return False
+
+
 def scrape_comunicati_ong():
     """
     Estrae le ultime campagne dai feed RSS delle principali ONG 
     italiane ed europee (Tech Advocacy e Diritti Umani).
     ✅ Profilo ogni organizzazione pubblica e modificabile da tutti
+    ✅ Deduplicazione semantica automatica
     """
     # Il nostro Radar espanso
     fonti_ong = {
@@ -285,6 +344,11 @@ def scrape_comunicati_ong():
 
             for entry in feed.entries:
                 testo_completo = f"{entry.title} {getattr(entry, 'summary', '')}"
+                
+                # ✅ Controllo deduplicazione semantica PRIMA di salvare
+                if is_duplicate_semantic(testo_completo):
+                    continue
+                
                 hash_contenuto = hashlib.sha256(testo_completo.encode('utf-8')).hexdigest()
                 
                 profilo = PROFILI_ONG.get(nome_ong, {
