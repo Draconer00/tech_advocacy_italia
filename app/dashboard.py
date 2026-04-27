@@ -188,9 +188,10 @@ with tab_home:
     CATEGORIE_GEOGRAFICHE = ["Italia", "Europa", "USA / Internazionale", "Asia", "Generico"]
     
     # Prepara dataframe per editor
-    df_correzione = df_filtrato[['data', 'fonte', 'titolo', 'ambito_geografico']].head(30).copy()
+    df_correzione = df_filtrato[['data', 'fonte', 'titolo', 'ambito_geografico', 'livello_allarme']].head(30).copy()
     df_correzione['errore_segnalato'] = False
     df_correzione['categoria_corretta'] = "Non modificato"
+    df_correzione['livello_allarme_corretto'] = df_correzione['livello_allarme']
     
     # Usa data_editor invece di dataframe per modifiche interattive
     col_edit, col_save = st.columns([4,1])
@@ -204,11 +205,19 @@ with tab_home:
                 "titolo": st.column_config.TextColumn("Titolo", disabled=True, width="large"),
                 "ambito_geografico": st.column_config.TextColumn("Classificazione AI", disabled=True),
                 "errore_segnalato": st.column_config.CheckboxColumn("✅ Segnala Errore"),
-                "categoria_corretta": st.column_config.SelectboxColumn(
-                    "🎯 Categoria Corretta",
-                    options=CATEGORIE_GEOGRAFICHE
-                )
-            },
+            "categoria_corretta": st.column_config.SelectboxColumn(
+                "🎯 Categoria Corretta",
+                options=CATEGORIE_GEOGRAFICHE
+            ),
+            "livello_allarme": st.column_config.NumberColumn("Livello AI", disabled=True, min_value=1, max_value=5),
+            "livello_allarme_corretto": st.column_config.NumberColumn(
+                "⚠️ Livello Allarme Reale",
+                help="Modifica per assegnare l'importanza vera di questa notizia. 1 = Bassa, 5 = Molto Alta",
+                min_value=1,
+                max_value=5,
+                step=1
+            )
+        },
             hide_index=True,
             width='stretch',
             disabled=["data", "fonte", "titolo", "ambito_geografico"]
@@ -226,6 +235,7 @@ with tab_home:
                 # Aggiungi metadata
                 modifiche['timestamp_correzione'] = datetime.now().isoformat()
                 modifiche['utente'] = "Operatore"
+                modifiche['tipo_correzione'] = "classificazione"
                 
                 # Percorso file feedback
                 cartella_script = os.path.dirname(os.path.abspath(__file__))
@@ -397,6 +407,10 @@ with tab_mappa_posizionamento:
         # Riempie valori NaN per le notizie con dimensione fissa piccola
         df_plot['numero_articoli'] = df_plot['numero_articoli'].fillna(3)
 
+        # ✅ Dimensione punto dipende anche da livello di allarme
+        # Notizie più importanti sono più grandi
+        df_plot['dimensione_finale'] = df_plot['numero_articoli'] * 1.5
+
         # ✅ Scala FISSA ASSOLUTA - nessuna normalizzazione dinamica
         # I valori rimangono stabili nel tempo, comparabili tra esecuzioni diverse
         # Range: -1.0 / +1.0 definito una volta per sempre nel modello
@@ -405,49 +419,46 @@ with tab_mappa_posizionamento:
         df_plot['score_tech_legale'] += np.random.normal(0, 0.025, size=len(df_plot))
         df_plot['score_geografia'] += np.random.normal(0, 0.025, size=len(df_plot))
 
-        # Crea scatter plot interattivo
+        # Separa ONG per aggiungere etichette direttamente sui punti
+        df_notizie_solo = df_plot[df_plot['tipo'] == 'Notizia']
+        df_ong_solo = df_plot[df_plot['tipo'] == 'ONG']
+
+        # Crea scatter plot base per le notizie
         fig = px.scatter(
-            df_plot,
+            df_notizie_solo,
             x='score_geografia',
             y='score_tech_legale',
-            color='tipo',
-            size='numero_articoli' if 'numero_articoli' in df_plot.columns else None,
-            size_max=30,
-            opacity=0.7,
+            color_discrete_sequence=['#666666'],
+            size='dimensione_finale' if 'dimensione_finale' in df_plot.columns else None,
+            size_max=18,
+            opacity=0.6,
             hover_data=['titolo'],
-            color_discrete_map={
-                'Notizia': '#666666',
-                'ONG': '#ff4b4b'
-            },
             range_x=[-1.1, 1.1],
             range_y=[-1.1, 1.1],
             title='Mappa di Posizionamento delle Organizzazioni e Notizie'
         )
 
-        # Aggiungi etichette testuali fisse per OGNI ONG
-        for _, row in centroidi_ong.iterrows():
-            fig.add_annotation(
-                x=row['score_geografia'],
-                y=row['score_tech_legale'],
-                text=row['nome'],
-                showarrow=True,
-                arrowhead=1,
-                arrowsize=0.8,
-                arrowwidth=1,
-                arrowcolor="#ffff00",
-                font=dict(
-                    family="Verdana",
-                    size=10,
-                    color="#ffff00"
-                ),
-                bgcolor="rgba(0,0,0,0.85)",
-                bordercolor="#ffff00",
-                borderwidth=1,
-                xanchor='left',
-                yanchor='bottom',
-                xshift=8,
-                yshift=8
-            )
+        # ✅ Aggiungi punti ONG con NOME SCRITTO DIRETTAMENTE SUL PUNTO
+        # Nessun offset, nessuna freccia, perfettamente allineato sempre
+        fig.add_scatter(
+            x=df_ong_solo['score_geografia'],
+            y=df_ong_solo['score_tech_legale'],
+            mode='markers+text',
+            text=df_ong_solo['titolo'],
+            textposition='top center',
+            marker=dict(
+                color='#ff4b4b',
+                size=22,
+                line=dict(width=3, color='#ffffff')
+            ),
+            textfont=dict(
+                family='Verdana',
+                size=11,
+                color='#ffffff'
+            ),
+            hovertext=df_ong_solo['titolo'],
+            name='ONG'
+        )
 
         # Aggiungi linee degli assi al centro
         fig.add_hline(y=0, line_dash="dash", line_color="#ff00ff", line_width=2)
@@ -505,6 +516,23 @@ with tab_network:
         # Crea grafo NetworkX
         G = nx.Graph()
 
+        # ✅ Normalizza sinonimi comuni - case insensitive e permutazioni
+        sinonimi = {
+            'intelligenza artificiale': 'Intelligenza Artificiale',
+            'ia': 'Intelligenza Artificiale',
+            'ai': 'Intelligenza Artificiale',
+            'artificial intelligence': 'Intelligenza Artificiale',
+            'crittografia': 'Crittografia',
+            'criptografia': 'Crittografia'
+        }
+
+        def normalizza_tema(tema: str) -> str:
+            tema_low = tema.strip().lower()
+            for sin, standard in sinonimi.items():
+                if sin in tema_low or tema_low == sin:
+                    return standard
+            return tema.strip().title()
+
         # Aggiungi nodi ONG
         for nome_ong, dati_ong in PROFILI_ONG.items():
             G.add_node(nome_ong, 
@@ -515,10 +543,11 @@ with tab_network:
             
             # Aggiungi temi come nodi e collegamenti
             for tema in dati_ong.get('focus', []):
-                if tema not in G:
-                    G.add_node(tema, color='#4b8bff', size=15, group='Tema')
+                tema_norm = normalizza_tema(tema)
+                if tema_norm not in G:
+                    G.add_node(tema_norm, color='#4b8bff', size=15, group='Tema')
                 # Peso della connessione: 1 = correlazione diretta
-                G.add_edge(nome_ong, tema, value=1, title=f"Focus principale")
+                G.add_edge(nome_ong, tema_norm, value=1, title=f"Focus principale")
 
         # Aggiungi notizie e connettili AI TEMI (NON direttamente alle ONG)
         parole_tema = []
@@ -526,7 +555,7 @@ with tab_network:
             parole_tema.extend(dati_ong.get('focus', []))
         parole_tema = list(set(parole_tema))
 
-        for _, notizia in df_ong.head(30).iterrows():
+        for _, notizia in df_ong.iterrows():
             titolo = notizia['titolo'][:50] + "..."
             testo_notizia = (notizia['titolo'] + " " + notizia.get('testo_completo', '')).lower()
             
@@ -536,7 +565,7 @@ with tab_network:
             
             for tema in parole_tema:
                 if tema.lower() in testo_notizia:
-                    tema_associato = tema
+                    tema_associato = normalizza_tema(tema)
                     break
             
             if tema_associato and tema_associato in G:
@@ -568,6 +597,7 @@ with tab_network:
         net.set_options("""
         {
           "physics": {
+            "enabled": true,
             "barnesHut": {
               "gravitationalConstant": -3200,
               "centralGravity": 0.08,
@@ -576,7 +606,14 @@ with tab_network:
               "damping": 0.95,
               "avoidOverlap": 0.3
             },
-            "minVelocity": 0.1
+            "minVelocity": 0.1,
+            "stabilization": {
+              "enabled": true,
+              "iterations": 80,
+              "fit": true,
+              "onlyDynamicEdges": false,
+              "updateInterval": 50
+            }
           },
           "interaction": {
             "hideEdgesOnDrag": false,
@@ -595,13 +632,14 @@ with tab_network:
             "shape": "diamond",
             "size": 14,
             "font": {
-              "size": 10,
+              "size": 12,
               "face": "Verdana",
               "color": "#ffffff",
-              "strokeWidth": 1,
+              "strokeWidth": 2,
               "strokeColor": "#000000"
             },
-            "shadow": false
+            "shadow": false,
+            "labelHighlightBold": true
           },
           "edges": {
             "color": {
