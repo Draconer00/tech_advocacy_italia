@@ -164,7 +164,22 @@ Questa è la caratteristica principale del progetto:
 
 ---
 
-## 🔄 Workflow Rapido End-to-End
+## 📍 Mappa di Posizionamento Cartesiano
+
+✅ Nuova funzionalità aggiunta Aprile 2026:
+- Tutte le ONG e le notizie sono posizionate su un piano cartesiano bidimensionale
+- ✅ **Asse X (Orizzontale)**: Italia ↔ Mondo
+- ✅ **Asse Y (Verticale)**: Legale ↔ Tecnico
+- ✅ Normalizzazione automatica MIN-MAX per coprire tutta la scala
+- ✅ Jitter leggero per separare punti sovrapposti
+- ✅ Etichette permanenti gialle con freccia per OGNI ONG
+- ✅ Stile uniforme Y2K brutalista con griglia viola e linee magenta
+- ✅ Centroidi ONG calcolati come media di tutte le loro notizie
+- ✅ Dimensione del punto proporzionale al numero di articoli pubblicati
+
+---
+
+##  Workflow Rapido End-to-End
 
 Per eseguire TUTTO in sequenza con un solo comando:
 ```bash

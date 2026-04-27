@@ -397,6 +397,21 @@ with tab_mappa_posizionamento:
         # Riempie valori NaN per le notizie con dimensione fissa piccola
         df_plot['numero_articoli'] = df_plot['numero_articoli'].fillna(3)
 
+        # ✅ Normalizzazione MIN-MAX per espandere tutta la scala -1 / +1
+        def normalizza_serie(s):
+            min_val = s.min()
+            max_val = s.max()
+            if max_val == min_val:
+                return s * 0
+            return 2 * ((s - min_val) / (max_val - min_val)) - 1
+
+        df_plot['score_tech_legale'] = normalizza_serie(df_plot['score_tech_legale'])
+        df_plot['score_geografia'] = normalizza_serie(df_plot['score_geografia'])
+
+        # ✅ Jitter leggero per separare i punti sovrapposti
+        df_plot['score_tech_legale'] += np.random.normal(0, 0.03, size=len(df_plot))
+        df_plot['score_geografia'] += np.random.normal(0, 0.03, size=len(df_plot))
+
         # Crea scatter plot interattivo
         fig = px.scatter(
             df_plot,
@@ -416,22 +431,57 @@ with tab_mappa_posizionamento:
             title='Mappa di Posizionamento delle Organizzazioni e Notizie'
         )
 
-        # Aggiungi linee degli assi al centro
-        fig.add_hline(y=0, line_dash="dash", line_color="#444444")
-        fig.add_vline(x=0, line_dash="dash", line_color="#444444")
+        # Aggiungi etichette testuali fisse per OGNI ONG
+        for _, row in centroidi_ong.iterrows():
+            fig.add_annotation(
+                x=row['score_geografia'],
+                y=row['score_tech_legale'],
+                text=row['nome'],
+                showarrow=True,
+                arrowhead=2,
+                arrowsize=1,
+                arrowwidth=2,
+                arrowcolor="#ffff00",
+                font=dict(
+                    family="Verdana",
+                    size=11,
+                    color="#ffff00"
+                ),
+                bgcolor="#000000",
+                bordercolor="#ffff00",
+                borderwidth=1,
+                xshift=25,
+                yshift=15
+            )
 
-        # Configura layout
+        # Aggiungi linee degli assi al centro
+        fig.add_hline(y=0, line_dash="dash", line_color="#ff00ff", line_width=2)
+        fig.add_vline(x=0, line_dash="dash", line_color="#ff00ff", line_width=2)
+
+        # ✅ Stile Y2K BRUTALIST
         fig.update_layout(
             xaxis_title="🌍 Geografia: Italia ↔ Mondo",
             yaxis_title="⚙️ Tipo: Legale ↔ Tecnico",
             showlegend=True,
-            height=700,
-            paper_bgcolor="#0e0e0e",
-            plot_bgcolor="#0e0e0e",
-            font_color="#ffffff"
+            height=750,
+            paper_bgcolor="#000000",
+            plot_bgcolor="#000000",
+            font_color="#ffffff",
+            xaxis=dict(
+                gridcolor="#330033",
+                linecolor="#ff00ff",
+                zerolinecolor="#ff00ff",
+                tickfont_color="#ffffff"
+            ),
+            yaxis=dict(
+                gridcolor="#330033",
+                linecolor="#ff00ff",
+                zerolinecolor="#ff00ff",
+                tickfont_color="#ffffff"
+            )
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
         st.info("💡 Passa con il mouse sopra i punti per vedere i dettagli. Le ONG si trovano nella media della posizione di tutte le loro notizie.")
 

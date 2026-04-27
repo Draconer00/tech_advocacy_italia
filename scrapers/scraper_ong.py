@@ -118,7 +118,7 @@ PROFILI_ONG = {
         "tipo_organizzazione": "Organizzazione Legale",
         "area_geografica": "Internazionale",
         "descrizione": "Prima organizzazione mondiale per la difesa dei diritti digitali",
-        "focus": ["libertà digitale", "criptografia", "brevetti"],
+        "focus": ["libertà digitale", "crittografia", "brevetti"],
         "url_sito": "https://www.eff.org"
     },
     "Privacy International": {
@@ -196,7 +196,7 @@ def calcola_coordinate_assi(testo: str) -> tuple[float, float]:
     # Punteggio Asse Y (Tipologico)
     punteggio_y = 0.0
     
-    parole_tecnico = ["algoritmo", "tecnico", "codice", "crittografia", "sicurezza", "software"]
+    parole_tecnico = ["algoritmo", "tecnico", "codice", "crittografia", "criptografia", "sicurezza", "software"]
     parole_misto = ["dati", "privacy", "gdpr", "intelligenza artificiale", "sorveglianza"]
     parole_legale = ["legge", "legale", "normativa", "sentenza", "multa", "provvedimento", "regolamento"]
     
