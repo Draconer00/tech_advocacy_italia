@@ -497,6 +497,9 @@ def valida_miglioramenti():
 | Priority 3.1 Topic Modeling BERTopic | ✅ COMPLETATO | 100% |
 | Priority 3.2 NER Fine Tuning | ⏳ IN PROGRAMMA | 0% |
 | Priority 3.3 Entity Linking | ⏳ IN PROGRAMMA | 0% |
+| Deduplicazione Semantica | ✅ COMPLETATO | 100% |
+| Scala Fissa Posizionamento | ✅ COMPLETATO | 100% |
+| Misurazione Errore Modello | ✅ COMPLETATO | 100% |
 | Priority 4 (Avanzate) | 📅 ROADMAP FUTURA | 0% |
 
 ---
@@ -522,8 +525,13 @@ def valida_miglioramenti():
 
 ---
 
-### 🔜 Prossimi Passi:
-1. NER Fine Tuning su dominio privacy
-2. Cache HTTP condizionale `If-Modified-Since`
-3. Estrazione importi multe e dati quantitativi
-4. Relazione Extraction Soggetto-Verbo-Oggetto
+### 🔜 Prossimi Passi (Priorità 1 e 2):
+1. ✅ **Deduplicazione Semantica con Sentence-BERT** (Completato 27/04/2026)
+2. ✅ **Rimossa normalizzazione dinamica MIN-MAX** (Completato 27/04/2026)
+3. ✅ **Script misurazione errore modello** (Completato 27/04/2026)
+4. ⏳ Peso temporale decadimento esponenziale (prossimo)
+5. ⏳ SVM Classificatore invece di keyword matching
+6. NER Fine Tuning su dominio privacy
+7. Cache HTTP condizionale `If-Modified-Since`
+8. Estrazione importi multe e dati quantitativi
+9. Relazione Extraction Soggetto-Verbo-Oggetto

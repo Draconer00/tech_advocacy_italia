@@ -528,7 +528,7 @@ with tab_network:
 
         for _, notizia in df_ong.head(30).iterrows():
             titolo = notizia['titolo'][:50] + "..."
-            testo_notizia = notizia['titolo'].lower()
+            testo_notizia = (notizia['titolo'] + " " + notizia.get('testo_completo', '')).lower()
             
             # Cerca corrispondenza tematica
             tema_associato = None

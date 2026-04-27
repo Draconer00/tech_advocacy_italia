@@ -247,8 +247,9 @@ python nlp/text_analysis.py
 - [ ] `text_analysis.py` non mostra warning
 - [ ] SQLite database è presente in `data/tech_advocacy.db`
 - [ ] Dashboard si apre correttamente
-- [ ] Tutte e 4 le tab sono visibili
+- [ ] Tutte e 5 le tab sono visibili
 - [ ] Network Map si carica e mostra i nodi
+- [ ] Mappa Posizionamento mostra punti e etichette ONG
 - [ ] Le statistiche nella scheda Network mostrano numeri > 0
 
 ---
