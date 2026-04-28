@@ -443,7 +443,7 @@ with tab_mappa_posizionamento:
 
         # Unisci i due dataframe
         df_plot = pd.concat([
-            df_notizie[['score_tech_legale', 'score_geografia', 'titolo', 'tipo']],
+            df_notizie[['score_tech_legale', 'score_geografia', 'titolo', 'tipo', 'data', 'livello_allarme']],
             centroidi_ong.rename(columns={'nome': 'titolo'})
         ])
 
@@ -461,6 +461,10 @@ with tab_mappa_posizionamento:
         # ✅ FILTRO GLOBALE GRAFICI: solo ultime 14 giorni o allarme >=3
         from datetime import datetime, timedelta
         soglia_data = datetime.now().date() - timedelta(days=14)
+        
+        # Gestisci valori NaN per i centroidi ONG che non hanno dati
+        df_plot['data'] = df_plot['data'].fillna(datetime.now().date().isoformat())
+        df_plot['livello_allarme'] = df_plot['livello_allarme'].fillna(1)
         
         mask = (pd.to_datetime(df_plot['data']).dt.date >= soglia_data) | (df_plot['livello_allarme'] >= 3)
         df_plot_grafici = df_plot[mask].copy()
