@@ -11,7 +11,11 @@ from collections import Counter
 from datetime import datetime
 import numpy as np
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Aggiungi cartella ROOT del progetto al path (risolve import scrapers)
+cartella_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, cartella_root)
+
 from scrapers.scraper_ong import PROFILI_ONG
 
 # --- CONFIGURAZIONE DELLA PAGINA ---
