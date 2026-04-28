@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import time
 from dotenv import load_dotenv # Aggiungi questa riga
 
 load_dotenv() # Aggiungi questa riga per caricare le chiavi dal file .env
@@ -68,9 +69,6 @@ def main():
     print("⏳ Attendi 5 secondi...")
     
     # Lancia Streamlit in background SENZA catturare output (risolve il blocco su Windows)
-    import subprocess
-    import time
-    
     time.sleep(3)
     
     # Avvia come processo separato indipendente

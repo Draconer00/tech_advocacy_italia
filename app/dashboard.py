@@ -323,9 +323,9 @@ with tab_home:
     st.divider()
     
     # --- ULTIMI EVENTI ---
-    st.subheader("📌 Ultimi 20 Eventi")
+    st.subheader("📌 Ultimi 50 Eventi")
     st.dataframe(
-        df_filtrato[['data', 'fonte', 'tipo', 'titolo', 'livello_allarme']].head(20),
+        df_filtrato[['data', 'fonte', 'tipo', 'titolo', 'livello_allarme']].head(50),
         hide_index=True,
         width='stretch'
     )
@@ -795,7 +795,7 @@ with tab_network:
         
         # Sistema di correzione associazioni
         if df_ong.empty == False:
-            df_correzione_network = df_ong[['data_pubblicazione', 'nome_organizzazione', 'titolo', 'url']].head(20).copy()
+            df_correzione_network = df_ong[['data_pubblicazione', 'nome_organizzazione', 'titolo', 'url']].head(50).copy()
             df_correzione_network['associazione_corretta'] = df_correzione_network['nome_organizzazione']
             
             ong_lista = list(PROFILI_ONG.keys())
