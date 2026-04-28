@@ -10,6 +10,9 @@ import streamlit.components.v1 as components
 from collections import Counter
 from datetime import datetime
 import numpy as np
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from scrapers.scraper_ong import PROFILI_ONG
 
 # --- CONFIGURAZIONE DELLA PAGINA ---
 st.set_page_config(page_title="Radar Diritti Digitali", page_icon="⚖️", layout="wide")
