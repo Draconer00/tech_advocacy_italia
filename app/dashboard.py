@@ -96,7 +96,7 @@ def carica_dati_unificati():
     # Normalizza dati ONG
     for _, row in df_ong.iterrows():
         # Supporto sia nuovo schema che vecchio schema ONG
-        nome_ong = row.get('nome_organizzazione', row.get('nome_organizzazione', 'Organizzazione'))
+        nome_ong = row.get('nome_organizzazione', 'Organizzazione')
         
         dati_unificati.append({
             'data': row.get('data_pubblicazione', row.get('Data', datetime.now().date().isoformat())),
@@ -132,8 +132,27 @@ df_ong = carica_dati_ong()
 df_gpdp = carica_dati_garante()
 df_gnews = carica_dati_gnews()
 
-# ✅ BUG 2: DF_MASTER UNIFICATO CON TUTTE LE FONTI
-df_master = pd.concat([df_unificato, df_gnews], ignore_index=True)
+# Normalizza GNews prima della concatenazione con schema standard
+df_gnews_normalizzato = pd.DataFrame()
+if not df_gnews.empty:
+    df_gnews_normalizzato = df_gnews.apply(lambda row: pd.Series({
+        'data': row.get('publishedAt', row.get('data', datetime.now().date().isoformat())),
+        'titolo': row.get('title', row.get('titolo', '')),
+        'fonte': row.get('source', 'GNews'),
+        'tipo': 'Notizia',
+        'url': row.get('url', ''),
+        'sentiment': row.get('sentiment', 'NEUTRALE'),
+        'ambito_geografico': row.get('ambito_geografico', 'Italia'),
+        'livello_allarme': row.get('impact_score', row.get('livello_allarme', 2))
+    }), axis=1)
+
+# Unisci TUTTE le fonti con lo stesso schema
+df_master = pd.concat([df_unificato, df_gnews_normalizzato], ignore_index=True)
+
+# Rimuovi duplicati per titolo e fonte
+df_master = df_master.drop_duplicates(subset=['titolo', 'fonte'], keep='first')
+
+# Conversione data finale e ordinamento
 df_master['data'] = pd.to_datetime(df_master['data'], errors='coerce').dt.date
 df_master = df_master.sort_values('data', ascending=False).reset_index(drop=True)
 
@@ -148,10 +167,10 @@ with tab_home:
     
     # --- KPI PRINCIPALI ---
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("📄 Documenti ultimi 7 giorni", len(df_unificato[df_unificato['data'] >= (datetime.now().date() - pd.Timedelta(days=7))]))
-    col2.metric("🔍 Fonti monitorate", df_unificato['fonte'].nunique())
-    col3.metric("🌍 Aree geografiche", df_unificato['ambito_geografico'].nunique())
-    col4.metric("⚠️ Livello allarme medio", round(df_unificato['livello_allarme'].mean(), 1))
+    col1.metric("📄 Documenti ultimi 7 giorni", len(df_master[df_master['data'] >= (datetime.now().date() - pd.Timedelta(days=7))]))
+    col2.metric("🔍 Fonti monitorate", df_master['fonte'].nunique())
+    col3.metric("🌍 Aree geografiche", df_master['ambito_geografico'].nunique())
+    col4.metric("⚠️ Livello allarme medio", round(df_master['livello_allarme'].mean(), 1))
     
     st.divider()
     
@@ -160,17 +179,17 @@ with tab_home:
     col_f1, col_f2, col_f3 = st.columns(3)
     
     with col_f1:
-        fonti_selezionate = st.multiselect("Fonte", options=df_unificato['fonte'].unique(), default=df_unificato['fonte'].unique())
+        fonti_selezionate = st.multiselect("Fonte", options=df_master['fonte'].unique(), default=df_master['fonte'].unique())
     with col_f2:
-        aree_selezionate = st.multiselect("Area Geografica", options=df_unificato['ambito_geografico'].unique(), default=df_unificato['ambito_geografico'].unique())
+        aree_selezionate = st.multiselect("Area Geografica", options=df_master['ambito_geografico'].unique(), default=df_master['ambito_geografico'].unique())
     with col_f3:
         livello_allarme = st.slider("Livello Allarme Minimo", min_value=1, max_value=3, value=1)
     
     # Applica filtri
-    df_filtrato = df_unificato[
-        df_unificato['fonte'].isin(fonti_selezionate) &
-        df_unificato['ambito_geografico'].isin(aree_selezionate) &
-        (df_unificato['livello_allarme'] >= livello_allarme)
+    df_filtrato = df_master[
+        df_master['fonte'].isin(fonti_selezionate) &
+        df_master['ambito_geografico'].isin(aree_selezionate) &
+        (df_master['livello_allarme'] >= livello_allarme)
     ]
     
     st.divider()
