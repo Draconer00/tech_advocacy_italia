@@ -115,9 +115,27 @@ def carica_dati_unificati():
     return df.sort_values('data', ascending=False).reset_index(drop=True)
 
 
+# ✅ BUG 2: Carica anche GNews
+@st.cache_data
+def carica_dati_gnews():
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'gnews_analyzed.csv')
+    if os.path.exists(percorso_csv):
+        df = pd.read_csv(percorso_csv)
+        df['ong_collegata'] = df.get('ong_collegata', "")
+        df['fonte'] = 'GNews'
+        return df
+    return pd.DataFrame()
+
 df_unificato = carica_dati_unificati()
 df_ong = carica_dati_ong()
 df_gpdp = carica_dati_garante()
+df_gnews = carica_dati_gnews()
+
+# ✅ BUG 2: DF_MASTER UNIFICATO CON TUTTE LE FONTI
+df_master = pd.concat([df_unificato, df_gnews], ignore_index=True)
+df_master['data'] = pd.to_datetime(df_master['data'], errors='coerce').dt.date
+df_master = df_master.sort_values('data', ascending=False).reset_index(drop=True)
 
 # --- CREAZIONE DELLE SCHEDE (TABS) ---
 tab_home, tab_ong, tab_garante, tab_network, tab_mappa_posizionamento = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante", "🕸️ Network Temi", "📍 Mappa Posizionamento"])
@@ -200,7 +218,7 @@ with tab_home:
         mostra_solo_non_corrette = st.checkbox("Mostra solo notizie non ancora corrette", value=False)
     
     # Applica filtri
-    df_gold = df_filtrato.copy()
+    df_gold = df_master.copy()
     if fonte_filtro != "Tutte le fonti":
         df_gold = df_gold[df_gold['fonte'] == fonte_filtro]
     
@@ -419,9 +437,14 @@ with tab_mappa_posizionamento:
             axis=1
         )
         df_notizie['tipo'] = 'Notizia'
+        # ✅ Rinomina colonna per compatibilità
+        df_notizie['data'] = df_notizie.get('data_pubblicazione', datetime.now().date().isoformat())
+        df_notizie['livello_allarme'] = df_notizie.get('livello_allarme', 1)
 
         # ✅ MOSTRA TUTTE LE ONG ANCHE QUELLE SENZA NOTIZIE
-        # Calcola centroidi per ONG con notizie
+        # ✅ CENTROIDI ONG CALCOLATI SEMPRE SU TUTTO LO STORICO
+        # ✅ PRIMA DI QUALSIASI FILTRO: posizione delle ONG è STABILE NEL TEMPO
+        # ✅ Non cambia mai anche se filtriamo le notizie mostrate
         centroidi_ong = df_notizie.groupby('nome_organizzazione').agg({
             'score_tech_legale': 'mean',
             'score_geografia': 'mean',
@@ -462,15 +485,19 @@ with tab_mappa_posizionamento:
         # I valori rimangono stabili nel tempo, comparabili tra esecuzioni diverse
         # Range: -1.0 / +1.0 definito una volta per sempre nel modello
         
-        # ✅ FILTRO GLOBALE GRAFICI: solo ultime 14 giorni o allarme >=3
+        # ✅ FILTRO GLOBALE GRAFICI: solo ultime 30 giorni o allarme >=2
         from datetime import datetime, timedelta
-        soglia_data = datetime.now().date() - timedelta(days=14)
+        soglia_data = datetime.now().date() - timedelta(days=30)
         
         # Gestisci valori NaN per i centroidi ONG che non hanno dati
         df_plot['data'] = df_plot['data'].fillna(datetime.now().date().isoformat())
-        df_plot['livello_allarme'] = df_plot['livello_allarme'].fillna(1)
+        df_plot['livello_allarme'] = df_plot['livello_allarme'].fillna(2)
         
-        mask = (pd.to_datetime(df_plot['data']).dt.date >= soglia_data) | (df_plot['livello_allarme'] >= 3)
+        # ✅ LE ONG VENGONO SEMPRE MOSTRATE SEMPRE
+        mask_ong = (df_plot['tipo'] == 'ONG')
+        mask_notizie = (pd.to_datetime(df_plot['data'], errors='coerce', format='ISO8601').dt.date >= soglia_data) | (df_plot['livello_allarme'] >= 2)
+        mask = mask_ong | mask_notizie
+        
         df_plot_grafici = df_plot[mask].copy()
         
         # ✅ Jitter leggero per separare i punti sovrapposti
