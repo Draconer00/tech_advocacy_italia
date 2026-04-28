@@ -393,13 +393,29 @@ with tab_mappa_posizionamento:
         )
         df_notizie['tipo'] = 'Notizia'
 
-        # Calcola centroidi ONG
+        # ✅ MOSTRA TUTTE LE ONG ANCHE QUELLE SENZA NOTIZIE
+        # Calcola centroidi per ONG con notizie
         centroidi_ong = df_notizie.groupby('nome_organizzazione').agg({
             'score_tech_legale': 'mean',
             'score_geografia': 'mean',
             'titolo': 'count'
         }).reset_index()
         centroidi_ong.columns = ['nome', 'score_tech_legale', 'score_geografia', 'numero_articoli']
+        
+        # Aggiungi TUTTE le ONG da PROFILI_ONG anche se non hanno articoli
+        tutte_ong = list(PROFILI_ONG.keys())
+        ong_presenti = centroidi_ong['nome'].tolist()
+        
+        for ong_nome in tutte_ong:
+            if ong_nome not in ong_presenti:
+                # Posiziona al centro temporaneamente le ONG senza dati
+                centroidi_ong = pd.concat([centroidi_ong, pd.DataFrame([{
+                    'nome': ong_nome,
+                    'score_tech_legale': 0,
+                    'score_geografia': 0,
+                    'numero_articoli': 0
+                }])], ignore_index=True)
+        
         centroidi_ong['tipo'] = 'ONG'
 
         # Unisci i due dataframe
