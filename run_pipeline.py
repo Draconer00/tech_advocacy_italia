@@ -64,7 +64,22 @@ def main():
     # 5. Avvia Dashboard
     print("\n--- Avvio Dashboard ---")
     print("✅ Pipeline completata. Apertura dashboard in corso...")
-    run_command([sys.executable, "-m", "streamlit", "run", "app/dashboard.py"])
+    print("🌐 La dashboard sarà disponibile all'indirizzo: http://localhost:8501")
+    print("⏳ Attendi 5 secondi...")
+    
+    # Lancia Streamlit in background SENZA catturare output (risolve il blocco su Windows)
+    import subprocess
+    import time
+    
+    time.sleep(3)
+    
+    # Avvia come processo separato indipendente
+    subprocess.Popen(
+        [sys.executable, "-m", "streamlit", "run", "app/dashboard.py", "--server.headless=false"],
+        creationflags=subprocess.CREATE_NEW_CONSOLE if os.name == 'nt' else 0,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
     
     print("\n--- Pipeline Completata con Successo ---")
 

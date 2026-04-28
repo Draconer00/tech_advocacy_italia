@@ -120,12 +120,17 @@ python nlp/text_analysis.py
 1. 🧹 Pulisce il testo da rumore, link e duplicati
 2. 🧠 Estrae automaticamente entità (aziende, persone, istituzioni)
 3. 🗺️ Classifica l'ambito geografico di ogni provvedimento
-4. 🏷️ Assegna categoria e livello di allarme
-5. 💾 Salva tutto in database SQLite per velocità
+4. 🔗 Entity Linking: riconosce automaticamente quale ONG viene citata
+5. 🤖 **Active Learning Livello 3**: Predice il livello di allarme 1-5 usando il modello che ha imparato dalle tue correzioni manuali
+6. 💾 Salva tutto in database SQLite per velocità
+
+✅ Elabora TUTTE le fonti automaticamente: Garante Privacy, GNews, RSS EU
 
 ✅ Output:
 - `data/processed/gpdp_analyzed.csv`
-- `data/tech_advocacy.db` (Database principale)
+- `data/processed/gnews_analyzed.csv`
+- `data/processed/rss_eu_analyzed.csv`
+- `data/tech_advocacy.db` (Database principale unificato)
 
 ---
 
@@ -183,7 +188,7 @@ Questa è la caratteristica principale del progetto:
 
 Per eseguire TUTTO in sequenza con un solo comando:
 ```bash
-python scrapers/scraper_ong.py && python scrapers/scraper_gpdp.py && python nlp/text_analysis.py && python -m streamlit run app/dashboard.py
+python run_pipeline.py
 ```
 
 ---
@@ -193,8 +198,9 @@ python scrapers/scraper_ong.py && python scrapers/scraper_gpdp.py && python nlp/
 Questo progetto non è completamente automatico per scelta:
 
 ✅ Puoi correggere qualsiasi classificazione sbagliata direttamente dalla dashboard
-✅ Tutte le correzioni vengono salvate nel dataset di training
-✅ Ad ogni ciclo il modello migliora automaticamente
+✅ Tutte le correzioni vengono salvate nel Golden Standard
+✅ **Ad ogni esecuzione della pipeline viene automaticamente addestrato un nuovo modello più accurato**
+✅ Il modello migliora in modo continuo in base alle tue correzioni
 ✅ Non c'è black box: puoi vedere e modificare ogni decisione
 
 ---

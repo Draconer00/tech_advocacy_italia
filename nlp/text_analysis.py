@@ -514,80 +514,110 @@ def salva_in_sqlite(df, db_path):
     except Exception as e:
         print(f"Errore salvataggio SQLite: {e}")
 
-def processa_dati_garante():
-    """Legge i testi completi dal CSV grezzo, applica l'IA e salva i risultati (con Priority 1 improvements)."""
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_raw = os.path.join(cartella_script, '..', 'data', 'raw', 'gpdp_sample.csv')
-    percorso_processed = os.path.join(cartella_script, '..', 'data', 'processed', 'gpdp_analyzed.csv')
-    percorso_db = os.path.join(cartella_script, '..', 'data', 'tech_advocacy.db')
+def processa_dataframe(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
+    """
+    Funzione generica di analisi NLP applicabile a QUALSIASI fonte
+    Applica TUTTI i passaggi di analisi su qualsiasi dataframe in ingresso
     
-    # Creiamo le cartelle se non esistono
-    os.makedirs(os.path.dirname(percorso_processed), exist_ok=True)
-    os.makedirs(os.path.dirname(percorso_db), exist_ok=True)
+    Args:
+        df: DataFrame raw da processare
+        fonte_nome: Nome identificativo della fonte per logging
     
-    if not os.path.exists(percorso_raw):
-        print(f"File raw non trovato in: {percorso_raw}")
-        return
-        
-    print("Lettura del database dei testi completi...")
-    df = pd.read_csv(percorso_raw)
+    Returns:
+        DataFrame con tutti i campi calcolati
+    """
+    print(f"\n🚀 Inizio analisi NLP per {fonte_nome}: {len(df)} documenti")
     
-    if 'testo_completo' not in df.columns:
-        print("Errore: Manca la colonna 'testo_completo'. Hai lanciato il nuovo scraper?")
-        return
+    # Carica modello di predizione impatto
+    clf, embedding_model = carica_modello_impatto()
     
-    print(f"Inizio analisi NLP su {len(df)} documenti legali (Priority 1 improvements attivate)...")
-    
-    # Priority 1.1 + 1.2 + 1.3: Estrazione entità con pulizia, dedup e blacklist dinamica
-    df['Entita_Coinvolte'] = df['testo_completo'].apply(lambda x: list(set(estrai_entita(x) + estrai_acronimi(x))))
-
-    # --- CLASSIFICAZIONE GEOGRAFICA ---
-    df['Ambito_Geografico'] = df['testo_completo'].apply(classifica_geografia)
-
-    # --- SENTIMENT E KEYWORDS (Priority 2 improvements) ---
-    df['Sentiment_Direzione'] = df['testo_completo'].apply(classifica_sentiment_provvedimento)
-    df['Parole_Chiave'] = df['testo_completo'].apply(estrai_topic_keywords)
-    
-    # ✅ Entity Linking ONG
+    # 1. Entity Linking ONG
     df['ong_collegata'] = df['testo_completo'].apply(associa_ong)
     
-    # Priority 3.1: Topic Modeling con BERTopic
-    print("Inizio Topic Modeling con BERTopic...")
-    texts_for_topic_modeling = df["testo_completo"].tolist()
-    topics, topic_labels = topic_modeling(texts_for_topic_modeling)
-    df["Topic_Emergente_ID"] = topics
+    # 2. Classificazione Geografica
+    df['Ambito_Geografico'] = df['testo_completo'].apply(classifica_geografia)
     
-    # Mappa gli ID dei topic alle loro etichette testuali
-    topic_id_to_label = {i: label for i, label in enumerate(topic_labels)}
-    df["Topic_Etichetta"] = df["Topic_Emergente_ID"].map(topic_id_to_label)
+    # 3. Active Learning: Predizione Livello Allarme
+    df['livello_allarme'] = df['testo_completo'].apply(
+        lambda testo: calcola_livello_allarme(testo, clf, embedding_model)
+    )
     
-    # Salviamo il CSV processato
-    df.to_csv(percorso_processed, index=False)
-    print(f"CSV processato salvato in: {percorso_processed}")
+    # 4. Classificazione Sentiment
+    df['Sentiment_Direzione'] = df['testo_completo'].apply(classifica_sentiment_provvedimento)
     
-    # Priority 0: Salva anche in SQLite per query veloci
-    salva_in_sqlite(df, percorso_db)
+    # 5. Estrazione Keywords
+    df['Parole_Chiave'] = df['testo_completo'].apply(estrai_topic_keywords)
     
-    # --- STATISTICHE FINALI ---
-    tutte_entita = [ent for lista in df['Entita_Coinvolte'] if isinstance(lista, list) for ent in lista]
-    classifica = Counter(tutte_entita)
+    print(f"✅ Completata analisi {fonte_nome}")
     
-    print("\n--- TOP 5 ATTORI SOTTO LA LENTE DEL GARANTE ---")
-    for ente, conteggio in classifica.most_common(5):
-        print(f"   {ente}: {conteggio} provvedimenti")
+    return df
+
+
+def main():
+    """
+    Pipeline NLP principale - processa TUTTE le fonti disponibili
+    GPDP, GNews, RSS EU
+    """
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    cartella_raw = os.path.join(cartella_script, '..', 'data', 'raw')
+    cartella_processed = os.path.join(cartella_script, '..', 'data', 'processed')
     
-    print("\nStatistiche:")
-    print(f"   - Documenti processati: {len(df)}")
-    print(f"   - Entità uniche estratte: {len(classifica)}")
-    enti_list = [e for lista in df['Entita_Coinvolte'] if isinstance(lista, list) for e in lista]
-    duplicati_rimosse = len(enti_list) - len(classifica) if len(enti_list) > 0 else 0
-    print(f"   - Entità duplicate rimosse: ~{duplicati_rimosse}")
+    os.makedirs(cartella_processed, exist_ok=True)
     
-    # Aggiorna contatori entità totali
-    metrics.total_entities = len(tutte_entita)
+    # Elenco di tutte le fonti da processare
+    fonti = [
+        {
+            'nome': 'Garante Privacy GPDP',
+            'file_raw': 'gpdp_sample.csv',
+            'file_processed': 'gpdp_analyzed.csv'
+        },
+        {
+            'nome': 'GNews',
+            'file_raw': 'gnews_sample.csv',
+            'file_processed': 'gnews_analyzed.csv'
+        },
+        {
+            'nome': 'RSS Unione Europea',
+            'file_raw': 'rss_eu_sample.csv',
+            'file_processed': 'rss_eu_analyzed.csv'
+        }
+    ]
     
-    # Stampa report performance finale
-    metrics.print_report(tutte_entita)
+    # Processa ogni fonte se il file esiste
+    for fonte in fonti:
+        percorso_raw = os.path.join(cartella_raw, fonte['file_raw'])
+        percorso_processed = os.path.join(cartella_processed, fonte['file_processed'])
+        
+        if os.path.exists(percorso_raw):
+            df = pd.read_csv(percorso_raw)
+            
+            if 'testo_completo' in df.columns:
+                df_processato = processa_dataframe(df, fonte['nome'])
+                df_processato.to_csv(percorso_processed, index=False)
+                print(f"💾 Salvato: {percorso_processed}")
+            else:
+                print(f"⚠️ Salto {fonte['nome']}: manca colonna testo_completo")
+        else:
+            print(f"ℹ️ File {fonte['file_raw']} non trovato, salto questa fonte")
+    
+    # Aggiorna anche il database SQLite
+    print("\n🗄️ Aggiornamento database SQLite...")
+    percorso_db = os.path.join(cartella_script, '..', 'data', 'tech_advocacy.db')
+    
+    # Carica tutti i dati processati per unire nel DB
+    tutti_dati = []
+    for fonte in fonti:
+        p = os.path.join(cartella_processed, fonte['file_processed'])
+        if os.path.exists(p):
+            df = pd.read_csv(p)
+            df['fonte_origine'] = fonte['nome']
+            tutti_dati.append(df)
+    
+    if tutti_dati:
+        df_unificato = pd.concat(tutti_dati, ignore_index=True)
+        salva_in_sqlite(df_unificato, percorso_db)
+        print(f"✅ Database SQLite aggiornato con {len(df_unificato)} documenti totali")
+
 
 if __name__ == "__main__":
-    processa_dati_garante()
+    main()
