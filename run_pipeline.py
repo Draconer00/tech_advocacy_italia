@@ -49,6 +49,11 @@ def main():
     if os.path.exists("nlp/text_analysis.py"):
         run_command([sys.executable, "nlp/text_analysis.py"])
     
+    # 4. Train Impact Model (Active Learning Livello 3)
+    print("\n--- Training Impact Prediction Model ---")
+    if os.path.exists("nlp/train_impact_model.py"):
+        run_command([sys.executable, "nlp/train_impact_model.py"])
+    
     # 4. Git Push
     print("\n--- Committing and Pushing Updates ---")
     run_command(["git", "add", "."])

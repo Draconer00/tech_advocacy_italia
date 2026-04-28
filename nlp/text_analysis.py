@@ -460,6 +460,45 @@ def classifica_geografia(testo):
     else:
         return "Italia"
 
+def carica_modello_impatto():
+    """
+    Carica il modello addestrato di predizione impatto se disponibile
+    Livello 3: Active Learning
+    """
+    import joblib
+    
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso_modello = os.path.join(cartella_script, '..', 'models', 'impact_classifier.pkl')
+    percorso_embedding = os.path.join(cartella_script, '..', 'models', 'sentence_transformer.pkl')
+    
+    if os.path.exists(percorso_modello) and os.path.exists(percorso_embedding):
+        try:
+            clf = joblib.load(percorso_modello)
+            embedding_model = joblib.load(percorso_embedding)
+            return clf, embedding_model
+        except Exception as e:
+            print(f"⚠️ Errore caricamento modello impatto: {e}")
+            return None, None
+    return None, None
+
+
+def calcola_livello_allarme(testo: str, clf, embedding_model) -> int:
+    """
+    Predice il livello di allarme (1-5) usando il modello addestrato
+    Fallback a valore 2 se il modello non è disponibile
+    """
+    if clf is None or embedding_model is None:
+        return 2
+    
+    try:
+        embedding = embedding_model.encode([testo])
+        predizione = clf.predict(embedding)[0]
+        return int(max(1, min(5, predizione)))
+    except Exception as e:
+        print(f"⚠️ Errore predizione impatto: {e}")
+        return 2
+
+
 def salva_in_sqlite(df, db_path):
     """Salva dati analizzati in SQLite, convertendo liste in stringhe (Priority 0)."""
     df_copy = df.copy()

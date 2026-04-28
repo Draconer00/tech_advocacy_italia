@@ -1,83 +1,97 @@
-"""
-Modello di Active Learning per predizione automatica del livello di allarme
-Questo modello impara direttamente dalle correzioni che fai nella sezione Golden Standard
-"""
+import os
+import sys
 import pandas as pd
 import numpy as np
-import os
 import joblib
+from sentence_transformers import SentenceTransformer
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score, classification_report
 
-def train_impact_model():
+# Aggiungi root progetto al path
+cartella_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, cartella_root)
+
+from utils.logger_config import setup_logger
+
+logger = setup_logger(__name__)
+
+def train_impact_classifier():
+    """
+    Addestra un modello di classificazione per predire il livello di allarme
+    basandosi sulle correzioni manuali effettuate nella dashboard (Golden Standard)
+    
+    Livello 3: Active Learning
+    """
+    
     cartella_script = os.path.dirname(os.path.abspath(__file__))
     percorso_feedback = os.path.join(cartella_script, '..', 'data', 'processed', 'training_data_feedback.csv')
-    percorso_modello = os.path.join(cartella_script, '..', 'models', 'impact_model.pkl')
+    percorso_modello = os.path.join(cartella_script, '..', 'models', 'impact_classifier.pkl')
+    percorso_embedding_model = os.path.join(cartella_script, '..', 'models', 'sentence_transformer.pkl')
     
-    # Crea cartella modelli se non esiste
+    # Crea cartella models se non esiste
     os.makedirs(os.path.dirname(percorso_modello), exist_ok=True)
     
+    # 1. Controllo se esistono abbastanza dati di training
     if not os.path.exists(percorso_feedback):
-        print("⚠️ Nessun dato di training presente. Inizia a correggere le notizie nella dashboard per addestrare il modello.")
+        logger.info("⚠️ Nessun dato di feedback trovato. Training non eseguibile.")
         return False
     
-    print("\n📚 Caricamento dati Golden Standard...")
-    df = pd.read_csv(percorso_feedback)
+    df_feedback = pd.read_csv(percorso_feedback)
     
-    if len(df) < 10:
-        print(f"⚠️ Servono almeno 10 correzioni per addestrare il modello. Attualmente ce ne sono {len(df)}.")
+    MINIMO_RIGHE_TRAINING = 10
+    if len(df_feedback) < MINIMO_RIGHE_TRAINING:
+        logger.info(f"⚠️ Dati insufficienti per il training. Necessari almeno {MINIMO_RIGHE_TRAINING} correzioni, presenti: {len(df_feedback)}")
         return False
     
-    # Prepara dati training
-    X = df['titolo']
-    y = df['livello_allarme_corretto'].astype(int)
+    logger.info(f"🚀 Avvio training modello impatto su {len(df_feedback)} record annotati manualmente")
     
-    print(f"✅ Dati caricati: {len(df)} notizie corrette dall'utente")
+    # 2. Carica modello per embeddings multilingua
+    logger.info("📥 Caricamento modello Sentence Transformers...")
+    model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
     
-    # Crea pipeline modello
-    pipeline = Pipeline([
-        ('tfidf', TfidfVectorizer(max_features=5000, stop_words=['italiano', 'english'])),
-        ('classifier', RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced'))
-    ])
+    # 3. Prepara dati
+    # Combina titolo e fonte come testo di input
+    testi = df_feedback.apply(lambda row: f"{row['titolo']} {row['fonte']}", axis=1).tolist()
+    labels = df_feedback['livello_allarme_corretto'].astype(int).values
     
-    # Addestramento
-    print("\n🤖 Addestramento modello Active Learning...")
-    pipeline.fit(X, y)
+    # 4. Genera embeddings
+    logger.info("🔢 Generazione vettori embedding...")
+    embeddings = model.encode(testi, show_progress_bar=True, batch_size=32)
     
-    # Salva modello
-    joblib.dump(pipeline, percorso_modello)
-    print(f"✅ Modello salvato in: {percorso_modello}")
+    # 5. Split train / test
+    X_train, X_test, y_train, y_test = train_test_split(embeddings, labels, test_size=0.2, random_state=42, stratify=labels)
     
-    # Calcola accuratezza
-    y_pred = pipeline.predict(X)
-    accuratezza = np.mean(y_pred == y)
-    print(f"\n📊 Accuratezza modello: {round(accuratezza * 100, 1)} %")
+    # 6. Addestramento classificatore
+    logger.info("🤖 Addestramento Random Forest Classifier...")
+    clf = RandomForestClassifier(
+        n_estimators=200,
+        max_depth=10,
+        min_samples_split=5,
+        class_weight='balanced',
+        random_state=42,
+        n_jobs=-1
+    )
     
-    print("\n✅ Modello pronto! Ora verrà usato automaticamente per assegnare il livello di allarme alle nuove notizie.")
+    clf.fit(X_train, y_train)
+    
+    # 7. Valutazione modello
+    y_pred = clf.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    
+    logger.info("\n✅ REPORT TRAINING:")
+    logger.info(f"    Accuracy modello: {accuracy:.2f}")
+    logger.info("\n" + classification_report(y_test, y_pred, zero_division=0))
+    
+    # 8. Salva modello
+    joblib.dump(clf, percorso_modello)
+    joblib.dump(model, percorso_embedding_model)
+    
+    logger.info(f"💾 Modello salvato correttamente in: {percorso_modello}")
+    logger.info("✅ Training completato con successo!")
     
     return True
 
-def predici_livello_allarme(testo: str) -> int:
-    """
-    Predice il livello di allarme 1-5 usando il modello addestrato
-    Se il modello non esiste usa il sistema di default
-    """
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_modello = os.path.join(cartella_script, '..', 'models', 'impact_model.pkl')
-    
-    if not os.path.exists(percorso_modello):
-        # Fallback sul vecchio sistema a parole chiave
-        testo_lower = testo.lower()
-        parole_allarme_alto = ['multa', 'condanna', 'violazione', 'dati sensibili', 'hacking', 'fuga dati']
-        if any(p in testo_lower for p in parole_allarme_alto):
-            return 4
-        return 2
-    
-    modello = joblib.load(percorso_modello)
-    return int(modello.predict([testo])[0])
 
 if __name__ == "__main__":
-    train_impact_model()
+    train_impact_classifier()
