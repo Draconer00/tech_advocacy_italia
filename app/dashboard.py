@@ -24,9 +24,13 @@ e le azioni del Garante Privacy, creando una mappa dell'ecosistema dei diritti d
 @st.cache_data 
 def carica_dati_ong():
     cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_csv = os.path.join(cartella_script, '..', 'data', 'raw', 'ong_sample.csv')
+    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'ong_complete.csv')
     if os.path.exists(percorso_csv):
         return pd.read_csv(percorso_csv)
+    # Fallback su sample se completo non disponibile
+    percorso_csv_fallback = os.path.join(cartella_script, '..', 'data', 'raw', 'ong_sample.csv')
+    if os.path.exists(percorso_csv_fallback):
+        return pd.read_csv(percorso_csv_fallback)
     return pd.DataFrame()
 
 @st.cache_data 
@@ -416,8 +420,10 @@ with tab_mappa_posizionamento:
         # Range: -1.0 / +1.0 definito una volta per sempre nel modello
         
         # ✅ Jitter leggero per separare i punti sovrapposti
-        df_plot['score_tech_legale'] += np.random.normal(0, 0.025, size=len(df_plot))
-        df_plot['score_geografia'] += np.random.normal(0, 0.025, size=len(df_plot))
+        # ✅ Seed FISSO per garantire riproducibilità: stesso risultato ad ogni lancio
+        rng = np.random.RandomState(seed=42)
+        df_plot['score_tech_legale'] += rng.normal(0, 0.025, size=len(df_plot))
+        df_plot['score_geografia'] += rng.normal(0, 0.025, size=len(df_plot))
 
         # Separa ONG per aggiungere etichette direttamente sui punti
         df_notizie_solo = df_plot[df_plot['tipo'] == 'Notizia']
