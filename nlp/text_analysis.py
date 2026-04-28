@@ -10,6 +10,15 @@ from collections import Counter
 from difflib import SequenceMatcher
 from functools import wraps
 
+# Carica lista ONG per Entity Linking
+PROFILI_ONG = [
+    "ALDE", "Amnesty International Italia", "Centro Galileo", "Codice Consumatori",
+    "Diritto Digitale", "Electronic Frontier Foundation", "Epicenter.works",
+    "European Digital Rights", "Federtutela", "Freedom House", "Internet Society",
+    "La Cosa Nostra Digitale", "Luca Cominassi", "Open Rights Group", "Partito Pirata",
+    "Privacy International", "Reporters Without Borders", "Slow Food", "Tactical Tech"
+]
+
 print("Caricamento del modello linguistico (spaCy)...")
 try:
     nlp = spacy.load("it_core_news_md")
@@ -406,6 +415,28 @@ def calcola_score_posizionamento(testo: str) -> tuple[float, float]:
     return (score_tech_legale, score_geografia)
 
 
+def associa_ong(testo: str) -> str:
+    """
+    Entity Linking: Associa una notizia ad una ONG se viene menzionata nel testo
+    Restituisce il nome della ONG o stringa vuota se nessuna è trovata
+    """
+    testo_lower = str(testo).lower()
+    
+    for ong_nome in PROFILI_ONG:
+        ong_nome_lower = ong_nome.lower()
+        # Controllo match esatto e varianti comuni
+        if ong_nome_lower in testo_lower:
+            return ong_nome
+        
+        # Controllo anche acronimi e versioni abbreviate
+        parole = ong_nome_lower.split()
+        if len(parole) >= 2:
+            acronimo = "".join([p[0] for p in parole if p])
+            if len(acronimo) >=2 and acronimo in testo_lower:
+                return ong_nome
+    
+    return ""
+
 def classifica_geografia(testo):
     """
     Analizza il testo per capire se il provvedimento ha respiro internazionale, 
@@ -477,6 +508,9 @@ def processa_dati_garante():
     # --- SENTIMENT E KEYWORDS (Priority 2 improvements) ---
     df['Sentiment_Direzione'] = df['testo_completo'].apply(classifica_sentiment_provvedimento)
     df['Parole_Chiave'] = df['testo_completo'].apply(estrai_topic_keywords)
+    
+    # ✅ Entity Linking ONG
+    df['ong_collegata'] = df['testo_completo'].apply(associa_ong)
     
     # Priority 3.1: Topic Modeling con BERTopic
     print("Inizio Topic Modeling con BERTopic...")

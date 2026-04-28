@@ -184,18 +184,33 @@ with tab_home:
     # === SISTEMA HUMAN-IN-THE-LOOP ===
     st.subheader("🔧 Correggi Classificazione (Active Learning)")
     
+    # ✅ FILTRO FONTE PER GOLDEN STANDARD
+    col_filtro_gold1, col_filtro_gold2 = st.columns(2)
+    with col_filtro_gold1:
+        fonti_disponibili = ["Tutte le fonti"] + list(df_unificato['fonte'].unique())
+        fonte_filtro = st.selectbox("Filtra per Fonte:", options=fonti_disponibili)
+    with col_filtro_gold2:
+        mostra_solo_non_corrette = st.checkbox("Mostra solo notizie non ancora corrette", value=False)
+    
+    # Applica filtri
+    df_gold = df_filtrato.copy()
+    if fonte_filtro != "Tutte le fonti":
+        df_gold = df_gold[df_gold['fonte'] == fonte_filtro]
+    
     # Inizializza stato sessione per modifiche
     if 'modifiche_correzione' not in st.session_state:
         st.session_state.modifiche_correzione = []
     
     # Categorie disponibili per correzione
     CATEGORIE_GEOGRAFICHE = ["Italia", "Europa", "USA / Internazionale", "Asia", "Generico"]
+    ong_lista = list(PROFILI_ONG.keys())
     
-    # Prepara dataframe per editor
-    df_correzione = df_filtrato[['data', 'fonte', 'titolo', 'ambito_geografico', 'livello_allarme']].head(30).copy()
+    # Prepara dataframe per editor - NESSUN LIMITE DI RIGHE
+    df_correzione = df_gold[['data', 'fonte', 'titolo', 'ambito_geografico', 'livello_allarme']].copy()
     df_correzione['errore_segnalato'] = False
     df_correzione['categoria_corretta'] = "Non modificato"
     df_correzione['livello_allarme_corretto'] = df_correzione['livello_allarme']
+    df_correzione['ong_collegata_corretta'] = ""
     
     # Usa data_editor invece di dataframe per modifiche interattive
     col_edit, col_save = st.columns([4,1])
@@ -220,6 +235,11 @@ with tab_home:
                 min_value=1,
                 max_value=5,
                 step=1
+            ),
+            "ong_collegata_corretta": st.column_config.SelectboxColumn(
+                "🔗 ONG Associata",
+                options=ong_lista,
+                help="Assegna manualmente quale ONG è citata in questa notizia"
             )
         },
             hide_index=True,
@@ -435,11 +455,18 @@ with tab_mappa_posizionamento:
         # I valori rimangono stabili nel tempo, comparabili tra esecuzioni diverse
         # Range: -1.0 / +1.0 definito una volta per sempre nel modello
         
+        # ✅ FILTRO GLOBALE GRAFICI: solo ultime 14 giorni o allarme >=3
+        from datetime import datetime, timedelta
+        soglia_data = datetime.now().date() - timedelta(days=14)
+        
+        mask = (pd.to_datetime(df_plot['data']).dt.date >= soglia_data) | (df_plot['livello_allarme'] >= 3)
+        df_plot_grafici = df_plot[mask].copy()
+        
         # ✅ Jitter leggero per separare i punti sovrapposti
         # ✅ Seed FISSO per garantire riproducibilità: stesso risultato ad ogni lancio
         rng = np.random.RandomState(seed=42)
-        df_plot['score_tech_legale'] += rng.normal(0, 0.025, size=len(df_plot))
-        df_plot['score_geografia'] += rng.normal(0, 0.025, size=len(df_plot))
+        df_plot_grafici['score_tech_legale'] += rng.normal(0, 0.025, size=len(df_plot_grafici))
+        df_plot_grafici['score_geografia'] += rng.normal(0, 0.025, size=len(df_plot_grafici))
 
         # Separa ONG per aggiungere etichette direttamente sui punti
         df_notizie_solo = df_plot[df_plot['tipo'] == 'Notizia']
@@ -581,18 +608,20 @@ with tab_network:
             titolo = notizia['titolo'][:50] + "..."
             testo_notizia = (notizia['titolo'] + " " + notizia.get('testo_completo', '')).lower()
             
+            # ✅ NUOVA GERARCHIA: Notizia -> ONG -> Tema
+            ong_nome = notizia['nome_organizzazione']
+            
             # Cerca corrispondenza tematica
             tema_associato = None
-            max_match = 0
-            
             for tema in parole_tema:
                 if tema.lower() in testo_notizia:
                     tema_associato = normalizza_tema(tema)
                     break
             
-            if tema_associato and tema_associato in G:
+            if ong_nome in G:
                 G.add_node(titolo, color='#4bff8b', size=8, group='Notizia', shape='diamond')
-                G.add_edge(tema_associato, titolo, value=0.5, title="Argomento correlato")
+                # ✅ Ora la notizia è collegata DIRETTAMENTE alla ONG, non al tema
+                G.add_edge(ong_nome, titolo, value=0.5, title="Notizia della ONG")
 
         # Statistiche Network
         col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
