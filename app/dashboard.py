@@ -176,7 +176,7 @@ with tab_home:
     
     # --- FILTRI UNIVERSALI ---
     st.subheader("🔍 Filtri")
-    col_f1, col_f2, col_f3 = st.columns(3)
+    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
     
     with col_f1:
         fonti_selezionate = st.multiselect("Fonte", options=df_master['fonte'].unique(), default=df_master['fonte'].unique())
@@ -184,6 +184,26 @@ with tab_home:
         aree_selezionate = st.multiselect("Area Geografica", options=df_master['ambito_geografico'].unique(), default=df_master['ambito_geografico'].unique())
     with col_f3:
         livello_allarme = st.slider("Livello Allarme Minimo", min_value=1, max_value=3, value=1)
+    with col_f4:
+        intervallo_giorni = st.selectbox(
+            "📅 Intervallo Temporale",
+            options=[
+                ("Ultimi 7 giorni", 7),
+                ("Ultimi 14 giorni", 14),
+                ("Ultimi 30 giorni", 30),
+                ("Ultimi 90 giorni", 90),
+                ("Tutto lo storico", 9999)
+            ],
+            index=1, # ✅ DEFAULT: 14 GIORNI
+            format_func=lambda x: x[0]
+        )
+    
+    # Applica filtro data
+    soglia_data = datetime.now().date() - pd.Timedelta(days=intervallo_giorni[1])
+    if intervallo_giorni[1] != 9999:
+        df_master_filtrato = df_master[df_master['data'] >= soglia_data]
+    else:
+        df_master_filtrato = df_master.copy()
     
     # Applica filtri
     df_filtrato = df_master[
