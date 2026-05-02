@@ -1,38 +1,207 @@
 id_univoco,fonte,nome_organizzazione,tipo_organizzazione,area_geografica,descrizione_organizzazione,data_pubblicazione,data_scraping,titolo,url,tipo_contenuto,livello_allarme,lingua,testo_completo,hash_contenuto
-219d93c4f06c85553e5657d96c8a7fa08c5f5f6fe9b55ac32514caf6295b948c,ong,Electronic Frontier Foundation,Organizzazione Legale,Internazionale,Prima organizzazione mondiale per la difesa dei diritti digitali,"Thu, 30 Apr 2026 16:54:10 +0000",2026-05-02T17:59:16.869193,Open Records Laws Reveal ALPRs’ Sprawling Surveillance. Now States Want to Block What the Public Sees.,https://www.eff.org/deeplinks/2026/04/open-records-laws-reveal-alprs-sprawling-surveillance-now-states-want-block-what,comunicato,1,it,"Open Records Laws Reveal ALPRs’ Sprawling Surveillance. Now States Want to Block What the Public Sees. <div class=""field field--name-body field--type-text-with-summary field--label-hidden""><div class=""field__items""><div class=""field__item even""><p><span>Reporters, community advocates, EFF, and others have used public records laws to reveal and counteract abuse, misuse, and </span><a href=""https://www.eff.org/deeplinks/2025/10/flock-safety-and-texas-sheriff-claimed-license-plate-search-was-missing-person-it""><span>fraudulent narratives</span></a><span> around how law enforcement agencies across the country use and share data collected by automated license plate readers (ALPRs). EFF is alarmed by recent laws in several states that have blocked public access to data collected by ALPRs, including, in some cases, information derived from ALPR data. We do not support pending bills in Arizona and Connecticut that would block the public oversight capabilities that ALPR information offers.</span></p>
-<p><a href=""https://www.rcfp.org/open-government-guide/""><span>Every state</span></a><span> has laws granting members of the public the right to obtain records from state and local governments. These are often called “freedom of information acts” (FOIAs) or “public records acts” (PRAs). They are a powerful check by the people on their government, and EFF frequently advocates for robust public access and </span><a href=""https://www.eff.org/issues/transparency""><span>uses the laws to scrutinize government surveillance</span></a><span>. </span></p>
-<p><span>But lawmakers across the country, often in response to public scrutiny of police ALPRs, are introducing or enacting measures aimed at excluding broad swaths of ALPR information from disclosure under these public records laws. This could include whole categories of important information: general information about the extent of law enforcement use; details on ALPR sharing across policing agencies; data on the number of license plate scans conducted, where they happened, and how many “hits” for license plates of interest actually occur; analyses on how many false matches or other errors occur; and images taken of individuals’ own vehicles. </span></p>
-<p><span>No thanks. Public records and public scrutiny of ALPR programs have shown that people are </span><a href=""https://www.eff.org/deeplinks/2024/11/human-toll-alpr-errors""><span>harmed by these systems</span></a><span> and that retained ALPR data </span><a href=""https://www.eff.org/cases/siren-v-san-jose""><span>violates people’s privacy</span></a><span>. In this moment, lawmakers should not be completely cutting off access to public records that document the abuses perpetuated by ALPRs. </span></p>
-<h4><b>Transparency with privacy</b></h4>
-<p><span>To be sure, there are legitimate concerns about wholesale public disclosure of raw ALPR data. After all, many of the harms people experience from these systems are based on the government’s collection, retention, and use of this information. Public transparency rights should not exacerbate the privacy harms suffered by people subjected to ALPR surveillance. But many current proposals do not address legitimate privacy concerns in a measured way, much less seek to harmonize people’s privacy with the public’s right to know.</span></p>
-<p><span>There is a better path to balancing privacy and transparency rights than outright bans or total disclosure. </span></p>
-<p><span>Any legislative proposal concerning public access to ALPR data must start with this reality: ALPR data is deeply revealing about where a person goes, and thus about what they are doing and who they are doing it with. That’s a reason why </span><a href=""https://www.eff.org/deeplinks/2025/12/local-communities-are-winning-against-alpr-surveillance-heres-how-2025-review""><span>EFF</span></a> <a href=""https://www.eff.org/deeplinks/2026/02/op-ed-san-jose-can-protect-immigrants-ending-flock-surveillance-system""><span>opposes</span></a> <a href=""https://www.eff.org/deeplinks/2025/12/procurement-power-when-cities-realized-they-can-just-say-no-2025-review""><span>ALPRs</span></a><span>. It is dangerous that the police have so much of our ALPR information. Even worse for our privacy would be for police to disclose our ALPR information to our bosses, political opponents, and ex-friends. Or to surveillance-oriented corporations that would use our ALPR information to send us targeted ads, or monetize it by selling it to the highest bidder.</span></p>
-<p><span>On the other hand, EFF’s firsthand experience using public records from ALPR systems demonstrates the strong accountability value of public access to many kinds of ALPR data, including information like data-sharing reports and network audits. For example, in our </span><a href=""https://www.eff.org/pages/what-alpr""><span>“Data Driven” series</span></a><span>, we used ALPR data-sharing and hit ratio reports to investigate the extent of ALPR data sharing between police departments and to analyze the number of ALPR scans that are ultimately associated with a crime-related vehicle. We have also identified </span><a href=""https://www.eff.org/deeplinks/2025/11/license-plate-surveillance-logs-reveal-racist-policing-against-romani-people""><span>racist uses of ALPR systems</span></a><span>, </span><a href=""https://www.eff.org/deeplinks/2025/11/how-cops-are-using-flock-safetys-alpr-network-surveil-protesters-and-activists""><span>ALPR surveillance of protestors</span></a><span>, and </span><a href=""https://www.eff.org/deeplinks/2025/10/flock-safety-and-texas-sheriff-claimed-license-plate-search-was-missing-person-it""><span>ALPR tracking of a person who sought an abortion</span></a><span>. Across the country, municipalities have been </span><a href=""https://www.eff.org/deeplinks/2025/12/local-communities-are-winning-against-alpr-surveillance-heres-how-2025-review""><span>shutting down their contracts</span></a><span> for ALPR use, often citing concerns with data sharing with federal and immigration agents. </span></p>
-<p><span>These records are not just informational—they are leverage. Communities, journalists, and local officials have used ALPR disclosures to block new deployments, refuse contract renewals, and terminate existing agreements with surveillance vendors whose practices proved too dangerous to continue. </span><a href=""https://www.eff.org/deeplinks/2025/12/local-communities-are-winning-against-alpr-surveillance-heres-how-2025-review""><span>Without this evidentiary record</span></a><span>, it is far harder for cities to exercise </span><a href=""https://www.eff.org/deeplinks/2025/12/procurement-power-when-cities-realized-they-can-just-say-no-2025-review""><span>their procurement power</span></a><span> to say no.</span></p>
-<p><span>It is not always easy to harmonize transparency and privacy when one person wishes to use a public records law to obtain government records that reveal people’s personal information. The best approach is for public records laws to contain a privacy exemption that requires </span><i><span>balancing</span></i><span>, on a case-by-case basis, of the transparency benefits versus the privacy costs of disclosure. Many do. These provisions of public records laws already accommodate similar concerns about disclosing personal information of private individuals whose information the government may have collected, government employee’s private data, and other personal information. </span></p>
-<p><span>The balancing provisions in these laws are often flexible and allow for nuance. For example, if a government record contains a mix of information that does not reveal people’s private information and some that does, agencies and courts can disclose the non-private information while withholding the truly private information. This is often accomplished with blacking out, or redacting, the private information.</span></p>
-<p><span>Applying this privacy-and-transparency balancing to ALPR records, it will often be appropriate for the government to disclose some information and withhold other information. Everybody should generally have access to records showing </span><i><span>their own</span></i><span> movements and other information captured by ALPRs, but the privacy protections in public records laws should foreclose a single person’s ability to get a copy of similar records about everyone else. And even with accessing your own data, there are complications with shared vehicles that should be considered when balancing privacy and transparency.</span></p>
-<p><span>An example of where it may be appropriate to release unredacted data and images would be vehicles engaged in non-sensitive government business. For example, a member of the public might use ALPR scans of garbage trucks to identify gaps in service, which would not reveal private information. On other hand, it would be inappropriate to release the scans of a government social worker visiting their clients. </span></p>
-<p><span>Public records laws should allow a requester to obtain some ALPR information about government surveillance of everyone else, in a manner that accommodates the public transparency interest in disclosure and people’s privacy interests. For example, the best public records laws would disclose the times and places that plate data was collected, but not plate data itself. This can be done, for example, by an agency or court finding that </span><a href=""https://www.eff.org/press/releases/victory-eff-wins-access-license-plate-reader-data-study-how-law-enforcement-uses""><span>disclosing aggregated and/or deidentified ALPR data</span></a><span> protects the privacy or other interests of individuals captured within the data. The best laws recognize that aggregation or de-identification of databases are redactions in service of individual privacy (which responding agencies must do), and are not creating new public records (which responding agencies sometimes need not do). </span></p>
-<p><span>Likewise, in a government audit log of police searches of stored ALPR data, it will often be appropriate to disclose an officer’s investigative purposes to conduct a search, and the officer’s search terms – but not the search term if it is a license plate number. Many people do not want the world to know that they are under police investigation, and many public records laws generally limit the disclosure of such sensitive facts because of the reputational and privacy harm inherent in that disclosure.</span></p>
-<p><span>Aggregate ALPR information about, for example, the amount of data collected and error rates can have important transparency value and impact government policy. Requiring the public release of that kind of data contributes to informed public discussion of how our policing agencies do their jobs. This kind of information has been used to </span><a href=""https://www.eff.org/pages/what-alpr""><span>study</span></a><span>, </span><a href=""https://www.eff.org/deeplinks/2026/03/traffic-violation-license-plate-reader-mission-creep-already-here""><span>critique</span></a><span>, and </span><a href=""https://www.eff.org/deeplinks/2025/10/flock-safety-and-texas-sheriff-claimed-license-plate-search-was-missing-person-it""><span>provide oversight of ALPR use</span></a><span>.</span></p>
-<p><span>Thus, the wholesale exemption of ALPR information from disclosure under state public records laws would stymie the public’s ability to monitor how their government is using powerful and controversial surveillance technology. EFF cannot support such laws.</span></p>
-<h4><b>Blocking transparency</b></h4>
-<p><span>In Connecticut, </span><a href=""https://www.billtrack50.com/billdetail/1962216/""><span>SB 4</span></a><span> is a pending bill that would exclude, from that state’s public records law, information “gathered by” an ALPR or “created through an analysis of the information gathered by” an ALPR. This could ultimately harm individual civilians, who would have less ability to protect themselves from law enforcement that indiscriminately collect vehicle information. Other provisions of this bill would limit government use of ALPRs, and regulate data brokers.</span></p>
-<p><span>In Arizona, </span><a href=""https://www.billtrack50.com/billdetail/1925599""><span>SB 1111</span></a><span> would restrict public access to ALPR data “collected by” an ALPR. The bill would even make it a felony to access or use data from an ALPR (or disseminate it) in violation of this article, which apparently might apply to a member of the public who obtained ALPR data with a public records request. The bill’s author claims it adds “</span><a href=""https://azmirror.com/2026/02/10/senate-panel-advances-bill-that-shields-police-surveillance-cameras-from-public-scrutiny/""><span>guardrails</span></a><span>” for ALPR use.</span></p>
-<p><span>Earlier this year, Washington state </span><a href=""https://app.leg.wa.gov/billsummary/?BillNumber=6002&amp;Year=2025&amp;Initiative=false&amp;emci=dc3d90fc-d4f0-f011-8194-000d3a11f903&amp;emdi=def3d9a0-35f2-f011-8194-000d3a11f903&amp;ceid=7827502""><span>enacted a law</span></a><span> that will exempt data “collected by” ALPRs from the state’s public records law. While “bona fide research” will still be a way for some people to obtain ALPR data, this may not include journalists and activists who analyze aggregate data to identify policy flaws. Notably, Washington </span><a href=""https://www.eff.org/deeplinks/2025/11/washington-court-rules-data-captured-flock-safety-cameras-are-public-records""><span>courts found</span></a><span> last year that information generated by ALPR, including images of an individual’s own vehicle, are public records; this new legislation will override that decision, blocking the ability for people to see what photos police have taken of their own vehicles. Other provisions of this new law will limit government use of ALPRs.</span></p>
-<p><span>A year ago, Illinois’ </span><a href=""https://www.billtrack50.com/billdetail/1824301/""><span>HB 3339</span></a><span> ended use of that state’s public records law to obtain ALPR information used and collected by the Illinois State Police (ISP), including both information “gathered by an ALPR” and information “created from the analysis of data generated by an ALPR.” This Illinois language for just the ISP is very similar to what is now being considered in Connecticut for all state and local agencies. </span></p>
-<p><span>Sadly, the list goes on. Georgia </span><a href=""https://law.justia.com/codes/georgia/title-35/chapter-1/section-35-1-22/""><span>exempted ALPR data</span></a><span> (both “captured by or derived from” ALPRs) of any government agency from its open records law. Adding insult to injury, Georgia also made it a misdemeanor to knowingly request, use, or obtain law enforcement’s plate data for any purpose other than law enforcement. </span><a href=""https://law.justia.com/codes/maryland/2024/public-safety/title-3/subtitle-5/section-3-509/""><span>Maryland</span></a><span> exempted “information gathered by” an ALPR from its public information act. </span><a href=""https://law.justia.com/codes/oklahoma/title-47/section-47-7-606-1/""><span>Oklahoma</span></a><span> exempted from its open records act the ALPR data “collected, retained or shared” by District Attorneys under that state’s Uninsured Vehicle Enforcement Program.</span></p>
-<p><span>These laws and bills in seven states are an unwelcome national trend.</span></p>
-<h4><strong>Next steps</strong></h4>
-<p><span>We urge legislators to reject efforts to amend state public records laws to wholly exempt ALPR information. This would diminish meaningful oversight over these controversial technologies. Public disclosure of some ALPR information is important. </span></p>
-<p><span>There is a better approach for states that want to harmonize privacy and transparency in the context of ALPR data: </span></p>
-<ol>
-<li><span> Open records laws should cover, and not exclude, information collected by ALPRs, and also any public records derived from that information.</span></li>
-<li><span> Open records laws should have a privacy exemption that applies to all records, including information collected or derived from ALPRs. That exemption should require a case-by-case balancing of the transparency benefits and privacy costs of disclosure. These provisions work best when agencies and courts can analyze the context of the particular records, the weight of the privacy interests and public interests at stake, and other specific facts to fashion the best balance between these competing values. </span></li>
-<li><span> When a document contains both exempt and non-exempt information, open records laws should require disclosure of the latter and withholding of the former. The best public records laws allow agencies to black out, or redact, specific private information while disclosing non-private information in the same records, threading the privacy and transparency needle.</span><span><br /></span></li>
-<li><span> Finally, in the context of a law enforcement ALPR database (including both data collected by ALPRs and audit logs of police searches of stored ALPR data), the law should permit agencies to disclose aggregated and/or deidentified data, while withholding personally identifiable data. Importantly, the law should recognize that the steps an agency takes to protect individual privacy in ALPR databases should not be construed as creating a new public record. </span></li>
-</ol>
-<p><span>FOIA balancing standards are one layer in a larger governance stack, and work best alongside strong guardrails on whether and how governments procure ALPR systems in the first place: public debate over vendor contracts, binding surveillance ordinances, strict data‑retention limits, and clear pathways to end ALPR programs entirely where the risks prove too great.</span></p>
+805d641008774f8e68d4d1b2df11f7899ac81972c9f4f62440a5e068f65e734e,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Wed, 29 Apr 2026 06:45:00 +0000",2026-05-02T18:07:30.015071,Commission urges Member States to rollout EU age verification app,https://digital-strategy.ec.europa.eu/en/news/commission-urges-member-states-rollout-eu-age-verification-app,comunicato,1,it,"Commission urges Member States to rollout EU age verification app <span>Commission urges Member States to rollout EU age verification app</span>
+<span><span>legroju</span></span>
+<span><time datetime=""2026-04-29T08:45:00+02:00"" title=""Wednesday, April 29, 2026 - 08:45"">Wed, 04/29/2026 - 08:45</time>
+</span>
 
-</div></div></div>",219d93c4f06c85553e5657d96c8a7fa08c5f5f6fe9b55ac32514caf6295b948c
+<div>
+  <div class=""cnt-thumbnail-media ecl-u-type-m cnt-content-wrapper"">
+        
+              <div class=""cnt-teaser ecl-u-type-m ecl-u-mb-xl"">
+                                    <p class=""ecl-page-header-standardised__description"">Today, the Commission adopted a recommendation urging Member States to accelerate the rollout of the EU age verification app and make it available by the end of the year.</p>
+
+  
+              </div>
+      <div class=""cnt-image cnt-media"">
+                     
+            <div>
+
+
+
+
+
+          
+    
+    
+      <div class=""ecl-media-container""><figure class=""ecl-media-container__figure""><source /><img alt=""Illustration of age verification - 2 people around square with text &quot;date of birth&quot;"" class=""ecl-media-container__media"" src=""https://digital-strategy.ec.europa.eu/sites/default/files/styles/newsroom_large/public/newsroom/items/ProtectingYoungPeopleOnline_600x400_colours_7Age_verification1_4G5IQTvGmv9dEF9I7PZTjHkc8gI_2321331_EZDN2cqgFaGW30hBpmY7Yj2OTM_232139.jpg?itok=rFnzMcqY"" /></figure></div>  </div>
+      
+  
+      </div>
+    
+    <div class=""cnt-main-body ecl-u-type-m"">
+                          <div class=""ecl""><p>The secure, safe, and privacy-preserving EU age verification app is a key step in protecting children from harmful and inappropriate online content.</p>
+<p>The Member States can roll-out the EU age verification as a standalone app or integrate it into a <a href=""https://ec.europa.eu/digital-building-blocks/sites/spaces/EUDIGITALIDENTITYWALLET/pages/694487738/EU+Digital+Identity+Wallet+Home"">European Digital Identity Wallet</a>. The <a href=""https://digital-strategy.ec.europa.eu/en/library/commission-sets-out-common-approach-eu-wide-age-verification-technologies"">recommendation</a> also specifies the actions that Member States should take to ensure the swift availability and interoperability of the EU age verification solution.</p>
+<p>The Commission has developed a <a href=""https://ec.europa.eu/commission/presscorner/detail/en/STATEMENT_26_817"">blueprint of the EU age verification app</a>, which enables users to prove they meet a required age threshold without revealing their exact age, identity or any other personal details. It is now for the Member States to customise and produce the app for their citizens.</p>
+<p><a href=""https://digital-strategy.ec.europa.eu/en/policies/protecting-young-people-online"">Protecting children online</a> is a priority for the Commission. Under the EU's <a href=""https://digital-strategy.ec.europa.eu/en/policies/digital-services-act"">Digital Services Act</a>, online platforms must ensure a high level of privacy, security and safety for minors online.</p>
+<p><strong>Henna Virkkunen, Executive Vice-President for Tech Sovereignty, Security and Democracy, </strong>said:</p>
+<blockquote>
+<p>Effective and privacy-preserving age verification is the next piece of the puzzle that we are getting closer to completing, as we work towards an online space where our children are safe and empowered to use positively and responsibly without restricting the rights of adults.</p>
+</blockquote>
+<h2>More information</h2>
+<ul>
+<li><a href=""https://ec.europa.eu/commission/presscorner/detail/en/speech_26_921"">Remarks by Executive Vice-President Virkkunen on the EU age verification app</a></li>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/faqs/eu-age-verification-solution"">FAQ on the EU Age Verification Solution</a></li>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/policies/eu-age-verification"">The EU Approach to Age Verification</a></li>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/policies/protecting-young-people-online"">Protecting Minors Online</a></li>
+</ul>
+<p></p></div>
+
+          
+          </div>
+    <div class=""cnt-aside ecl-u-type-m"">
+      <aside class=""ecl-u-height-100"">
+                              <h3>Related topics</h3>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=75"">Creating a digital society</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=90"">   eGovernment, Trust services and eID</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=154"">   Better Internet for Children</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=158"">Trust services and eIdentification</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=153"">Strengthening trust and security</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=150"">Online platforms and e-commerce</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=193"">DSA - Digital Services Act</a>
+
+  
+              </aside>
+    </div>
+
+        <div class=""cnt-bottom ecl-u-pv-xl"">
+      <div class=""ecl-u-mb-3xl"">
+                              <h2>Related content</h2>
+
+      
+  <article class=""ecl-content-item ecl-content-item--divider ecl-u-mb-xl""><div class=""ecl-content-block ecl-content-item__content-block""><ul class=""ecl-content-block__primary-meta-container""><li class=""ecl-content-block__primary-meta-item"">Policy and legislation</li><li class=""ecl-content-block__primary-meta-item"">29 April 2026</li></ul><div class=""ecl-content-block__title""><a class=""ecl-link ecl-link--standalone"" href=""https://digital-strategy.ec.europa.eu/en/library/commission-sets-out-common-approach-eu-wide-age-verification-technologies"">Commission sets out a common approach for  EU-wide Age Verification technologies</a></div><div class=""ecl-content-block__description"">The Commission has adopted a recommendation that paves the way for everyone in the EU to have access to age verification tools based on anonymous proof-of-age technologies, ensuring the highest possible standards for privacy and data protection.</div></div></article>  
+
+  
+                      </div>
+    </div>
+  </div>
+</div>
+  <div class=""layout layout--onecol"">
+    <div class=""layout__region layout__region--content"">
+          <div>
+  
+    
+        <div class=""ecl-u-type-m"">
+    <section class=""cnct-page-footer ecl-u-mv-2xl"">
+                    <div class=""ecl-social-media-share"">
+          
+        </div>
+            
+      
+          </section>
+  </div>
+
+  </div>
+
+    </div>
+  </div>
+<div class=""node_view""></div>",805d641008774f8e68d4d1b2df11f7899ac81972c9f4f62440a5e068f65e734e
+94a8cb89e8e34b46ae156d74da70a1bc1746aa234707669bccc36490d9abd6db,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Wed, 29 Apr 2026 05:18:00 +0000",2026-05-02T18:07:30.219350,Commission preliminarily finds Meta in breach of Digital Services Act for failing to prevent minors under 13 from using Instagram and Facebook,https://digital-strategy.ec.europa.eu/en/news/commission-preliminarily-finds-meta-breach-digital-services-act-failing-prevent-minors-under-13,comunicato,1,it,"Commission preliminarily finds Meta in breach of Digital Services Act for failing to prevent minors under 13 from using Instagram and Facebook <span>Commission preliminarily finds Meta in breach of Digital Services Act for failing to prevent minors under 13 from using Instagram and Facebook</span>
+<span><span>Anonymous (not verified)</span></span>
+<span><time datetime=""2026-04-29T07:18:00+02:00"" title=""Wednesday, April 29, 2026 - 07:18"">Wed, 04/29/2026 - 07:18</time>
+</span>
+
+<div>
+  <div class=""cnt-thumbnail-media ecl-u-type-m cnt-content-wrapper"">
+        
+              <div class=""cnt-teaser ecl-u-type-m ecl-u-mb-xl"">
+                                    <p class=""ecl-page-header-standardised__description"">The European Commission has preliminarily found Meta's Instagram and Facebook in breach of the Digital Services Act (DSA) for failing to diligently identify, assess and mitigate the risks of minors under 13 years old accessing their services.</p>
+
+  
+              </div>
+      <div class=""cnt-image cnt-media"">
+                     
+            <div>
+
+
+
+
+
+          
+    
+    
+      <div class=""ecl-media-container""><figure class=""ecl-media-container__figure""><source /><img alt=""Text &quot;Digital Services Act&quot; inside a white triangle inside a white triangle against a blue background."" class=""ecl-media-container__media"" src=""https://digital-strategy.ec.europa.eu/sites/default/files/styles/newsroom_large/public/newsroom/items/DSA_variation_v2_NaslXJcOesO1qeGvYRDhU0pxpHI_232091.png?itok=3MIjP_L8"" /></figure></div>  </div>
+      
+  
+      </div>
+    
+    <div class=""cnt-main-body ecl-u-type-m"">
+                          <div class=""ecl""><p>Despite Meta's own terms and conditions setting the minimum age to access Instagram and Facebook safely at 13, the measures put in place by the company to enforce these restrictions do not seem to be effective. The measures do not adequately prevent minors under the age of 13 from accessing their services nor promptly identify and remove them, if they already gained access.</p>
+<p>For example, when creating an account, minors below 13 can enter a false birth date that makes them at least 13 years old, with no effective controls in place to check the correctness of the self-declared date of birth.</p>
+<p>Read the <a href=""https://ec.europa.eu/commission/presscorner/detail/en/ip_26_920""><strong>full press release</strong></a>.</p>
+<p>Find more information about:</p>
+<ul>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/policies/digital-services-act"">Digital Services Act</a>- main aspects of the regulation</li>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/factpages/user-rights-under-digital-services-act"">User rights under the Digital Services Act</a>- an overview</li>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/policies/protecting-young-people-online"">Protecting and empowering young people online</a></li>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/library/commission-publishes-guidelines-protection-minors"">2025 DSA Guidelines on the protection of minors</a></li>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/policies/eu-age-verification"">EU Age Verification solution</a></li>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/policies/list-designated-vlops-and-vloses"">Supervision of the designated very large online platforms and search engines under DSA</a></li>
+</ul></div>
+
+          
+          </div>
+    <div class=""cnt-aside ecl-u-type-m"">
+      <aside class=""ecl-u-height-100"">
+                              <h3>Related topics</h3>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=150"">Online platforms and e-commerce</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=193"">DSA - Digital Services Act</a>
+
+  
+              </aside>
+    </div>
+
+        <div class=""cnt-bottom ecl-u-pv-xl"">
+      <div class=""ecl-u-mb-3xl"">
+                      
+                      </div>
+    </div>
+  </div>
+</div>
+  <div class=""layout layout--onecol"">
+    <div class=""layout__region layout__region--content"">
+          <div>
+  
+    
+        <div class=""ecl-u-type-m"">
+    <section class=""cnct-page-footer ecl-u-mv-2xl"">
+                    <div class=""ecl-social-media-share"">
+          
+        </div>
+            
+      
+          </section>
+  </div>
+
+  </div>
+
+    </div>
+  </div>
+<div class=""node_view""></div>",94a8cb89e8e34b46ae156d74da70a1bc1746aa234707669bccc36490d9abd6db
+9f98e64e4ccdcd5bfdb379e08dc5d811e11290144a84c91ed04587c2972e55dc,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Thu, 30 Apr 2026 06:45:10 +0000",2026-05-02T18:07:29.924763,The Telenor Myanmar scandal: a stark warning for data control in authoritarian times,https://www.somo.nl/the-telenor-myanmar-scandal-a-stark-warning-for-data-control-in-authoritarian-times/,comunicato,1,it,"The Telenor Myanmar scandal: a stark warning for data control in authoritarian times <p>When people talk about surveillance and privacy, they often imagine secretive government agencies, futuristic spyware, or complex algorithms developed by Big Tech companies. But one of the clearest modern examples of how dangerous and pernicious corporate control over personal data can be comes from a much more ordinary place: a Norwegian telecoms company – backed [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/the-telenor-myanmar-scandal-a-stark-warning-for-data-control-in-authoritarian-times/"">The Telenor Myanmar scandal: a stark warning for data control in authoritarian times</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",9f98e64e4ccdcd5bfdb379e08dc5d811e11290144a84c91ed04587c2972e55dc
+612ec5cc68f8018d7cb996c01c80372a804c4ec27253e44aacbcdd34ace9069f,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Thu, 09 Apr 2026 05:00:00 +0000",2026-05-02T18:07:30.335743,Court must decide on prosecution of Booking.com over money-laundering,https://www.somo.nl/court-must-decide-on-prosecution-of-booking-com-over-money-laundering/,comunicato,1,it,"Court must decide on prosecution of Booking.com over money-laundering <p>On 8 April 2026, civil society groups filed a complaint with the Dutch Court of Appeal, challenging the length of time it has taken the public prosecutor to reach a decision on a criminal complaint against Booking.com that accuses the company of laundering profits from listings in illegal Israeli settlements. It has been more than [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/court-must-decide-on-prosecution-of-booking-com-over-money-laundering/"">Court must decide on prosecution of Booking.com over money-laundering</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",612ec5cc68f8018d7cb996c01c80372a804c4ec27253e44aacbcdd34ace9069f
+8f8c44f7b8dc69769ca7ac514679d7b06b66a548199a5f2d51516887c17c4d09,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Wed, 08 Apr 2026 05:00:00 +0000",2026-05-02T18:07:30.419883,Myanmar customers sue Telenor for sharing private data with military,https://www.somo.nl/myanmar-customers-sue-telenor-for-sharing-private-data-with-military/,comunicato,1,it,"Myanmar customers sue Telenor for sharing private data with military <p>On behalf of Myanmar customers, a Swedish non-profit association today filed a class action lawsuit against the Norwegian telecoms giant Telenor over its role in serious human rights violations in Myanmar. The lawsuit seeks damages for the sharing of data with military authorities of customers who were suspected of opposing the 2021 coup. According to [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/myanmar-customers-sue-telenor-for-sharing-private-data-with-military/"">Myanmar customers sue Telenor for sharing private data with military</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",8f8c44f7b8dc69769ca7ac514679d7b06b66a548199a5f2d51516887c17c4d09
+7c785f00a5479e9fdf900045f7fc0ec74c78fd900515c4e4632622c968bc5e06,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Thu, 02 Apr 2026 05:00:00 +0000",2026-05-02T18:07:30.503864,Europe’s minerals dilemma: between the Bully and the Dragon?,https://www.somo.nl/europes-minerals-dilemma-between-the-bully-and-the-dragon/,comunicato,1,it,"Europe’s minerals dilemma: between the Bully and the Dragon? <p>As the EU launches a new phase of its critical minerals strategy, reducing demand may be its only realistic path to minerals resilience As global powers race to secure critical minerals, the EU is doubling down on a supply-driven strategy that is unlikely to win. Caught between US coercive industrial strategy and China’s dominance in [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/europes-minerals-dilemma-between-the-bully-and-the-dragon/"">Europe’s minerals dilemma: between the Bully and the Dragon?</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",7c785f00a5479e9fdf900045f7fc0ec74c78fd900515c4e4632622c968bc5e06
+b587914abddf75c1a57ded32ae7072d5ba7b02ad0755b68bd818c8a307a551ac,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Tue, 31 Mar 2026 05:30:00 +0000",2026-05-02T18:07:30.587852,Big Tech sets unfair terms and conditions for AI data workers globally,https://www.somo.nl/big-tech-sets-unfair-terms-and-conditions-for-ai-data-workers-globally/,comunicato,1,it,"Big Tech sets unfair terms and conditions for AI data workers globally <p>The AI data work market is thriving, but the workers are not Across the world, AI data workers have exposed and challenged their precarious working conditions. Their employers, although not household names, are crucial in developing widely used AI products such as chatbots, self-driving cars, and smart devices. These companies operate as supply chain intermediaries, [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/big-tech-sets-unfair-terms-and-conditions-for-ai-data-workers-globally/"">Big Tech sets unfair terms and conditions for AI data workers globally</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",b587914abddf75c1a57ded32ae7072d5ba7b02ad0755b68bd818c8a307a551ac
+60349bdb20bf7bc863a385407eeda9c8fc7549f866121664fb67fe71d9f41314,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Thu, 12 Mar 2026 08:00:00 +0000",2026-05-02T18:07:30.665704,Dutch town forced to yield to industry expansion,https://www.somo.nl/dutch-town-forced-to-yield-to-industry-expansion/,comunicato,1,it,"Dutch town forced to yield to industry expansion <p>A deliberate phase-out of a part of the energy-intensive industries is urgently needed to protect residents and a sustainable future One glance at the map and you see it immediately: a David versus Goliath situation. A village of 1,150 people, right next to a sprawling industrial complex on a harbour on the Dutch coast. The [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/dutch-town-forced-to-yield-to-industry-expansion/"">Dutch town forced to yield to industry expansion</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",60349bdb20bf7bc863a385407eeda9c8fc7549f866121664fb67fe71d9f41314
+c8c93ea5d638e48b130ccc02fd9e82d24d8e12b063082c511e04d7d2d4dda0fc,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Tue, 03 Mar 2026 08:00:00 +0000",2026-05-02T18:07:30.740093,Responsible Divestment from Fossil Fuels,https://www.somo.nl/responsible-divestment-from-fossil-fuels/,comunicato,1,it,"Responsible Divestment from Fossil Fuels <p>The how of the ‘transition away’ matters The fossil fuel industry must end. The defining question of the energy transition is not only whether we stop oil, gas and coal extraction, but also how we do so. By placing justice at the centre of the energy transition, questions like who shapes the exit, who bears [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/responsible-divestment-from-fossil-fuels/"">Responsible Divestment from Fossil Fuels</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",c8c93ea5d638e48b130ccc02fd9e82d24d8e12b063082c511e04d7d2d4dda0fc
+d423ec36e8d1b6144b87ec303a7ea8030109a928d9e12a8d16ab0123dc0173c5,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Tue, 24 Feb 2026 06:00:00 +0000",2026-05-02T18:07:30.805891,Audited ≠ Ethical: how fashion brands mislead consumers,https://www.somo.nl/audited-ethical-how-fashion-brands-mislead-consumers/,comunicato,1,it,"Audited ≠ Ethical: how fashion brands mislead consumers <p>“No forced labour”, “a safe working environment”, and “fair pay”: these are promises clothing brands readily use in advertisements to reassure consumers seeking clean clothing. But what are these claims based on? A new analysis by SOMO, the Dutch consumers&#8217; association Consumentenbond, and Clean Clothes Campaign (CCC) shows that clothing brands regularly make overly general [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/audited-ethical-how-fashion-brands-mislead-consumers/"">Audited ≠ Ethical: how fashion brands mislead consumers</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",d423ec36e8d1b6144b87ec303a7ea8030109a928d9e12a8d16ab0123dc0173c5
+09cd8671aa82d4adf433f4631f6a2791f785260e03f459c9e2e5156e145f1aba,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Tue, 17 Feb 2026 05:00:00 +0000",2026-05-02T18:07:30.867780,Profiting from tourism in illegal Israeli settlements,https://www.somo.nl/profiting-from-tourism-in-illegal-israeli-settlements/,comunicato,1,it,"Profiting from tourism in illegal Israeli settlements <p>Spanish travel company eDreams accused of laundering proceeds of war crimes in occupied Palestinian and Syrian territory Three Spanish civil society groups have accused the multinational travel company, eDreams, of laundering profits derived from activity in illegal Israeli settlements in the Occupied Palestinian Territory (OPT) and the Occupied Syrian Golan. The groups &#8211; NOVACT, SUDS, [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/profiting-from-tourism-in-illegal-israeli-settlements/"">Profiting from tourism in illegal Israeli settlements</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",09cd8671aa82d4adf433f4631f6a2791f785260e03f459c9e2e5156e145f1aba
+bb4802d857613a4cd8cccbeb80f7526773449dc5efc4b350421781b9a569a582,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Thu, 12 Feb 2026 06:55:00 +0000",2026-05-02T18:07:30.929782,The United States: Birthplace of the Big Tech lobby playbook,https://www.somo.nl/the-united-states-birthplace-of-the-big-tech-lobby-playbook/,comunicato,1,it,"The United States: Birthplace of the Big Tech lobby playbook <p>SOMO’s ‘Big Tech Lobby Playbook’ series explores the tools and tactics of Big Tech’s global influence over law and policymaking. Big Tech’s political influence on the US government is long-standing. The companies have often been pushing on an open door, especially under the Obama administration(opens in new window) (from 2009 to 2017). Only Biden (from [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/the-united-states-birthplace-of-the-big-tech-lobby-playbook/"">The United States: Birthplace of the Big Tech lobby playbook</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",bb4802d857613a4cd8cccbeb80f7526773449dc5efc4b350421781b9a569a582
+fb11f76aac2a7856332fdcbbda015f9b6aa2f6dedd32a57654c2b1b877e6dfcf,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Thu, 12 Feb 2026 06:55:00 +0000",2026-05-02T18:07:30.980186,Innovation or irrelevance: How Big Tech has framed EU’s choices,https://www.somo.nl/how-big-tech-framed-eu-choices/,comunicato,1,it,"Innovation or irrelevance: How Big Tech has framed EU’s choices <p>SOMO’s ‘Big Tech Lobby Playbook’ series explores the tools and tactics of Big Tech’s global influence over law and policymaking. The EU has consistently been at the forefront of digital regulation, earning a reputation(opens in new window) as the world’s digital police officer. Silicon Valley has responded by investing heavily(opens in new window) in efforts [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/how-big-tech-framed-eu-choices/"">Innovation or irrelevance: How Big Tech has framed EU’s choices</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",fb11f76aac2a7856332fdcbbda015f9b6aa2f6dedd32a57654c2b1b877e6dfcf
+cc98924d08ccd48613c85c7be21716d0a623687792e1f4fa2fec70ebcdb31859,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Thu, 12 Feb 2026 06:55:00 +0000",2026-05-02T18:07:31.029465,Kenya: the human cost of Big Tech’s power,https://www.somo.nl/kenya-the-human-cost-of-big-techs-power/,comunicato,1,it,"Kenya: the human cost of Big Tech’s power <p>SOMO’s ‘Big Tech Lobby Playbook’ series explores the tools and tactics of Big Tech’s global influence over law and policymaking. The Kenyan government has made a big bet on the country becoming the tech hub of Africa. Often marketed as Silicon Savannah(opens in new window) , the delivery of tech jobs is a central plank [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/kenya-the-human-cost-of-big-techs-power/"">Kenya: the human cost of Big Tech&#8217;s power</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",cc98924d08ccd48613c85c7be21716d0a623687792e1f4fa2fec70ebcdb31859
+da4b56ca311b678cf576ff33d5765a0671c87381090482d73b80a99047bfb994,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Thu, 12 Feb 2026 06:55:00 +0000",2026-05-02T18:07:31.079860,Big Tech Lobbying in India: market size versus monopoly power,https://www.somo.nl/big-tech-india-market-size-versus-monopoly-power/,comunicato,1,it,"Big Tech Lobbying in India: market size versus monopoly power <p>SOMO’s ‘Big Tech Lobby Playbook’ series explores the tools and tactics of Big Tech’s global influence over law and policymaking. India’s government has made a big bet on digitalisation. For more than a decade, the Modi government has taken on the Digital India Mission(opens in new window) to boost internet connectivity, digital public services, and [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/big-tech-india-market-size-versus-monopoly-power/"">Big Tech Lobbying in India: market size versus monopoly power</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",da4b56ca311b678cf576ff33d5765a0671c87381090482d73b80a99047bfb994
+219d42933743e2f91e75c43d8b7535a3f625de8cb11faf0001a54b6a77e9a0fc,ong,SOMO (Multinazionali),Centro Ricerca,Internazionale,Organizzazione che monitora l'impatto delle multinazionali sui diritti umani,"Thu, 12 Feb 2026 06:55:00 +0000",2026-05-02T18:07:31.144855,Recoding the system: how we can counter the Big Tech Lobby Playbook,https://www.somo.nl/recoding-the-system-how-we-can-counter-the-big-tech-lobby-playbook/,comunicato,1,it,"Recoding the system: how we can counter the Big Tech Lobby Playbook <p>SOMO’s ‘Big Tech Lobby Playbook’ series explores the tools and tactics of Big Tech’s global influence over law and policymaking. Big Tech’s lobbying, which has gone largely unchecked for more than a decade, has resulted in a handful of companies having enormous market power. Their monopolisation of key communication infrastructure has made them a fundamental [&#8230;]</p>
+<p>The post <a href=""https://www.somo.nl/recoding-the-system-how-we-can-counter-the-big-tech-lobby-playbook/"">Recoding the system: how we can counter the Big Tech Lobby Playbook</a> appeared first on <a href=""https://www.somo.nl"">SOMO</a>.</p>",219d42933743e2f91e75c43d8b7535a3f625de8cb11faf0001a54b6a77e9a0fc
