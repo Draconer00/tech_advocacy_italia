@@ -359,67 +359,81 @@ with tab_ong:
         st.dataframe(df_filtrato_ong[['data_pubblicazione', 'nome_organizzazione', 'titolo', 'url']], width='stretch')
 
 # ==========================================
-# SCHEDA 2: GARANTE PRIVACY (La nuova analisi geografica)
+# SCHEDA 2: ANALISI GEOGRAFICA GLOBALE
 # ==========================================
 with tab_garante:
-    if df_gpdp.empty:
-        st.warning("Nessun dato Garante trovato. Assicurati che il bot abbia salvato in data/processed/")
-    else:
-        # Metriche in alto
-        col1, col2, col3 = st.columns(3)
-        col1.metric("📄 Documenti Legali Analizzati", len(df_gpdp))
+    st.header("🌍 Analisi Geografica Tutte le Fonti")
+    
+    # Unisci TUTTI i dati da TUTTI gli scraper
+    df_geografia_totale = df_master.copy()
+    
+    # --- FILTRO TIPO FONTE ---
+    st.subheader("🔍 Filtra per Tipo di Fonte")
+    col_f1, col_f2 = st.columns(2)
+    
+    with col_f1:
+        filtro_tipo = st.multiselect(
+            "Tipo di Contenuto:",
+            options=['Provvedimento', 'Comunicato ONG', 'Notizia'],
+            default=['Provvedimento', 'Comunicato ONG', 'Notizia']
+        )
+    
+    with col_f2:
+        filtro_area = st.selectbox("Filtra per Area Geografica:", 
+            ["Tutte le aree", "Italia", "Europa", "USA / Internazionale", "Asia"]
+        )
+    
+    # Applica filtri
+    df_geo_filtrato = df_geografia_totale[df_geografia_totale['tipo'].isin(filtro_tipo)]
+    
+    if filtro_area != "Tutte le aree":
+        df_geo_filtrato = df_geo_filtrato[df_geo_filtrato['ambito_geografico'] == filtro_area]
+    
+    # --- METRICHE GENERALI ---
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("📄 Totale Documenti Analizzati", len(df_geo_filtrato))
+    col2.metric("🇮🇹 Italia", len(df_geo_filtrato[df_geo_filtrato['ambito_geografico'] == 'Italia']))
+    col3.metric("🇪🇺 Europa", len(df_geo_filtrato[df_geo_filtrato['ambito_geografico'] == 'Europa']))
+    col4.metric("🌍 Mondo", len(df_geo_filtrato[df_geo_filtrato['ambito_geografico'].isin(['USA / Internazionale', 'Asia'])]))
+
+    st.divider()
+
+    # --- ANALISI GEOGRAFICA ---
+    st.subheader("📊 Distribuzione Geografica per Tipo")
+    
+    col_grafico, col_dettaglio = st.columns([2, 1])
+    
+    with col_grafico:
+        # Raggruppa per Area e Tipo
+        conteggio_geo = df_geo_filtrato.groupby(['ambito_geografico', 'tipo']).size().reset_index(name='conteggio')
         
-        # Controlliamo se esiste la colonna geografica prima di fare i conteggi
-        if 'Ambito_Geografico' in df_gpdp.columns:
-            col2.metric("🌍 Focus USA/Internazionale", len(df_gpdp[df_gpdp['Ambito_Geografico'] == 'USA / Internazionale']))
-            col3.metric("🇪🇺 Focus Europeo", len(df_gpdp[df_gpdp['Ambito_Geografico'] == 'Europa']))
-
-            st.divider()
-
-            # --- ANALISI GEOGRAFICA ---
-            st.subheader("📍 Distribuzione Geografica dei Provvedimenti")
-            col_grafico, col_tabella = st.columns([2, 1])
-            
-            with col_grafico:
-                conteggio_geo = df_gpdp['Ambito_Geografico'].value_counts().reset_index()
-                conteggio_geo.columns = ['Area', 'Numero Provvedimenti']
-                
-                # Grafico a torta "a ciambella" (Donut chart) con Plotly
-                fig = px.pie(conteggio_geo, values='Numero Provvedimenti', names='Area', hole=0.4,
-                             color='Area', 
-                             color_discrete_map={'Italia':'#2ca02c', 'Europa':'#1f77b4', 'USA / Internazionale':'#ff7f0e'})
-                st.plotly_chart(fig, width='stretch')
-                
-            with col_tabella:
-                st.markdown("**Filtra i documenti:**")
-                filtro_geo = st.selectbox("Seleziona Area Geografica:", ["Tutte le aree", "Italia", "Europa", "USA / Internazionale"])
-                
-                if filtro_geo != "Tutte le aree":
-                    df_filtrato_gpdp = df_gpdp[df_gpdp['Ambito_Geografico'] == filtro_geo]
-                else:
-                    df_filtrato_gpdp = df_gpdp
-                    
-                st.dataframe(df_filtrato_gpdp[['titolo', 'Ambito_Geografico']], hide_index=True)
-        else:
-            st.info("Esegui text_analysis.py per abilitare la classificazione geografica.")
-            df_filtrato_gpdp = df_gpdp # Fallback se manca la colonna
-
-        # --- BERSAGLI (ENTITÀ) ---
-        st.divider()
-        st.subheader("🎯 Entità e Aziende più Citate")
+        fig = px.bar(
+            conteggio_geo,
+            x='ambito_geografico',
+            y='conteggio',
+            color='tipo',
+            barmode='stack',
+            title='Distribuzione Geografica per Tipologia Contenuto',
+            labels={'conteggio': 'Numero Documenti', 'ambito_geografico': 'Area Geografica'}
+        )
         
-        if 'Entita_Coinvolte' in df_filtrato_gpdp.columns:
-            tutte_entita = [ent for lista in df_filtrato_gpdp['Entita_Coinvolte'] for ent in lista]
-            if tutte_entita:
-                dati_entita = pd.Series(tutte_entita).value_counts().head(10).reset_index()
-                dati_entita.columns = ['Entità', 'Citazioni']
-                
-                # Grafico a barre orizzontali
-                fig_bar = px.bar(dati_entita, x='Citazioni', y='Entità', orientation='h', text_auto=True)
-                fig_bar.update_layout(yaxis={'categoryorder':'total ascending'}) # Ordina dal basso all'alto
-                st.plotly_chart(fig_bar, width='stretch')
-            else:
-                st.info("Nessuna entità trovata con i filtri attuali.")
+        st.plotly_chart(fig, width='stretch')
+    
+    with col_dettaglio:
+        st.markdown("**Dettaglio per Fonte:**")
+        conteggio_fonte = df_geo_filtrato.groupby(['fonte', 'ambito_geografico']).size().reset_index(name='conteggio')
+        st.dataframe(conteggio_fonte, hide_index=True, width='stretch')
+
+    st.divider()
+
+    # --- ELENCO COMPLETO ---
+    st.subheader("📜 Elenco Tutti i Documenti")
+    
+    st.dataframe(
+        df_geo_filtrato[['data', 'fonte', 'tipo', 'ambito_geografico', 'titolo', 'livello_allarme']],
+        hide_index=True,
+        width='stretch'
+    )
 
 
 # ==========================================
