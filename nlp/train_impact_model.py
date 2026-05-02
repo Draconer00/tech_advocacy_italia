@@ -37,7 +37,22 @@ def train_impact_classifier():
         logger.info("⚠️ Nessun dato di feedback trovato. Training non eseguibile.")
         return False
     
-    df_feedback = pd.read_csv(percorso_feedback)
+    # Gestione CSV corrotto / righe malformate: salta le righe sbagliate invece di crashare
+    try:
+        df_feedback = pd.read_csv(percorso_feedback, on_bad_lines='skip', engine='python')
+    except Exception as e:
+        logger.warning(f"⚠️ Errore nella lettura del file feedback: {str(e)}")
+        logger.info("Provo a leggere il file con modalità permissiva...")
+        try:
+            # Modalità emergenza: leggi ogni riga e ignora errori
+            df_feedback = pd.read_csv(percorso_feedback, 
+                                     sep=None, 
+                                     engine='python',
+                                     on_bad_lines='skip',
+                                     quoting=3)
+        except Exception as e2:
+            logger.error(f"❌ Impossibile leggere il file feedback: {str(e2)}")
+            return False
     
     MINIMO_RIGHE_TRAINING = 10
     if len(df_feedback) < MINIMO_RIGHE_TRAINING:

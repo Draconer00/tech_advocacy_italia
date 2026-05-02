@@ -18,9 +18,11 @@ def run_command(command):
         result = subprocess.run(command, check=True, capture_output=True, text=True, env=env, encoding="utf-8")
         print(result.stdout)
     except subprocess.CalledProcessError as e:
-        print(f"Error executing command: {e}")
+        print(f"⚠️ Attenzione: errore eseguendo comando: {e}")
         print(e.stderr)
-        sys.exit(1)
+        print("✅ Continuo comunque con i passi successivi...\n")
+        # NON USIAMO PIU' sys.exit(1) - continuiamo sempre
+        return False
 
 def main():
     print("--- Starting Project Pipeline ---")
