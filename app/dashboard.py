@@ -668,24 +668,31 @@ with tab_network:
             # ✅ NUOVA GERARCHIA: Notizia -> ONG -> Tema
             ong_nome = notizia['nome_organizzazione']
             
-            # Cerca TUTTE le corrispondenze tematiche
-            temi_corrispondenti = []
-            for tema in parole_tema:
-                if tema.lower() in testo_notizia:
-                    tema_norm = normalizza_tema(tema)
-                    if tema_norm not in temi_corrispondenti:
-                        temi_corrispondenti.append(tema_norm)
+            # ✅ CERCA LA MIGLIORE CORRISPONDENZA NON LA PRIMA
+            # Calcola punteggio per ogni ONG: quanti dei suoi temi sono presenti nella notizia
+            punteggi_ong = {}
             
-            if ong_nome in G:
+            for nome_ong, dati_ong in PROFILI_ONG.items():
+                conteggio_match = 0
+                for tema in dati_ong.get('focus', []):
+                    if tema.lower() in testo_notizia:
+                        conteggio_match += 1
+                if conteggio_match > 0:
+                    punteggi_ong[nome_ong] = conteggio_match
+            
+            ong_migliore = None
+            punteggio_massimo = 0
+            
+            # Prendi la ONG con il numero maggiore di corrispondenze
+            for nome_ong, punteggio in punteggi_ong.items():
+                if punteggio > punteggio_massimo:
+                    punteggio_massimo = punteggio
+                    ong_migliore = nome_ong
+            
+            if ong_migliore is not None and ong_migliore in G:
                 G.add_node(titolo, color='#4bff8b', size=8, group='Notizia', shape='diamond')
-                
-                # ✅ Collegamento MULTIPLO: notizia a TUTTE le ONG che hanno i temi trovati
-                for tema_norm in temi_corrispondenti:
-                    # Per ogni tema trovato, collega la notizia a TUTTE le ONG che trattano questo tema
-                    for nome_ong, dati_ong in PROFILI_ONG.items():
-                        if any(normalizza_tema(t) == tema_norm for t in dati_ong.get('focus', [])):
-                            if not G.has_edge(nome_ong, titolo):
-                                G.add_edge(nome_ong, titolo, value=0.5, title=f"Tema: {tema_norm}")
+                # Collega la notizia SOLAMENTE alla ONG con la migliore corrispondenza
+                G.add_edge(ong_migliore, titolo, value=0.5, title=f"Corrispondenza: {punteggio_massimo} temi")
                 G.add_edge(ong_nome, titolo, value=0.5, title="Notizia della ONG")
 
         # Statistiche Network
