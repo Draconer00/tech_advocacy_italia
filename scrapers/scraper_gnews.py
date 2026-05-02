@@ -115,5 +115,16 @@ if __name__ == "__main__":
         os.makedirs(cartella_raw, exist_ok=True)
 
         percorso_salvataggio = os.path.join(cartella_raw, "gnews_sample.csv")
-        df_stampa.to_csv(percorso_salvataggio, index=False)
+        
+        # ✅ SISTEMA DI SALVATAGGIO STORICO: non sovrascrive, aggiunge
+        if os.path.exists(percorso_salvataggio):
+            df_esistente = pd.read_csv(percorso_salvataggio)
+            # Unisci vecchi e nuovi dati
+            df_unito = pd.concat([df_esistente, df_stampa], ignore_index=True)
+            # Rimuovi duplicati basati su hash_contenuto, mantieni il più nuovo
+            df_finale = df_unito.drop_duplicates(subset=['hash_contenuto'], keep='last')
+        else:
+            df_finale = df_stampa
+        
+        df_finale.to_csv(percorso_salvataggio, index=False)
         logger.info("💾 Dati salvati in: %s", percorso_salvataggio)
