@@ -695,7 +695,17 @@ with tab_network:
             parole_tema.extend(dati_ong.get('focus', []))
         parole_tema = list(set(parole_tema))
 
-        for _, notizia in df_ong.iterrows():
+        # ✅ FILTRO NETWORK: ULTIMO 30 GIORNI O LIVELLO ALLARME >=3
+        from datetime import datetime, timedelta
+        soglia_data = datetime.now().date() - timedelta(days=30)
+        
+        df_ong['data_pubblicazione'] = pd.to_datetime(df_ong['data_pubblicazione'], errors='coerce').dt.date
+        
+        # Applica filtro
+        mask = (df_ong['data_pubblicazione'] >= soglia_data) | (df_ong['livello_allarme'] >= 3)
+        df_ong_filtrato = df_ong[mask].copy()
+
+        for _, notizia in df_ong_filtrato.iterrows():
             titolo = notizia['titolo'][:50] + "..."
             testo_notizia = (notizia['titolo'] + " " + notizia.get('testo_completo', '')).lower()
             
