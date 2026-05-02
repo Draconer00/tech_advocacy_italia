@@ -37,7 +37,9 @@ def main():
         "scrapers/scraper_ong.py",
         "scrapers/scraper_gnews.py",
         "scrapers/scraper_gpdp.py",
-        "scrapers/scraper_rss_eu.py"
+        "scrapers/scraper_rss_eu.py",
+        "scrapers/scraper_eurlex.py",
+        "scrapers/scraper_parliament.py"
     ]
     
     for scraper in scrapers:
