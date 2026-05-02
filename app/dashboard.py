@@ -668,16 +668,24 @@ with tab_network:
             # ✅ NUOVA GERARCHIA: Notizia -> ONG -> Tema
             ong_nome = notizia['nome_organizzazione']
             
-            # Cerca corrispondenza tematica
-            tema_associato = None
+            # Cerca TUTTE le corrispondenze tematiche
+            temi_corrispondenti = []
             for tema in parole_tema:
                 if tema.lower() in testo_notizia:
-                    tema_associato = normalizza_tema(tema)
-                    break
+                    tema_norm = normalizza_tema(tema)
+                    if tema_norm not in temi_corrispondenti:
+                        temi_corrispondenti.append(tema_norm)
             
             if ong_nome in G:
                 G.add_node(titolo, color='#4bff8b', size=8, group='Notizia', shape='diamond')
-                # ✅ Ora la notizia è collegata DIRETTAMENTE alla ONG, non al tema
+                
+                # ✅ Collegamento MULTIPLO: notizia a TUTTE le ONG che hanno i temi trovati
+                for tema_norm in temi_corrispondenti:
+                    # Per ogni tema trovato, collega la notizia a TUTTE le ONG che trattano questo tema
+                    for nome_ong, dati_ong in PROFILI_ONG.items():
+                        if any(normalizza_tema(t) == tema_norm for t in dati_ong.get('focus', [])):
+                            if not G.has_edge(nome_ong, titolo):
+                                G.add_edge(nome_ong, titolo, value=0.5, title=f"Tema: {tema_norm}")
                 G.add_edge(ong_nome, titolo, value=0.5, title="Notizia della ONG")
 
         # Statistiche Network
