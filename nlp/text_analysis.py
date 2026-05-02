@@ -142,6 +142,10 @@ metrics = PerformanceMetrics()
 # ===== PRIORITY 2.1: Sentiment Analysis su Provvedimenti =====
 from transformers import pipeline
 
+# ✅ NUOVI MODULI
+from nlp.train_classifier import classifica_testo
+from nlp.deduplication import deduplica_dataframe
+
 # Carica modello sentiment analysis multilingua
 sentiment_pipe = pipeline("sentiment-analysis", 
                           model="nlptown/bert-base-multilingual-uncased-sentiment")
@@ -547,6 +551,16 @@ def processa_dataframe(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
     
     # 5. Estrazione Keywords
     df['Parole_Chiave'] = df['testo_completo'].apply(estrai_topic_keywords)
+    
+    # 6. ✅ NUOVO: Classificazione Transformer con Confidence
+    def classifica_riga(riga):
+        etichetta, confidenza = classifica_testo(riga['titolo'] + " " + riga['testo_completo'][:300])
+        return pd.Series([etichetta, confidenza])
+    
+    df[['topic_label', 'confidence']] = df.apply(classifica_riga, axis=1)
+    
+    # 7. ✅ NUOVO: Deduplicazione Semantica DBSCAN
+    df = deduplica_dataframe(df)
     
     print(f"✅ Completata analisi {fonte_nome}")
     
