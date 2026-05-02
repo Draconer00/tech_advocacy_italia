@@ -1,10 +1,16 @@
 # 📋 Panoramica Funzionalità - Tech Advocacy Italy
+Aggiornato al 02/05/2026
 
 ---
 
 ## 📁 Struttura Moduli
 
 ### `scrapers/` - Strato di Estrazione Dati
+
+#### **✅ TUTTI GLI SCRAPER ADESSO HANNO STORICO PERMANENTE**
+✅ Nessuna sovrascrittura ✅ Append automatico ✅ Deduplicazione ✅ Dati mantenuti per sempre
+
+---
 
 #### **scraper_gnews.py** 
 - **Funzione**: Estrae articoli dal motore di ricerca GNews su temi di privacy, IA e diritti digitali
@@ -14,7 +20,9 @@
   - Testata / Fonte news
   - Data pubblicazione, Titolo, Riassunto, Link
   - Filtro: articoli in italiano, da fonti italiane
-- **Refactoring recente**: logging strutturato, env variables, parametri flessibili
+- ✅ **✅ NOVITÀ 05/2026**: Storico permanente, rimosso limite 3 minuti
+
+---
 
 #### **scraper_gpdp.py** (Garante Privacy & Data Protection)
 - **Funzione**: Web scraper che naviga il sito della Garante Privacy italiana (garanteprivacy.it)
@@ -25,6 +33,9 @@
   - Link ai documenti
   - Testo completo della decisione/multa (risolve redirect automatici)
 - **Caratteristica speciale**: Attraversa "muri" di redirect HTML (meta refresh, pulsanti nascosti)
+- ✅ **✅ NOVITÀ 05/2026**: Storico permanente
+
+---
 
 #### **scraper_ong.py** (Organizzazioni Non Governative)
 - **Funzione**: Aggrega feed RSS dalle principali ONG di tech advocacy (Privacy Network, Hermes, The Good Lobby, EDRi, Noyb, AlgorithmWatch)
@@ -34,6 +45,9 @@
   - Nome dell'organizzazione
   - Titolo comunicato, Link, Data pubblicazione
 - **Utilità**: Monitoraggio campagne civiche in tempo reale
+- ✅ **✅ NOVITÀ 05/2026**: Storico permanente, deduplicazione semantica
+
+---
 
 #### **scraper_rss_eu.py** (Istituzioni Europee)
 - **Funzione**: Aggrega feed RSS da enti regolatori europei (EDPB, CNIL, AEPD, ICO)
@@ -44,6 +58,7 @@
   - Titolo originale + Titolo tradotto in italiano
   - Sommario tradotto, Link, Data
 - **Feature speciale**: Traduzione real-time via Google Translate
+- ✅ **✅ NOVITÀ 05/2026**: Storico permanente
 
 ---
 
@@ -51,24 +66,20 @@
 
 #### **text_analysis.py**
 - **Funzione**: Processa testi legali con spaCy (modello italiano `it_core_news_md`) per estrazione di entità e classificazione geografica
-- **Input**: `data/raw/gpdp_sample.csv` (testi dei provvedimenti)
+- **Input**: Tutti i file raw da tutti gli scraper
 - **Output**: 
-  - `data/processed/gpdp_analyzed.csv` (CSV)
-  - `data/tech_advocacy.db` (SQLite - Priority 0)
-- **Operazioni NLP** (con Priority 1 improvements):
-  1. **Pulizia testo (1.1)**: Rimuove URL, whitespace, docweb noise
+  - `data/processed/*.csv` (tutte le fonti)
+  - `data/tech_advocacy.db` (SQLite - Database unificato)
+- **Operazioni NLP**:
+  1. **Pulizia testo**: Rimuove URL, whitespace, docweb noise
   2. **Named Entity Recognition (NER)**: estrae ORG, PER, LOC dal testo legale
-  3. **Deduplicazione fuzzy (1.2)**: `SequenceMatcher` con soglia 0.85 riduce duplicati ~40%
+  3. **Deduplicazione fuzzy**: `SequenceMatcher` con soglia 0.85 riduce duplicati ~40%
   4. **Categorizzazione entità**: classifica in Comuni, Istituzioni, Aziende, Leggi, Personaggi Pubblici
-  5. **Blacklist dinamica (1.3)**: Carica esclusioni da `data/utils/nlp_blacklist.csv` (manutenibile)
+  5. **Blacklist dinamica**: Carica esclusioni da `data/utils/nlp_blacklist.csv`
   6. **Classificazione geografica**: identifica se il provvedimento riguarda Italia, Europa, USA/Internazionale
-  7. **Salvataggio dual-layer**: CSV + SQLite per velocità e backup
-  
-- **Colonne risultato**:
-  - `Entita_Coinvolte`: liste di organizzazioni/persone citate (deduplicate)
-  - `Ambito_Geografico`: [Italia | Europa | USA/Internazionale]
+  7. **Active Learning**: Modello di predizione impatto che si allena sulle correzioni manuali
 
-- **Performance**: 10x query più veloci su SQLite per dati >50MB
+✅ **✅ NOVITÀ 05/2026**: Ora processa TUTTE le fonti automaticamente, non solamente il Garante
 
 ---
 
@@ -78,83 +89,101 @@
 - **Framework**: Streamlit
 - **Funzione**: Dashboard interattiva multi-tab per visualizzare i dati raccolti e analizzati
 - **Input**: 
-  - CSV da `data/raw/` (ONG)
-  - SQLite da `data/tech_advocacy.db` (Garante - Priority 0, più veloce)
-  - Fallback su CSV se SQLite non disponibile
-- **Features**:
-  - **Tab "📢 Campagne ONG"**: lista comunicati con filtri multi-select per organizzazione
-  - **Tab "⚖️ Provvedimenti Garante"** (con Priority 1 data più puliti): 
-    - Distribuzione geografica (torta donut)
-    - Entità più citate (grafico bar orizzontale - con meno duplicati)
-    - Filtri per area geografica
-  - Metrica contatori (tot. documenti, ambiti concentrazione)
+  - Tutti i file raw e processed
+  - SQLite database unificato
+- ✅ **✅ SCHEDE DISPONIBILI**:
+  1. 🏠 **Home Radar** - Panoramica generale, timeline, sistema di correzione manuale
+  2. 📢 **Campagne ONG** - Dati organizzazioni civiche
+  3. ⚖️ **Analisi Geografica Globale** - Tutte le fonti unificate con filtri
+  4. 🕸️ **Network Temi** - Grafo relazioni
+  5. 📍 **Mappa Posizionamento** - Piano cartesiano bidimensionale
+  6. 🗄️ **Database Manager** - Gestione completa dati
 
-- **Visualizzazione**: Plotly + Streamlit caching
-- **Performance**: SQLite layer riduce load time di 80% su dati >50MB
-
----
-
-### `notebooks/` - Esplorazione e Prototipazione
-
-#### **esplorazione.ipynb**
-- **Funzione**: Notebook Jupyter per data exploration e testing di algoritmi NLP
-- **Utilizzo**: Testing di nuovi approcci prima di integrazione in `text_analysis.py`
-- **Output**: Insights e validazione prima di produzione
+✅ **✅ NOVITÀ 05/2026**:
+✅ Network Map stabile e sempre uguale ad ogni refresh
+✅ Posizioni ONG permanenti salvate per sempre
+✅ Filtro temporale home default 14 giorni
+✅ Sistema di pulizia dati manuale
+✅ Pipeline non si blocca più al primo errore
 
 ---
 
 ### `data/` - Strato Dati
 
 #### `data/raw/`
-Files CSV grezzi, mai modificati:
+Files CSV grezzi, storico permanente:
 - `gnews_sample.csv` - Articoli news (GNews)
 - `gpdp_sample.csv` - Testi legali Garante Privacy
 - `ong_sample.csv` - Comunicati ONG
-- `rss_eu_sample.csv` - RSS istituzioni europee tradotte (backup)
+- `rss_eu_sample.csv` - RSS istituzioni europee tradotte
 
-#### `data/utils/` (NEW - Priority 1.3)
-Configurazione e blacklist:
-- `nlp_blacklist.csv` - Parole escluse dal NLP (manutenibile via Excel/CSV)
+#### `data/processed/`
+File analizzati con NLP:
+- `ong_posizioni_permanenti.csv` - ✅ NUOVO: Posizioni permanenti ONG
+- `embeddings_cache.pkl` - Cache deduplicazione semantica
+- `training_data_feedback.csv` - Golden Standard correzioni manuali
 
-#### `data/tech_advocacy.db` (NEW - Priority 0)
-SQLite database con cache query veloce:
-- Tabella `provvedimenti_ana - Aggiornato
+---
+
+## 📊 Flusso Dati Aggiornato
 
 ```
 GNews API          Sito Garante       ONG Feed RSS     EU Feed RSS
     ↓                   ↓                  ↓               ↓
 scraper_gnews    scraper_gpdp       scraper_ong    scraper_rss_eu
     ↓                   ↓                  ↓               ↓
+✅ STORICO PERMANENTE ✅  APPEND  ✅ DEDUPLICAZIONE ✅
+    ↓                   ↓                  ↓               ↓
 gnews_sample     gpdp_sample       ong_sample    rss_eu_sample
    (raw)            (raw)            (raw)           (raw)
-                       ↓
-         text_analysis.py ← NLP Processing (Priority 1 improvements)
-         (Pulizia, NER, Dedup, Blacklist, Geografia)
-                       ↓
-    ┌─────────────────────────────────────┐
-    │  gpdp_analyzed.csv + tech_advocacy.db
-    └─────────────────────────────────────┘
-                    ↓
-    ╔══════════════════════════════════╗
-    ║     dashboard.py (Streamlit)     ║
-    ║  Query da SQLite (10x veloce)    ║
-    ║  Visualizzazione interattiva     ║
-    ╚══════════════════════════════════╝
+                        ↓
+          text_analysis.py ← NLP Processing
+          (Pulizia, NER, Dedup, Geografia, Active Learning)
+                        ↓
+     ┌─────────────────────────────────────┐
+     │  Tutte le fonti analizzate + SQLite
+     └─────────────────────────────────────┘
+                     ↓
+     ╔══════════════════════════════════╗
+     ║     dashboard.py (Streamlit)     ║
+     ║  6 schede + Network Map Stabile  ║
+     ║  Posizioni ONG Permanenti        ║
+     ║  Database Manager + Pulizia Dati ║
+     ╚══════════════════════════════════╝
 ```
 
-**Novità**:
-- Priority 1 NLP improvements integrate
-- SQLite caching layer aggiunto (Priority 0)
-- Dashboard carica da SQLite con fallback CSV              (NER + Geografia)
-                       ↓
-                gpdp_analyzed.csv
-                   (processed)
-                       ↓
-    ╔══════════════════════════════════╗
-    ║     dashboard.py (Streamlit)     ║
-    ║  Visualizzazione interattiva     ║
-    ╚══════════════════════════════════╝
-```
+---
+
+## ✅ Funzionalità Completate Maggio 2026
+
+| Funzionalità | Stato |
+|---|---|
+| ✅ Storico permanente tutti gli scraper | ✅ COMPLETATO |
+| ✅ Network Map disposizione stabile | ✅ COMPLETATO |
+| ✅ Posizioni ONG permanenti | ✅ COMPLETATO |
+| ✅ Database Manager con pulizia dati | ✅ COMPLETATO |
+| ✅ Pipeline non si blocca più | ✅ COMPLETATO |
+| ✅ Bug apertura dashboard Windows | ✅ COMPLETATO |
+| ✅ Bug associazione ONG prima corrispondenza | ✅ COMPLETATO |
+| ✅ Filtro temporale home | ✅ COMPLETATO |
+| ✅ Auto-pulizia righe CSV malformate | ✅ COMPLETATO |
+| ✅ Compatibilità completa GitHub Actions | ✅ COMPLETATO |
+
+---
+
+## 🚀 Casi d'Uso Tipici
+
+1. **Privacy Researcher**: 
+   - Esegui `run_pipeline.py`
+   - Apri dashboard → filtra per area geografica → analizza enti più citati
+
+2. **Giornalista Tech Advocacy**:
+   - Vedi tutti i comunicati ONG e notizie in un unico pannello
+   - Usa la mappa di posizionamento per vedere gli orientamenti
+
+3. **Policy Maker**:
+   - Monitora cosa stanno decidendo altri paesi europei
+   - Scenario comparativo Italia vs EU
 
 ---
 
@@ -169,64 +198,21 @@ Librerie principali:
 - `spacy` - NLP (modello italiano)
 - `streamlit` - dashboard web
 - `plotly` - visualizzazione interattiva
+- `pyvis` - Network Graph
+- `sentence-transformers` - Deduplicazione semantica
 - `deep-translator` - traduzione testi
-
-### Setup Modello spaCy
-```bash
-python -m spacy download it_core_news_md
-```
-
----
-
-## 🚀 Casi d'Uso Tipici
-
-1. **Privacy Researcher**: 
-   - Esegui `scraper_gpdp.py` + `text_analysis.py`
-   - Apri dashboard → filtra per "Europa" → analizza enti più citati
-
-2. **Giornalista Tech Advocacy**:
-   - Esegui `scraper_ong.py`
-   - Vedi ultimi 20 comunicati su diritti digitali
-   - Estrai dati per articolo
-
-3. **Policy Maker**:
-   - `scraper_rss_eu.py` + dashboard
-   - Monitora cosa stanno decidendo altri paesi europei
-   - Scenario comparativo Italia vs EU
-
-**✅ Completate** (Sessione Corrente):
-- [x] SQLite caching layer (Priority 0)
-- [x] Pulizia testo GPDP (Priority 1.1)
-- [x] Deduplicazione fuzzy (Priority 1.2)
-- [x] Blacklist dinamica CSV (Priority 1.3)
-
-**📋 Prossime** (Priority 2+):
-- [ ] Sentiment analysis su provvedimenti (Priority 2.1)
-- [ ] Riconoscimento acronimi legali (Priority 2.2)
-- [ ] TF-IDF keyword extraction (Priority 2.3)
-- [ ] BERTopic per topic modeling automatico (Priority 3.1)
-- [ ] NER fine-tuned su dominio privacy (Priority 3.2)
-- [ ] Automazione GitHub Actions (daily scraping)
-- [ ] Relation extraction (Garante → multò → Google)
-- [ ] Estrazione importi numerici (€50M fine)
-- [ ] Summarizzazione LLM locale
-- [ ] Deployment Streamlit Community Cloud
-- [ ] Motore di ricerca Elasticsearch
-- [ ] API pubblica per accesso dati
-- [ ] Grafo di co-citazioni (Gephi export)I gratuito (100/giorno) |
-| Garante | Molto alta | ~30 sec | Lentezza sito target + antiscrapt |
-| ONG RSS | Molto alta | ~1 min | Dipendente disponibilità feed |
-| EU RSS | Alta | ~2 min | Ritardo traduzione Google |
-| NLP | Media | ~5 sec/doc | Modello italiano ancora grezzo, rumore |
 
 ---
 
 ## 🔮 Roadmap Futura
 
-- [ ] Automazione GitHub Actions (daily scraping)
-- [ ] Topic Modeling dinamico (LDA / BERTopic)
-- [ ] Sentiment analysis su comunicati ONG
-- [ ] Grafo di co-citazioni (Gephi export)
-- [ ] Deployment Streamlit Community Cloud
-- [ ] Motore di ricerca Elasticsearch
-- [ ] API pubblica per accesso dati
+- [ ] Sentiment analysis avanzata
+- [ ] Topic Modeling dinamico BERTopic
+- [ ] Estrazione automatica importi multe
+- [ ] Alert cambiamento posizione ONG
+- [ ] Export grafo Gephi
+- [ ] Deployment pubblico
+
+---
+
+> Progetto Open Source, trasparente e auditabile. Nessuna dipendenza da servizi cloud proprietari.
