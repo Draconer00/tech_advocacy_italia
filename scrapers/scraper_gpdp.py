@@ -153,7 +153,18 @@ if __name__ == "__main__":
         os.makedirs(cartella_raw, exist_ok=True)
         
         percorso_salvataggio = os.path.join(cartella_raw, 'gpdp_sample.csv')
-        df_test.to_csv(percorso_salvataggio, index=False)
+        
+        # ✅ SISTEMA DI SALVATAGGIO STORICO: NON SOVRASCRIVE, AGGIUNGE
+        if os.path.exists(percorso_salvataggio):
+            df_esistente = pd.read_csv(percorso_salvataggio)
+            # Unisci vecchi e nuovi dati
+            df_unito = pd.concat([df_esistente, df_test], ignore_index=True)
+            # Rimuovi duplicati basati su url, mantieni il più nuovo
+            df_finale = df_unito.drop_duplicates(subset=['url'], keep='last')
+        else:
+            df_finale = df_test
+        
+        df_finale.to_csv(percorso_salvataggio, index=False)
         
         print("\nLista delle colonne salvate:", df_test.columns.tolist())
         

@@ -91,7 +91,18 @@ if __name__ == "__main__":
         os.makedirs(cartella_raw, exist_ok=True)
         
         percorso_salvataggio = os.path.join(cartella_raw, 'rss_eu_sample.csv')
-        df_europa.to_csv(percorso_salvataggio, index=False)
+        
+        # ✅ SISTEMA DI SALVATAGGIO STORICO: NON SOVRASCRIVE, AGGIUNGE
+        if os.path.exists(percorso_salvataggio):
+            df_esistente = pd.read_csv(percorso_salvataggio)
+            # Unisci vecchi e nuovi dati
+            df_unito = pd.concat([df_esistente, df_europa], ignore_index=True)
+            # Rimuovi duplicati basati su Link, mantieni il più nuovo
+            df_finale = df_unito.drop_duplicates(subset=['Link'], keep='last')
+        else:
+            df_finale = df_europa
+        
+        df_finale.to_csv(percorso_salvataggio, index=False)
         
         print("\n--- ESTRATTO (Già tradotto in Italiano!) ---")
         # Stampiamo i primi 3 risultati per vedere come ha lavorato il traduttore
