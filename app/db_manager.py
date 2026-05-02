@@ -109,10 +109,11 @@ def get_table_schema(table_info):
 # INTERFACCIA UTENTE
 # ==============================================
 
-tab_schema, tab_tabelle, tab_query, tab_relazioni = st.tabs([
+tab_schema, tab_tabelle, tab_query, tab_pulisci, tab_relazioni = st.tabs([
     "📋 Schema Database",
     "📊 Visualizza Tabelle",
     "⚡ Esegui Query SQL",
+    "🗑️ Pulizia Dati",
     "🔗 Relazioni e Struttura"
 ])
 
@@ -244,7 +245,81 @@ LIMIT 10
         st.warning("⚠️ Database SQLite non trovato")
 
 # ==============================================
-# TAB 4: RELAZIONI E STRUTTURA
+# TAB 4: PULIZIA DATI
+# ==============================================
+with tab_pulisci:
+    st.subheader("🗑️ Pulizia Manuale Dati Storici")
+    st.markdown("""
+    Questa pagina ti permette di cancellare i dati più vecchi per mantenere il database leggero.
+    **Tutte le operazioni sono reversibili, viene creato un backup prima di ogni cancellazione.**
+    """)
+    
+    st.divider()
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        giorni_pulizia = st.selectbox(
+            "📅 Cancella dati più vecchi di:",
+            options=[
+                ("Ultimi 7 giorni", 7),
+                ("Ultimi 30 giorni", 30),
+                ("Ultimi 90 giorni", 90),
+                ("Ultimi 180 giorni", 180),
+                ("Tutto tranne ultimi 12 mesi", 365)
+            ],
+            format_func=lambda x: x[0],
+            index=2
+        )
+        
+        st.warning("⚠️ Questa operazione cancellerà definitivamente i dati selezionati")
+        conferma = st.checkbox("✅ Confermo di voler eseguire la pulizia")
+    
+    with col2:
+        st.subheader("Riepilogo:")
+        data_limite = datetime.now().date() - pd.Timedelta(days=giorni_pulizia[1])
+        st.metric("Data limite", data_limite.strftime('%d/%m/%Y'))
+        
+        if st.button("🗑️ Esegui Pulizia", type="primary", disabled=not conferma):
+            with st.spinner("Esecuzione pulizia in corso..."):
+                
+                tabelle = get_available_tables()
+                totale_cancellati = 0
+                
+                for tabella in tabelle:
+                    tipo, nome, percorso = tabella
+                    
+                    if tipo == 'csv':
+                        try:
+                            df = load_table(tabella)
+                            
+                            if 'data_pubblicazione' in df.columns:
+                                df['data'] = pd.to_datetime(df['data_pubblicazione'], errors='coerce').dt.date
+                                df_nuovo = df[df['data'] >= data_limite]
+                                
+                                cancellati = len(df) - len(df_nuovo)
+                                totale_cancellati += cancellati
+                                
+                                if cancellati > 0:
+                                    # Salva backup
+                                    percorso_backup = percorso + f".backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                                    df.to_csv(percorso_backup, index=False)
+                                    
+                                    # Salva nuovo file pulito
+                                    df_nuovo = df_nuovo.drop(columns=['data'])
+                                    df_nuovo.to_csv(percorso, index=False)
+                                    
+                                    st.success(f"✅ {nome}: cancellati {cancellati} record")
+                        except Exception as e:
+                            st.error(f"❌ Errore {nome}: {str(e)}")
+                
+                st.success(f"✅ Pulizia completata! Totale record cancellati: {totale_cancellati}")
+                st.info("📦 Backup creati automaticamente per ogni file modificato")
+                st.cache_data.clear()
+                st.rerun()
+
+# ==============================================
+# TAB 5: RELAZIONI E STRUTTURA
 # ==============================================
 with tab_relazioni:
     st.subheader("Schema Relazionale del Progetto")
