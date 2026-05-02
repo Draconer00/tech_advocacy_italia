@@ -64,7 +64,23 @@ def load_table(table_info):
         conn.close()
         return df
     elif tipo == 'csv':
-        return pd.read_csv(percorso)
+        try:
+            return pd.read_csv(
+                percorso,
+                on_bad_lines='skip',
+                engine='python',
+                quoting=3,
+                sep=None
+            )
+        except Exception as e:
+            # Modalità permissiva massima
+            return pd.read_csv(
+                percorso,
+                on_bad_lines='skip',
+                engine='python',
+                error_bad_lines=False,
+                warn_bad_lines=False
+            )
     else:
         return pd.DataFrame()
 
