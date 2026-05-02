@@ -494,16 +494,44 @@ with tab_mappa_posizionamento:
         df_notizie['data'] = df_notizie.get('data_pubblicazione', datetime.now().date().isoformat())
         df_notizie['livello_allarme'] = df_notizie.get('livello_allarme', 1)
 
-        # ✅ MOSTRA TUTTE LE ONG ANCHE QUELLE SENZA NOTIZIE
-        # ✅ CENTROIDI ONG CALCOLATI SEMPRE SU TUTTO LO STORICO
-        # ✅ PRIMA DI QUALSIASI FILTRO: posizione delle ONG è STABILE NEL TEMPO
-        # ✅ Non cambia mai anche se filtriamo le notizie mostrate
-        centroidi_ong = df_notizie.groupby('nome_organizzazione').agg({
+        # ✅ SALVATAGGIO PERMANENTE POSIZIONE ONG
+        # ✅ Posizione non si perde mai anche se le notizie scompaiono
+        # ✅ Viene aggiornata solamente quando ci sono nuovi dati
+        cartella_script = os.path.dirname(os.path.abspath(__file__))
+        percorso_posizioni_ong = os.path.join(cartella_script, '..', 'data', 'processed', 'ong_posizioni_permanenti.csv')
+        
+        # Calcola nuovi centroidi dai dati attuali
+        centroidi_nuovi = df_notizie.groupby('nome_organizzazione').agg({
             'score_tech_legale': 'mean',
             'score_geografia': 'mean',
             'titolo': 'count'
         }).reset_index()
-        centroidi_ong.columns = ['nome', 'score_tech_legale', 'score_geografia', 'numero_articoli']
+        centroidi_nuovi.columns = ['nome', 'score_tech_legale', 'score_geografia', 'numero_articoli']
+        
+        # Carica posizioni salvate permanentemente se esistono
+        if os.path.exists(percorso_posizioni_ong):
+            centroidi_salvati = pd.read_csv(percorso_posizioni_ong)
+            
+            # Aggiorna solamente le ONG che hanno nuovi dati
+            for _, riga_nuova in centroidi_nuovi.iterrows():
+                nome_ong = riga_nuova['nome']
+                # Se abbiamo nuovi dati per questa ONG aggiorniamo la posizione
+                if nome_ong in centroidi_salvati['nome'].values:
+                    indice = centroidi_salvati.index[centroidi_salvati['nome'] == nome_ong][0]
+                    centroidi_salvati.at[indice, 'score_tech_legale'] = riga_nuova['score_tech_legale']
+                    centroidi_salvati.at[indice, 'score_geografia'] = riga_nuova['score_geografia']
+                    centroidi_salvati.at[indice, 'numero_articoli'] = riga_nuova['numero_articoli']
+                else:
+                    # Nuova ONG mai vista prima, aggiungila
+                    centroidi_salvati = pd.concat([centroidi_salvati, pd.DataFrame([riga_nuova])], ignore_index=True)
+            
+            centroidi_ong = centroidi_salvati
+        else:
+            # Nessun salvataggio esistente, usa i centroidi nuovi
+            centroidi_ong = centroidi_nuovi
+        
+        # Salva le posizioni aggiornate in modo permanente
+        centroidi_ong.to_csv(percorso_posizioni_ong, index=False)
         
         # Aggiungi TUTTE le ONG da PROFILI_ONG anche se non hanno articoli
         tutte_ong = list(PROFILI_ONG.keys())
@@ -511,7 +539,7 @@ with tab_mappa_posizionamento:
         
         for ong_nome in tutte_ong:
             if ong_nome not in ong_presenti:
-                # Posiziona al centro temporaneamente le ONG senza dati
+                # Posiziona al centro temporaneamente le ONG senza dati MAI VISTE
                 centroidi_ong = pd.concat([centroidi_ong, pd.DataFrame([{
                     'nome': ong_nome,
                     'score_tech_legale': 0,
@@ -760,26 +788,50 @@ with tab_network:
         
         net.from_nx(G)
         
-        # Impostazioni stile Y2K BRUTALIST
+        # ✅ STABILIZZAZIONE GRAFO PYWIS - SEMPRE LA STESSA DISPOSIZIONE
         net.set_options("""
         {
+          "nodes": {
+            "shape": "dot",
+            "size": 18,
+            "borderWidth": 2,
+            "borderWidthSelected": 4,
+            "font": {
+              "size": 11,
+              "face": "Verdana",
+              "color": "#ffffff",
+              "strokeWidth": 2,
+              "strokeColor": "#000000"
+            },
+            "shadow": false
+          },
+          "edges": {
+            "color": {
+              "inherit": false,
+              "color": "#44ff00",
+              "highlight": "#00ffff",
+              "hover": "#ff00ff"
+            },
+            "width": 1,
+            "smooth": false
+          },
+          "layout": {
+            "randomSeed": 42
+          },
           "physics": {
             "enabled": true,
-            "barnesHut": {
-              "gravitationalConstant": -3200,
-              "centralGravity": 0.08,
-              "springLength": 160,
-              "springConstant": 0.009,
-              "damping": 0.95,
-              "avoidOverlap": 0.3
+            "solver": "forceAtlas2Based",
+            "forceAtlas2Based": {
+              "gravitationalConstant": -150,
+              "centralGravity": 0.01,
+              "springLength": 200,
+              "springConstant": 0.05,
+              "avoidOverlap": 1
             },
-            "minVelocity": 0.1,
             "stabilization": {
               "enabled": true,
-              "iterations": 80,
-              "fit": true,
-              "onlyDynamicEdges": false,
-              "updateInterval": 50
+              "iterations": 1000,
+              "updateInterval": 100
             }
           },
           "interaction": {
@@ -792,32 +844,6 @@ with tab_network:
             "zoomView": true,
             "zoomSpeed": 0.25,
             "dragView": true
-          },
-          "nodes": {
-            "borderWidth": 2,
-            "borderWidthSelected": 4,
-            "shape": "diamond",
-            "size": 14,
-            "font": {
-              "size": 12,
-              "face": "Verdana",
-              "color": "#ffffff",
-              "strokeWidth": 2,
-              "strokeColor": "#000000"
-            },
-            "shadow": false,
-            "labelHighlightBold": true
-          },
-          "edges": {
-            "color": {
-              "inherit": false,
-              "color": "#44ff00",
-              "highlight": "#00ffff",
-              "hover": "#ff00ff"
-            },
-            "width": 1,
-            "dashes": [5,3],
-            "smooth": false
           }
         }
         """)
