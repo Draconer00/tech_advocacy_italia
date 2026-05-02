@@ -66,20 +66,32 @@ def main():
     print("\n--- Avvio Dashboard ---")
     print("✅ Pipeline completata. Apertura dashboard in corso...")
     print("🌐 La dashboard sarà disponibile all'indirizzo: http://localhost:8501")
-    print("⏳ Attendi 5 secondi...")
     
-    # Lancia Streamlit in background SENZA catturare output (risolve il blocco su Windows)
-    time.sleep(3)
+    # ✅ CORREZIONE BUG WINDOWS:
+    # Su Windows quando il processo padre termina, i processi figli vengono automaticamente terminati.
+    # Per evitare che Streamlit venga killato subito dopo l'avvio usiamo DETACHED_PROCESS
+    # e non usiamo CREATE_NEW_CONSOLE che causa problemi con l'uscita immediata.
     
-    # Avvia come processo separato indipendente
+    # Avvia Streamlit come processo completamente indipendente e scollegato
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    
     subprocess.Popen(
         [sys.executable, "-m", "streamlit", "run", "app/dashboard.py", "--server.headless=false"],
-        creationflags=subprocess.CREATE_NEW_CONSOLE if os.name == 'nt' else 0,
+        creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
         stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
+        stderr=subprocess.DEVNULL,
+        stdin=subprocess.DEVNULL,
+        startupinfo=startupinfo
     )
     
-    print("\n--- Pipeline Completata con Successo ---")
+    # Attendi che Streamlit si avvii completamente prima di chiudere lo script padre
+    print("⏳ Attendo avvio dashboard...")
+    time.sleep(5)
+    
+    print("\n✅ --- Pipeline Completata con Successo ---")
+    print("🌐 Dashboard aperta correttamente nel browser")
+    print("💡 Se non si apre automaticamente vai manualmente su: http://localhost:8501")
 
 if __name__ == "__main__":
     main()
