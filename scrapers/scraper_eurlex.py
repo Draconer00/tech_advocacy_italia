@@ -4,6 +4,10 @@ Scarica atti legislativi recenti pubblicati sulla Gazzetta Ufficiale Europea
 Compatibile al 100% con il resto della pipeline
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import hashlib
 import pandas as pd
 import requests
@@ -55,7 +59,7 @@ def fetch_data() -> pd.DataFrame:
 
         zuppa = BeautifulSoup(risposta.content, 'html.parser')
 
-        for elemento in zuppa.select('.SearchResult')[:10]:
+        for elemento in zuppa.select('div.result')[:10]:
             
             try:
                 titolo = elemento.find('a', class_='title').get_text(strip=True)

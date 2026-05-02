@@ -4,6 +4,10 @@ Scarica atti e comunicati recenti dal sito ufficiale della Camera dei Deputati
 Compatibile al 100% con il resto della pipeline
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import hashlib
 import pandas as pd
 import requests
