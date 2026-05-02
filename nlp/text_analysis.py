@@ -593,8 +593,21 @@ def main():
             
             if 'testo_completo' in df.columns:
                 df_processato = processa_dataframe(df, fonte['nome'])
-                df_processato.to_csv(percorso_processed, index=False)
-                print(f"💾 Salvato: {percorso_processed}")
+                
+                # ✅ SISTEMA DI MERGE STORICO: NON CANCELLA PIU' NULLA
+                # Carica dati esistenti se il file è già presente
+                if os.path.exists(percorso_processed):
+                    df_esistente = pd.read_csv(percorso_processed)
+                    # Unisci nuovi e vecchi dati
+                    df_unito = pd.concat([df_esistente, df_processato], ignore_index=True)
+                    # Rimuovi duplicati basati su titolo, mantieni quello più nuovo
+                    df_finale = df_unito.drop_duplicates(subset=['titolo'], keep='last')
+                else:
+                    # File non esistente, usa direttamente quello nuovo
+                    df_finale = df_processato
+                
+                df_finale.to_csv(percorso_processed, index=False)
+                print(f"💾 Salvato: {percorso_processed} | Totale: {len(df_finale)} record")
             else:
                 print(f"⚠️ Salto {fonte['nome']}: manca colonna testo_completo")
         else:
