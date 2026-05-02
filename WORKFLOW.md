@@ -3,6 +3,7 @@
 Guida completa e ufficiale della pipeline di estrazione, analisi semantica, network analysis e visualizzazione.
 
 Questo documento è valido sia per utenti non tecnici che per sviluppatori.
+Aggiornato al 02/05/2026
 
 ---
 
@@ -15,6 +16,7 @@ Questo sistema crea una mappa in tempo reale dell'ecosistema dei diritti digital
 ✅ **Crea relazioni** tra temi, organizzazioni e notizie
 ✅ **Visualizza** un network dinamico dove si vede chi parla di cosa
 ✅ **Permette correzioni umane** che migliorano continuamente il modello
+✅ **✅ NUOVO: Storico permanente per sempre**: tutti i dati vengono mantenuti per sempre
 
 ---
 
@@ -26,11 +28,12 @@ Questo sistema crea una mappa in tempo reale dell'ecosistema dei diritti digital
 └─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
        │                   │                   │                   │
        ▼                   ▼                   ▼                   ▼
-  25 Fonti             CSV Files        Classificazione      Network Map
-  RSS + Web            SQLite DB        Estrazione Entità     Time Series
+   25 Fonti             CSV Files        Classificazione      Network Map
+   RSS + Web            SQLite DB        Estrazione Entità     Time Series
 ```
 
-Tutti i passaggi sono completamente trasparenti, auditabili e modificabili.
+✅ **✅ NOVITÀ: NESSUNA SOVRASCRITTURA**
+✅ Tutti gli scraper adesso **NON CANCELLANO PIÙ NULLA**. Tutti i dati vengono aggiunti in append, deduplicati e mantenuti permanentemente.
 
 ---
 
@@ -57,6 +60,12 @@ python -m spacy download it_core_news_md
 
 ### **Fase 2: Scraping Dati**
 
+✅ **✅ COMPORTAMENTO NUOVO:** Tutti gli scraper adesso usano lo stesso sistema di salvataggio permanente:
+✅ Aggiunge i nuovi dati a quelli esistenti
+✅ Deduplicazione automatica
+✅ Non cancella niente
+✅ Lo storico cresce per sempre
+
 Ogni scraper è indipendente e produce dati standardizzati. Puoi eseguirli in qualsiasi ordine.
 
 ---
@@ -69,6 +78,7 @@ python scrapers/scraper_gpdp.py
 ✅ **Cosa fa**: Estrae solamente provvedimenti ufficiali. **NON scarica comunicati stampa, notizie o annunci**.
 ✅ Output: `data/raw/gpdp_sample.csv`
 ✅ Tempo: ~1 minuto
+✅ ✅ Storico permanente
 
 ---
 
@@ -86,6 +96,7 @@ python scrapers/scraper_ong.py
 ✅ Output: `data/raw/ong_sample.csv`
 ✅ Tempo: ~30 secondi
 ✅ Tutte le fonti sono elencate in modo pubblico e trasparente nel file stesso.
+✅ ✅ Storico permanente
 
 ---
 
@@ -97,6 +108,8 @@ python scrapers/scraper_gnews.py
 
 ✅ Cosa fa: Ricerca notizie su temi di diritti digitali su tutti i media italiani
 ✅ Output: `data/raw/gnews_sample.csv`
+✅ ✅ Storico permanente
+✅ ✅ Rimosso limite 3 minuti: salva TUTTE le notizie trovate
 
 ---
 
@@ -108,6 +121,7 @@ python scrapers/scraper_rss_eu.py
 ✅ Cosa fa: Monitora tutti i garanti privacy europei (EDPB, CNIL, ICO, AEPD)
 ✅ ✅ Automaticamente traduce tutti i testi in italiano
 ✅ Output: `data/raw/rss_eu_sample.csv`
+✅ ✅ Storico permanente
 
 ---
 
@@ -154,6 +168,13 @@ Questa è la caratteristica principale del progetto:
 - La **distanza tra i nodi** rappresenta la correlazione semantica
 - Più due nodi sono vicini, più sono correlati semanticamente
 
+✅ **✅ NOVITÀ MAGGIO 2026**:
+✅ Disposizione STABILE e SEMPRE LA STESSA ad ogni refresh
+✅ Rimosso il caos dei nodi che si muovevano
+✅ Seed fisso 42
+✅ Solver forceAtlas2Based
+✅ Nessuna sovrapposizione nodi
+
 ✅ **Caratteristiche**:
 - Stile brutalista minimalista, senza distrazioni
 - Zoom bloccato per evitare di perdere il contesto
@@ -161,26 +182,36 @@ Questa è la caratteristica principale del progetto:
 - Sistema di correzione manuale: puoi ricollegare una notizia ad un'altra ONG se l'AI ha sbagliato
 - Le correzioni salvate vengono usate per migliorare le classificazioni future
 
-✅ **Statistiche Network**:
-- Numero organizzazioni monitorate
-- Numero temi tracciati
-- Numero notizie collegate
-- Numero totale connessioni nel grafo
-
 ---
 
 ## 📍 Mappa di Posizionamento Cartesiano
 
-✅ Nuova funzionalità aggiunta Aprile 2026:
+✅ ✅ NOVITÀ MAGGIO 2026:
+✅ Posizioni ONG **PERMANENTI e salvate in modo permanente
+✅ Non si perdono più, non tornano più al centro
+✅ Vengono aggiornate solamente quando ci sono nuovi dati
+✅ Ogni ONG mantiene per sempre la sua posizione calcolata storicamente
+
+✅ Funzionalità:
 - Tutte le ONG e le notizie sono posizionate su un piano cartesiano bidimensionale
 - ✅ **Asse X (Orizzontale)**: Italia ↔ Mondo
 - ✅ **Asse Y (Verticale)**: Legale ↔ Tecnico
-- ✅ Normalizzazione automatica MIN-MAX per coprire tutta la scala
-- ✅ Jitter leggero per separare punti sovrapposti
-- ✅ Etichette permanenti gialle con freccia per OGNI ONG
-- ✅ Stile uniforme Y2K brutalista con griglia viola e linee magenta
 - ✅ Centroidi ONG calcolati come media di tutte le loro notizie
 - ✅ Dimensione del punto proporzionale al numero di articoli pubblicati
+
+---
+
+## 🗄️ Database Manager
+
+✅ **✅ NUOVA SCHEDA MAGGIO 2026:
+✅ Pannello completo di gestione dati
+
+✅ Funzionalità disponibili:
+1.  📋 Visualizza tutte le tabelle e lo schema del database
+2.  📊 Anteprima dati con filtri
+3.  ⚡ Esegui query SQL dirette
+4.  🗑️ **Pulizia dati manuale: cancella dati più vecchi di 7/30/90/180/365 giorni
+5.  Backup automatico prima di ogni cancellazione
 
 ---
 
@@ -191,6 +222,8 @@ Per eseguire TUTTO in sequenza con un solo comando:
 python run_pipeline.py
 ```
 
+✅ ✅ NOVITÀ: Adesso la pipeline non si blocca più al primo errore, continua sempre fino alla fine e apre comunque la dashboard.
+
 ---
 
 ## 🛠️ Sistema Human-In-The-Loop
@@ -199,7 +232,7 @@ Questo progetto non è completamente automatico per scelta:
 
 ✅ Puoi correggere qualsiasi classificazione sbagliata direttamente dalla dashboard
 ✅ Tutte le correzioni vengono salvate nel Golden Standard
-✅ **Ad ogni esecuzione della pipeline viene automaticamente addestrato un nuovo modello più accurato**
+✅ **Ad ogni esecuzione della pipeline viene automaticamente addestrato un nuovo modello più accurato
 ✅ Il modello migliora in modo continuo in base alle tue correzioni
 ✅ Non c'è black box: puoi vedere e modificare ogni decisione
 
@@ -215,6 +248,7 @@ Questo progetto non è completamente automatico per scelta:
 | Tempo ciclo completo | ~2 minuti |
 | Deduplicazione NLP | -40% duplicati |
 | Velocità dashboard | < 100ms |
+| ✅ Storico permanente | Sempre attivo |
 
 ---
 
@@ -227,23 +261,22 @@ Questo progetto non è completamente automatico per scelta:
 | Errore timeout GPDP | Il sito è lento, attendi e riprova |
 | Porta 8501 occupata | `streamlit run app/dashboard.py --server.port 8502` |
 | Modello spaCy mancante | `python -m spacy download it_core_news_md` |
+| ParserError CSV | Risolto automaticamente adesso, salta le righe malformate |
+| Dashboard non si apre su Windows | Risolto, adesso si apre correttamente |
+| ONG al centro nella mappa | Risolto, posizioni permanenti |
 
 ---
 
 ## 📅 Scheduling Automatico
 
-Per aggiornare i dati automaticamente ogni giorno alle 8:00 di mattina:
+✅ **Adesso compatibile al 100% con Github Actions e schedulazione automatica**
 
-1. Crea un file `daily_run.bat`:
-```batch
-@echo off
-cd C:\percorso\alla\cartella\tech_advocacy_italia
-python scrapers/scraper_ong.py
-python scrapers/scraper_gpdp.py
-python nlp/text_analysis.py
+Per aggiornare i dati automaticamente ogni giorno:
+```bash
+python run_pipeline.py
 ```
 
-2. Aggiungilo a **Utilità di pianificazione** di Windows
+✅ Tutti i dati verranno aggiunti automaticamente allo storico, nessuna perdita di dati, nessun conflitto.
 
 ---
 
@@ -253,10 +286,11 @@ python nlp/text_analysis.py
 - [ ] `text_analysis.py` non mostra warning
 - [ ] SQLite database è presente in `data/tech_advocacy.db`
 - [ ] Dashboard si apre correttamente
-- [ ] Tutte e 5 le tab sono visibili
+- [ ] Tutte le 6 tab sono visibili
 - [ ] Network Map si carica e mostra i nodi
 - [ ] Mappa Posizionamento mostra punti e etichette ONG
-- [ ] Le statistiche nella scheda Network mostrano numeri > 0
+- [ ] Le posizioni delle ONG non cambiano più ad ogni refresh
+- [ ] Il file `ong_posizioni_permanenti.csv` è stato creato
 
 ---
 
