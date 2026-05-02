@@ -413,8 +413,18 @@ if __name__ == "__main__":
         # 4. Unisci il nome del file
         percorso_salvataggio = os.path.join(cartella_raw, 'ong_sample.csv')
         
+        # ✅ SISTEMA DI SALVATAGGIO STORICO: NON SOVRASCRIVE, AGGIUNGE
+        if os.path.exists(percorso_salvataggio):
+            df_esistente = pd.read_csv(percorso_salvataggio)
+            # Unisci vecchi e nuovi dati
+            df_unito = pd.concat([df_esistente, df_test], ignore_index=True)
+            # Rimuovi duplicati basati su hash_contenuto, mantieni il più nuovo
+            df_finale = df_unito.drop_duplicates(subset=['hash_contenuto'], keep='last')
+        else:
+            df_finale = df_test
+        
         # Salviamo il CSV
-        df_test.to_csv(percorso_salvataggio, index=False)
+        df_finale.to_csv(percorso_salvataggio, index=False)
         
         print("\nPrime 3 righe estratte:")
         print(df_test.head(3))
