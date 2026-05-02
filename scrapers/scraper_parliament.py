@@ -94,6 +94,10 @@ def fetch_data() -> pd.DataFrame:
         df = pd.DataFrame(record_trovati)
         logger.info(f"✅ Parlamento italiano: scaricati {len(df)} atti")
         
+        # ✅ Log dettagliato come negli altri scraper
+        print("\n✅ Prime 3 righe estratte Parlamento Italiano:")
+        print(df[['titolo', 'data_pubblicazione']].head(3))
+        
         return df
 
     except Exception as e:
