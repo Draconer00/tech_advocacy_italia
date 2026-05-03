@@ -17,7 +17,7 @@ from utils.logger_config import setup_logger
 
 logger = setup_logger(__name__)
 
-URL_PARLAMENTO = "https://www.camera.it/leg19/124?lang=it"
+URL_PARLAMENTO = "https://www.camera.it/leg20/124?lang=it"
 
 def pulisci_html(testo: str) -> str:
     """Pulisce tag HTML e whitespace superfluo"""
