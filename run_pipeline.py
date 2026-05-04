@@ -38,8 +38,9 @@ def main():
         "scrapers/scraper_gnews.py",
         "scrapers/scraper_gpdp.py",
         "scrapers/scraper_rss_eu.py",
-        "scrapers/scraper_eurlex.py",
-        "scrapers/scraper_parliament.py"
+        "scrapers/scraper_camera_open_data.py",
+        "scrapers/scraper_senato_open_data.py",
+        "scrapers/scraper_eurlex_open_data.py"
     ]
     
     for scraper in scrapers:
