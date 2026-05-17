@@ -125,13 +125,101 @@ jobs:
           retention-days: 1
 
   # ==============================================
+  # SCRAPER AGCOM (solo raccolta, no commit)
+  # ==============================================
+  scraper-agcom:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - run: pip install -r requirements.txt
+
+      - name: Scraping AGCOM
+        run: python scrapers/scraper_agcom.py
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: raw-agcom-data
+          path: data/raw/agcom*.csv
+          retention-days: 1
+
+  # ==============================================
+  # SCRAPER TECH NEWS ITALIANE (solo raccolta, no commit)
+  # ==============================================
+  scraper-tech-news:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - run: pip install -r requirements.txt
+
+      - name: Scraping Tech News Italia
+        run: python scrapers/scraper_tech_news.py
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: raw-tech-news-data
+          path: data/raw/tech_news*.csv
+          retention-days: 1
+
+  # ==============================================
+  # SCRAPER PARLAMENTO EUROPEO (solo raccolta, no commit)
+  # ==============================================
+  scraper-eu-parl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - run: pip install -r requirements.txt
+
+      - name: Scraping Parlamento Europeo (RSS + Open Data API)
+        run: python scrapers/scraper_eu_parl.py
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: raw-eu-parl-data
+          path: data/raw/eu_parl*.csv
+          retention-days: 1
+
+  # ==============================================
   # ANALISI NLP & SALVATAGGIO FINALE
-  # Dipende da tutti e 4 gli scraper.
+  # Dipende da tutti e 7 gli scraper.
   # continue-on-error sui job scraper garantisce che
   # questo step parta comunque anche se uno scraper fallisce.
   # ==============================================
   analisi-nlp:
-    needs: [scraper-gpdp, scraper-ong, scraper-gnews, scraper-rss-eu]
+    needs: [scraper-gpdp, scraper-ong, scraper-gnews, scraper-rss-eu,
+            scraper-agcom, scraper-tech-news, scraper-eu-parl]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -183,6 +271,27 @@ jobs:
         continue-on-error: true
         with:
           name: raw-rss-eu-data
+          path: data/raw/
+
+      - name: Scarica dati AGCOM
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: raw-agcom-data
+          path: data/raw/
+
+      - name: Scarica dati Tech News Italia
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: raw-tech-news-data
+          path: data/raw/
+
+      - name: Scarica dati Parlamento Europeo
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: raw-eu-parl-data
           path: data/raw/
 
       - name: Analisi NLP

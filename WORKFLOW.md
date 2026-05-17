@@ -125,6 +125,43 @@ python scrapers/scraper_rss_eu.py
 
 ---
 
+#### 🔹 2.5 AGCOM
+```bash
+python scrapers/scraper_agcom.py
+```
+
+✅ Cosa fa: Monitora comunicati stampa, delibere e consultazioni pubbliche di AGCOM (Autorità per le Garanzie nelle Comunicazioni)
+✅ Testi già in italiano — nessuna traduzione necessaria
+✅ Output: `data/raw/agcom_sample.csv`
+✅ ✅ Storico permanente
+
+---
+
+#### 🔹 2.6 Testate Tech Italiane
+```bash
+python scrapers/scraper_tech_news.py
+```
+
+✅ **8 Fonti Monitorate**: Wired Italia, Punto Informatico, Agenda Digitale, Corriere Comunicazioni, Data Manager Online, Cybersecurity360, Innovation Post, StartupItalia
+✅ Filtro per rilevanza: solo articoli su privacy, AI, GDPR, sorveglianza, normativa digitale
+✅ Output: `data/raw/tech_news_sample.csv`
+✅ ✅ Storico permanente
+
+---
+
+#### 🔹 2.7 Parlamento Europeo
+```bash
+python scrapers/scraper_eu_parl.py
+```
+
+✅ Cosa fa: Combina RSS notizie EP (in italiano) + Open Data API EP per atti legislativi strutturati
+✅ Commissioni prioritarie: LIBE (libertà civili), IMCO (mercato interno), ITRE (industria/AI)
+✅ Filtro tematico: DSA, DMA, AI Act, privacy, cybersecurity
+✅ Output: `data/raw/eu_parl_sample.csv`
+✅ ✅ Storico permanente
+
+---
+
 ### **Fase 3: Analisi Semantica NLP**
 ```bash
 python nlp/text_analysis.py
@@ -138,13 +175,16 @@ python nlp/text_analysis.py
 5. 🤖 **Active Learning Livello 3**: Predice il livello di allarme 1-5 usando il modello che ha imparato dalle tue correzioni manuali
 6. 💾 Salva tutto in database SQLite per velocità
 
-✅ Elabora TUTTE le fonti automaticamente: Garante Privacy, ONG, GNews, RSS EU
+✅ Elabora TUTTE le fonti automaticamente: Garante Privacy, ONG, GNews, RSS EU, AGCOM, Tech News Italia, Parlamento Europeo
 
 ✅ Output:
 - `data/processed/gpdp_analyzed.csv`
 - `data/processed/ong_analyzed.csv`
 - `data/processed/gnews_analyzed.csv`
 - `data/processed/rss_eu_analyzed.csv`
+- `data/processed/agcom_analyzed.csv`
+- `data/processed/tech_news_analyzed.csv`
+- `data/processed/eu_parl_analyzed.csv`
 - `data/tech_advocacy.db` (Database principale unificato)
 
 ---
@@ -243,10 +283,12 @@ Questo progetto non è completamente automatico per scelta:
 
 | Metrica | Valore Attuale |
 |---------|----------------|
-| Fonti monitorate | 25 |
+| Fonti monitorate | 35+ |
+| Scraper attivi | 7 |
 | Organizzazioni civiche | 18 |
-| Istituzioni | 7 |
-| Tempo ciclo completo | ~2 minuti |
+| Istituzioni | 9 |
+| Testate tech italiane | 8 |
+| Tempo ciclo completo | ~3 minuti |
 | Deduplicazione NLP | -40% duplicati |
 | Velocità dashboard | < 100ms |
 | ✅ Storico permanente | Sempre attivo |

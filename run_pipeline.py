@@ -34,13 +34,13 @@ def main():
     # 2. Run Scrapers
     print("\n--- Running Scrapers ---")
     scrapers = [
+        "scrapers/scraper_gpdp.py",
         "scrapers/scraper_ong.py",
         "scrapers/scraper_gnews.py",
-        "scrapers/scraper_gpdp.py",
         "scrapers/scraper_rss_eu.py",
-        "scrapers/scraper_camera_open_data.py",
-        "scrapers/scraper_senato_open_data.py",
-        "scrapers/scraper_eurlex_open_data.py"
+        "scrapers/scraper_agcom.py",
+        "scrapers/scraper_tech_news.py",
+        "scrapers/scraper_eu_parl.py",
     ]
     
     for scraper in scrapers:
