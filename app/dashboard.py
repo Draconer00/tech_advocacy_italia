@@ -28,16 +28,16 @@ e le azioni del Garante Privacy, creando una mappa dell'ecosistema dei diritti d
 """)
 
 # --- CARICAMENTO DATI ---
-@st.cache_data 
+@st.cache_data
 def carica_dati_ong():
     cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'ong_complete.csv')
-    if os.path.exists(percorso_csv):
-        return pd.read_csv(percorso_csv)
-    # Fallback su sample se completo non disponibile
-    percorso_csv_fallback = os.path.join(cartella_script, '..', 'data', 'raw', 'ong_sample.csv')
-    if os.path.exists(percorso_csv_fallback):
-        return pd.read_csv(percorso_csv_fallback)
+    # Priorità: dati analizzati da NLP → dati grezzi come fallback
+    for percorso in [
+        os.path.join(cartella_script, '..', 'data', 'processed', 'ong_analyzed.csv'),
+        os.path.join(cartella_script, '..', 'data', 'raw', 'ong_sample.csv'),
+    ]:
+        if os.path.exists(percorso):
+            return pd.read_csv(percorso)
     return pd.DataFrame()
 
 @st.cache_data 
@@ -104,8 +104,8 @@ def carica_dati_unificati():
             'fonte': nome_ong,
             'tipo': 'Comunicato ONG',
             'url': row.get('url', row.get('Link', '')),
-            'sentiment': 'NEUTRALE',
-            'ambito_geografico': row.get('area_geografica', 'Italia'),
+            'sentiment': row.get('Sentiment_Direzione', 'NEUTRALE'),
+            'ambito_geografico': row.get('Ambito_Geografico', row.get('area_geografica', 'Italia')),
             'livello_allarme': row.get('livello_allarme', 1)
         })
 
