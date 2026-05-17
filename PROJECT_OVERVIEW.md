@@ -119,7 +119,11 @@ Files CSV grezzi, storico permanente:
 
 #### `data/processed/`
 File analizzati con NLP:
-- `ong_posizioni_permanenti.csv` - ✅ NUOVO: Posizioni permanenti ONG
+- `gpdp_analyzed.csv` - Provvedimenti Garante con NLP
+- `ong_analyzed.csv` - Comunicati ONG con NLP (sentiment, entità, keyword)
+- `gnews_analyzed.csv` - Notizie GNews con NLP
+- `rss_eu_analyzed.csv` - RSS europei con NLP
+- `ong_posizioni_permanenti.csv` - Posizioni permanenti ONG sulla mappa
 - `embeddings_cache.pkl` - Cache deduplicazione semantica
 - `training_data_feedback.csv` - Golden Standard correzioni manuali
 
@@ -136,13 +140,14 @@ scraper_gnews    scraper_gpdp       scraper_ong    scraper_rss_eu
     ↓                   ↓                  ↓               ↓
 gnews_sample     gpdp_sample       ong_sample    rss_eu_sample
    (raw)            (raw)            (raw)           (raw)
+    ↓                   ↓                  ↓               ↓
+          text_analysis.py ← NLP Processing su TUTTE le fonti
+          (Pulizia, NER, Sentiment, TF-IDF, Dedup, Active Learning)
                         ↓
-          text_analysis.py ← NLP Processing
-          (Pulizia, NER, Dedup, Geografia, Active Learning)
-                        ↓
-     ┌─────────────────────────────────────┐
-     │  Tutte le fonti analizzate + SQLite
-     └─────────────────────────────────────┘
+     ┌──────────────────────────────────────────────┐
+     │  gpdp_analyzed + ong_analyzed +              │
+     │  gnews_analyzed + rss_eu_analyzed + SQLite   │
+     └──────────────────────────────────────────────┘
                      ↓
      ╔══════════════════════════════════╗
      ║     dashboard.py (Streamlit)     ║
