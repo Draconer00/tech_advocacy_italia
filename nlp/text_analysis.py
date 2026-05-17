@@ -216,8 +216,9 @@ def estrai_keywords_corpus(testi: list[str], num_keywords: int = 5) -> list[list
     if not testi:
         return []
     try:
+        testi_puliti = [str(t) if t and str(t).strip() != 'nan' else '' for t in testi]
         vectorizer = TfidfVectorizer(max_features=200, min_df=1)
-        tfidf_matrix = vectorizer.fit_transform(testi)
+        tfidf_matrix = vectorizer.fit_transform(testi_puliti)
         feature_names = vectorizer.get_feature_names_out()
         risultati = []
         for i in range(len(testi)):
@@ -447,12 +448,16 @@ def processa_dataframe(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
     df['Entita_Coinvolte'] = df['testo_completo'].apply(estrai_entita)
     df['Sentiment_Direzione'] = df['testo_completo'].apply(classifica_sentiment_provvedimento)
 
+    # Sanitizza NaN nelle colonne testo prima di qualsiasi operazione stringa
+    df['titolo'] = df['titolo'].fillna('') if 'titolo' in df.columns else df.get('titolo', '')
+    df['testo_completo'] = df['testo_completo'].fillna('')
+
     # TF-IDF fittato sull'intero batch, non documento per documento
     df['Parole_Chiave'] = estrai_keywords_corpus(df['testo_completo'].tolist())
 
     def classifica_riga(riga):
         etichetta, confidenza = classifica_testo(
-            riga['titolo'] + " " + str(riga['testo_completo'])[:300]
+            str(riga['titolo']) + " " + str(riga['testo_completo'])[:300]
         )
         return pd.Series([etichetta, confidenza])
 
