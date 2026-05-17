@@ -1,13 +1,23 @@
-import feedparser
-import pandas as pd
 import os
+import sys
 import hashlib
 import pickle
-import numpy as np
-from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+
+import feedparser
+import numpy as np
+import pandas as pd
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
+from utils.logger_config import setup_logger
+
+logger = setup_logger(__name__)
 
 # ✅ DIZIONARIO PROFILI ORGANIZZAZIONI
 # Ogni ONG può autodefinirsi e aggiungere la propria descrizione
@@ -246,7 +256,7 @@ model = None
 def get_embedding_model():
     global model
     if model is None:
-        print(f"✅ Caricamento modello embedding: {EMBEDDING_MODEL}")
+        logger.info("Caricamento modello embedding: %s", EMBEDDING_MODEL)
         model = SentenceTransformer(EMBEDDING_MODEL, device='cpu')
     return model
 
@@ -334,7 +344,7 @@ def scrape_comunicati_ong():
     
     tutte_le_notizie = []
 
-    print(f"✅ Avvio scraping parallelo {len(fonti_ong)} fonti ONG...")
+    logger.info("Avvio scraping parallelo %d fonti ONG...", len(fonti_ong))
 
     # ✅ PARALLELIZZAZIONE FEED RSS
     def processa_fonte(nome_ong, url_feed):
@@ -374,11 +384,11 @@ def scrape_comunicati_ong():
                     'hash_contenuto': hash_contenuto
                 })
             
-            print(f"✅ {nome_ong}: {len(risultati)} comunicati scaricati")
+            logger.debug("%s: %d comunicati scaricati", nome_ong, len(risultati))
             return risultati
 
         except Exception as e:
-            print(f"❌ Errore {nome_ong}: {str(e)}")
+            logger.warning("Errore %s: %s", nome_ong, e)
             return []
 
 
@@ -392,7 +402,7 @@ def scrape_comunicati_ong():
             tutte_le_notizie.extend(future.result())
 
     df_ong = pd.DataFrame(tutte_le_notizie)
-    print(f"\n✅ Completato! Raccolti {len(df_ong)} comunicati totali dalla società civile.")
+    logger.info("Completato: %d comunicati totali dalla società civile.", len(df_ong))
     return df_ong
 
 # Esecuzione di test
@@ -426,6 +436,4 @@ if __name__ == "__main__":
         # Salviamo il CSV
         df_finale.to_csv(percorso_salvataggio, index=False)
         
-        print("\nPrime 3 righe estratte:")
-        print(df_test.head(3))
-        print(f"\nDati salvati in modo sicuro in: {percorso_salvataggio}")
+        logger.info("Dati salvati in: %s (%d record totali)", percorso_salvataggio, len(df_finale))

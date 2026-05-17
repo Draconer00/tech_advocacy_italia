@@ -8,122 +8,187 @@ on:
 jobs:
 
   # ==============================================
-  # 🕵️ SCRAPER GPDP (SOLO RACCOLTA, NO COMMIT)
+  # SCRAPER GPDP (solo raccolta, no commit)
   # ==============================================
   scraper-gpdp:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     continue-on-error: true
-    
-    steps:
-      - name: 📥 Clona il repository
-        uses: actions/checkout@v4
 
-      - name: 🐍 Configura Python
-        uses: actions/setup-python@v5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: 'pip'
 
-      - name: 📦 Installa librerie
-        run: pip install -r requirements.txt
+      - run: pip install -r requirements.txt
 
-      - name: 🕵️ Scraping Garante Privacy
+      - name: Scraping Garante Privacy
         run: python scrapers/scraper_gpdp.py
         continue-on-error: true
 
-      - name: 📤 Carica Dati GPDP nel Cassetto Temporaneo (Artifact)
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: raw-gpdp-data
           path: data/raw/gpdp*.csv
-          retention-days: 1 # I dati grezzi vivono qui solo per 1 giorno
+          retention-days: 1
 
   # ==============================================
-  # 📢 SCRAPER ONG (SOLO RACCOLTA, NO COMMIT)
+  # SCRAPER ONG (solo raccolta, no commit)
   # ==============================================
   scraper-ong:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     continue-on-error: true
-    
-    steps:
-      - name: 📥 Clona il repository
-        uses: actions/checkout@v4
 
-      - name: 🐍 Configura Python
-        uses: actions/setup-python@v5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: 'pip'
 
-      - name: 📦 Installa librerie
-        run: pip install -r requirements.txt
+      - run: pip install -r requirements.txt
 
-      - name: 📢 Scraping ONG
+      - name: Scraping ONG RSS
         run: python scrapers/scraper_ong.py
         continue-on-error: true
 
-      - name: 📤 Carica Dati ONG nel Cassetto Temporaneo (Artifact)
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: raw-ong-data
           path: data/raw/ong*.csv
           retention-days: 1
 
-# ==============================================
-  # 🧠 ANALISI NLP & SALVATAGGIO FINALE 
   # ==============================================
-  analisi-nlp:
-    needs: [scraper-gpdp, scraper-ong]
+  # SCRAPER GNEWS (solo raccolta, no commit)
+  # Richiede secret GNEWS_API_KEY nel repository.
+  # ==============================================
+  scraper-gnews:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: write # Obbligatorio per permettere al bot di fare il commit
+    timeout-minutes: 5
+    continue-on-error: true
 
     steps:
-      - name: 📥 Clona il repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
-      - name: 🐍 Configura Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: 'pip'
 
-      # ✅ NUOVO BLOCCO: CACHE PER I MODELLI PESANTI (HUGGINGFACE)
-      - name: 🗄️ Cache Modelli AI (HuggingFace)
+      - run: pip install -r requirements.txt
+
+      - name: Scraping GNews
+        run: python scrapers/scraper_gnews.py
+        continue-on-error: true
+        env:
+          GNEWS_API_KEY: ${{ secrets.GNEWS_API_KEY }}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: raw-gnews-data
+          path: data/raw/gnews*.csv
+          retention-days: 1
+
+  # ==============================================
+  # SCRAPER RSS EUROPEO (solo raccolta, no commit)
+  # ==============================================
+  scraper-rss-eu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - run: pip install -r requirements.txt
+
+      - name: Scraping RSS Regolatori Europei
+        run: python scrapers/scraper_rss_eu.py
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: raw-rss-eu-data
+          path: data/raw/rss_eu*.csv
+          retention-days: 1
+
+  # ==============================================
+  # ANALISI NLP & SALVATAGGIO FINALE
+  # Dipende da tutti e 4 gli scraper.
+  # continue-on-error sui job scraper garantisce che
+  # questo step parta comunque anche se uno scraper fallisce.
+  # ==============================================
+  analisi-nlp:
+    needs: [scraper-gpdp, scraper-ong, scraper-gnews, scraper-rss-eu]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Cache modelli AI (HuggingFace)
         uses: actions/cache@v4
         with:
           path: ~/.cache/huggingface
-          # La chiave cambia solo se modifichi il file requirements.txt
           key: ${{ runner.os }}-hf-models-${{ hashFiles('requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-hf-models-
 
-      - name: 📦 Installa librerie
-        run: |
+      - run: |
           pip install -r requirements.txt
           python -m spacy download it_core_news_md
 
-      - name: 📥 Scarica Dati GPDP dal Cassetto
+      - name: Scarica dati GPDP
         uses: actions/download-artifact@v4
         with:
           name: raw-gpdp-data
           path: data/raw/
 
-      - name: 📥 Scarica Dati ONG dal Cassetto
+      - name: Scarica dati ONG
         uses: actions/download-artifact@v4
         with:
           name: raw-ong-data
           path: data/raw/
 
-      - name: 🧠 Esegui Analisi Testuale NLP
+      - name: Scarica dati GNews
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: raw-gnews-data
+          path: data/raw/
+
+      - name: Scarica dati RSS EU
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: raw-rss-eu-data
+          path: data/raw/
+
+      - name: Analisi NLP
         run: python nlp/text_analysis.py
 
-      - name: 💾 UNICO COMMIT FINALE (Raw + Processed)
+      - name: Commit finale (raw + processed)
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "🤖 Pipeline Dati Completata: Raw & NLP"
+          commit_message: "chore: automated pipeline update"

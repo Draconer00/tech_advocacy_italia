@@ -469,7 +469,8 @@ def main() -> None:
     os.makedirs(cartella_processed, exist_ok=True)
 
     fonti = [
-        {'nome': 'Garante Privacy GPDP', 'file_raw': 'gpdp_sample.csv',    'file_processed': 'gpdp_analyzed.csv'},
+        {'nome': 'Garante Privacy GPDP', 'file_raw': 'gpdp_sample.csv',   'file_processed': 'gpdp_analyzed.csv'},
+        {'nome': 'ONG RSS',              'file_raw': 'ong_sample.csv',     'file_processed': 'ong_analyzed.csv'},
         {'nome': 'GNews',                'file_raw': 'gnews_sample.csv',   'file_processed': 'gnews_analyzed.csv'},
         {'nome': 'RSS Unione Europea',   'file_raw': 'rss_eu_sample.csv',  'file_processed': 'rss_eu_analyzed.csv'},
     ]
