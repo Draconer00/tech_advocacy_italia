@@ -138,10 +138,11 @@ python nlp/text_analysis.py
 5. 🤖 **Active Learning Livello 3**: Predice il livello di allarme 1-5 usando il modello che ha imparato dalle tue correzioni manuali
 6. 💾 Salva tutto in database SQLite per velocità
 
-✅ Elabora TUTTE le fonti automaticamente: Garante Privacy, GNews, RSS EU
+✅ Elabora TUTTE le fonti automaticamente: Garante Privacy, ONG, GNews, RSS EU
 
 ✅ Output:
 - `data/processed/gpdp_analyzed.csv`
+- `data/processed/ong_analyzed.csv`
 - `data/processed/gnews_analyzed.csv`
 - `data/processed/rss_eu_analyzed.csv`
 - `data/tech_advocacy.db` (Database principale unificato)

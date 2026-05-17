@@ -1,37 +1,99 @@
-# Tech Advocacy Italy: Legal & Civic Tech Radar ⚖️🔍
+# Tech Advocacy Italy — Digital Rights Radar
 
 ## About the Project
-This project maps the ecosystem of digital rights, algorithmic fairness, and data privacy advocacy in Italy. It transitions from analyzing isolated cases (such as predictive policing tools like SARI) to providing a systemic view of the ongoing "legal battles" and civic campaigns regarding technology.
 
-The goal is to create a dynamic **Positional Map** and an **Advocacy Radar**. By transforming qualitative text (e.g., GDPR enforcement decisions, NGO press releases, FOIA requests) into quantitative metrics through Natural Language Processing (NLP), this tool helps citizens, journalists, and researchers understand which organizations to turn to based on their specific digital rights issues.
+This project maps the ecosystem of digital rights, algorithmic accountability, and data privacy advocacy in Italy and Europe. It aggregates and semantically analyzes documents from institutional regulators, civil society organizations, and news sources, transforming raw text into a structured, queryable knowledge base.
 
-## Project Architecture & Components
+The result is an interactive **Advocacy Radar**: a Streamlit dashboard that shows which organizations are active on which topics, how the regulatory landscape is evolving, and how Italian enforcement decisions compare with European counterparts.
 
-The repository is structured to ensure reproducibility and clean data engineering practices:
+## Architecture
 
+```
 tech_advocacy_italia/
 │
-├── data/                  <-- The storage layer.
-│   ├── raw/               <-- Untouched, freshly scraped CSV data from institutional sources & RSS.
-│   └── processed/         <-- Clean data, enriched with NLP labels (e.g., NER tags, sentiment).
+├── .github/workflows/     ← CI/CD pipeline (runs daily at 02:00 UTC)
 │
-├── scrapers/              <-- The data extraction engines.
-│   ├── scraper_gpdp.py    <-- Custom web scraper targeting the Garante Privacy (enforcement actions).
-│   └── scraper_ong.py     <-- RSS/HTML scraper monitoring Italian digital rights NGOs & civic networks.
+├── scrapers/              ← Data extraction layer
+│   ├── scraper_gpdp.py    ← Italian Data Protection Authority (web scraper)
+│   ├── scraper_ong.py     ← 22 civil society RSS feeds
+│   ├── scraper_gnews.py   ← GNews API (requires GNEWS_API_KEY secret)
+│   └── scraper_rss_eu.py  ← 4 European regulators (EDPB, CNIL, AEPD, ICO)
 │
-├── nlp/                   <-- The intelligence layer.
-│   └── text_analysis.py   <-- Scripts using models like spaCy to extract entities and classify text.
+├── nlp/                   ← Intelligence layer
+│   ├── text_analysis.py   ← spaCy NER, BERT sentiment, TF-IDF, active learning
+│   ├── deduplication.py   ← Semantic dedup via sentence-transformers + DBSCAN
+│   ├── train_classifier.py     ← XLM-RoBERTa fine-tuning on user corrections
+│   └── train_impact_model.py   ← Random Forest impact classifier
 │
-├── app/                   <-- The frontend.
-│   └── dashboard.py       <-- Streamlit dashboard code for interactive positional maps and timelines.
+├── app/
+│   ├── dashboard.py       ← Streamlit interactive dashboard (6 tabs)
+│   └── db_manager.py      ← Database inspection and maintenance UI
 │
-├── notebooks/
-│   └── esplorazione.ipynb <-- Jupyter notebooks for initial data exploration and algorithm testing.
+├── data/
+│   ├── raw/               ← Append-only raw CSV (never overwritten)
+│   ├── processed/         ← NLP-enriched CSV + SQLite unified database
+│   └── utils/             ← nlp_blacklist.csv (dynamic exclusion list)
 │
-├── .gitignore             <-- Files and folders ignored by Git (e.g., .venv/ and data/raw/).
-└── requirements.txt       <-- List of project dependencies (e.g., pandas, spacy, streamlit, bs4).
+├── utils/
+│   └── logger_config.py   ← Shared logging setup
+│
+├── requirements.txt
+└── .env                   ← Local secrets (git-ignored)
+```
 
-## Future Developments
-* Automated daily data ingestion via GitHub Actions.
-* Dynamic Topic Modeling to automatically detect emerging tech-rights issues in Italy.
-* Public deployment of the Streamlit dashboard via Community Cloud.
+## Data Flow
+
+```
+GNews API → gnews_sample.csv ─┐
+GPDP web  → gpdp_sample.csv  ─┤
+22 ONG RSS→ ong_sample.csv   ─┼─→ text_analysis.py → *_analyzed.csv → SQLite
+4 EU RSS  → rss_eu_sample.csv─┘             ↑
+                                    active learning feedback
+                                    (user corrections in dashboard)
+```
+
+All sources share a unified schema (`id_univoco`, `hash_contenuto`, `testo_completo`, ...). Raw files are append-only — data is never deleted, deduplication happens by hash.
+
+## Running Locally
+
+```bash
+pip install -r requirements.txt
+python -m spacy download it_core_news_md
+
+# Set GNews API key (get one free at gnews.io)
+# Windows:
+$env:GNEWS_API_KEY="your_key"
+# Linux/Mac:
+export GNEWS_API_KEY="your_key"
+
+# Run scrapers
+python scrapers/scraper_gpdp.py
+python scrapers/scraper_ong.py
+python scrapers/scraper_gnews.py
+python scrapers/scraper_rss_eu.py
+
+# Run NLP pipeline
+python nlp/text_analysis.py
+
+# Launch dashboard
+python -m streamlit run app/dashboard.py
+```
+
+## Automated Pipeline (GitHub Actions)
+
+The workflow in `.github/workflows/update_data.yml` runs automatically every night at 02:00 UTC:
+
+1. Four scraper jobs run in parallel
+2. The NLP job waits for all scrapers, downloads their artifacts, runs analysis
+3. Results are committed back to the repository
+
+To enable GNews in CI: add `GNEWS_API_KEY` as a GitHub repository secret (Settings → Secrets and variables → Actions).
+
+## Key Features
+
+- **Multi-source normalization** — heterogeneous sources unified to one schema
+- **Multi-level deduplication** — hash (scraper level) + fuzzy (NLP level) + semantic/DBSCAN
+- **NLP pipeline** — NER (spaCy), sentiment (BERT), keywords (TF-IDF corpus-level), acronym recognition
+- **Active learning** — user corrections in the dashboard retrain the impact classifier at each pipeline run
+- **Stable visualizations** — network graph with fixed seed, ONG positions cached permanently
+- **No cloud dependencies** — everything runs locally or on GitHub Actions with open-source models
