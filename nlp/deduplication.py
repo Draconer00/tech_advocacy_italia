@@ -1,86 +1,87 @@
 """
-✅ DEDUPLICAZIONE SEMANTICA AVANZATA
+Deduplicazione semantica via sentence-transformers + DBSCAN su coseno.
 Modello: paraphrase-multilingual-MiniLM-L12-v2
-Clustering DBSCAN su similarità coseno
 """
 
 import os
-import pandas as pd
+import sys
+
 import numpy as np
+import pandas as pd
 from sentence_transformers import SentenceTransformer
 from sklearn.cluster import DBSCAN
 
-# Configurazione
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
+from utils.logger_config import setup_logger
+
+logger = setup_logger(__name__)
+
 MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
 EPS_THRESHOLD = 0.15
 MIN_SAMPLES = 2
 
-# Cache modello
-model = None
-
-def get_embedding_model():
-    global model
-    if model is None:
-        print(f"✅ Caricamento modello deduplicazione: {MODEL_NAME}")
-        model = SentenceTransformer(MODEL_NAME, device='cpu')
-    return model
+_model: SentenceTransformer | None = None
 
 
-def deduplica_dataframe(df: pd.DataFrame, colonna_testo: str = 'testo_completo') -> pd.DataFrame:
+def _get_model() -> SentenceTransformer:
+    global _model
+    if _model is None:
+        logger.info("Caricamento modello deduplicazione: %s", MODEL_NAME)
+        _model = SentenceTransformer(MODEL_NAME, device='cpu')
+    return _model
+
+
+def deduplica_dataframe(
+    df: pd.DataFrame,
+    colonna_testo: str = 'testo_completo',
+) -> pd.DataFrame:
     """
-    Deduplica un dataframe tramite embedding semantico e clustering DBSCAN
-    
+    Deduplica un DataFrame tramite embedding semantico e clustering DBSCAN.
+
     Aggiunge colonne:
-    - cluster_id: identificatore cluster
-    - is_primary: True se è il rappresentante principale del cluster
+    - cluster_id:  ID del cluster (-1 = nessun cluster / rumore)
+    - is_primary:  True se è il rappresentante principale del cluster
     """
-    
-    if len(df) == 0:
+    if df.empty:
         return df
-    
-    model = get_embedding_model()
-    
-    print(f"🔍 Inizio deduplicazione semantica: {len(df)} record")
-    
-    # Calcola embeddings
+
+    model = _get_model()
+    logger.info("Inizio deduplicazione semantica: %d record", len(df))
+
     embeddings = model.encode(
         df[colonna_testo].tolist(),
         show_progress_bar=False,
-        batch_size=32
+        batch_size=32,
     )
-    
-    # Clustering DBSCAN su distanza coseno
-    clustering = DBSCAN(
+
+    cluster_ids: np.ndarray = DBSCAN(
         eps=EPS_THRESHOLD,
         min_samples=MIN_SAMPLES,
         metric='cosine',
-        n_jobs=-1
-    )
-    
-    cluster_ids = clustering.fit_predict(embeddings)
-    
+        n_jobs=-1,
+    ).fit_predict(embeddings)
+
+    df = df.copy()
     df['cluster_id'] = cluster_ids
-    
-    # Segna il record principale per ogni cluster
     df['is_primary'] = False
-    
-    cluster_visti = set()
-    
-    for idx, cluster_id in enumerate(cluster_ids):
-        if cluster_id == -1:
-            # Rumore, non fa parte di nessun cluster, è primario
+
+    cluster_visti: set = set()
+    for idx, cid in enumerate(cluster_ids):
+        if cid == -1:
             df.at[idx, 'is_primary'] = True
-        elif cluster_id not in cluster_visti:
-            # Primo elemento del cluster, contrassegna come primario
+        elif cid not in cluster_visti:
             df.at[idx, 'is_primary'] = True
-            cluster_visti.add(cluster_id)
-    
+            cluster_visti.add(cid)
+
     num_clusters = len(set(cluster_ids)) - (1 if -1 in cluster_ids else 0)
-    num_rumore = list(cluster_ids).count(-1)
-    
-    print(f"✅ Deduplicazione completata")
-    print(f"  📊 Cluster trovati: {num_clusters}")
-    print(f"  📊 Record unici: {num_rumore + num_clusters}")
-    print(f"  📊 Duplicati rimossi: {len(df) - (num_rumore + num_clusters)}")
-    
+    num_rumore = int((cluster_ids == -1).sum())
+    duplicati = len(df) - (num_rumore + num_clusters)
+
+    logger.info(
+        "Deduplicazione completata — cluster: %d | unici: %d | duplicati rimossi: %d",
+        num_clusters, num_rumore + num_clusters, duplicati,
+    )
     return df
