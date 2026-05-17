@@ -17,7 +17,10 @@ tech_advocacy_italia/
 │   ├── scraper_gpdp.py    ← Italian Data Protection Authority (web scraper)
 │   ├── scraper_ong.py     ← 22 civil society RSS feeds
 │   ├── scraper_gnews.py   ← GNews API (requires GNEWS_API_KEY secret)
-│   └── scraper_rss_eu.py  ← 4 European regulators (EDPB, CNIL, AEPD, ICO)
+│   ├── scraper_rss_eu.py  ← 4 European regulators (EDPB, CNIL, AEPD, ICO)
+│   ├── scraper_agcom.py   ← AGCOM (comunicati, delibere, consultazioni)
+│   ├── scraper_tech_news.py ← 8 Italian tech outlets, relevance-filtered
+│   └── scraper_eu_parl.py ← European Parliament (RSS + Open Data API)
 │
 ├── nlp/                   ← Intelligence layer
 │   ├── text_analysis.py   ← spaCy NER, BERT sentiment, TF-IDF, active learning
@@ -44,12 +47,13 @@ tech_advocacy_italia/
 ## Data Flow
 
 ```
-GNews API → gnews_sample.csv ─┐
-GPDP web  → gpdp_sample.csv  ─┤
-22 ONG RSS→ ong_sample.csv   ─┼─→ text_analysis.py → *_analyzed.csv → SQLite
-4 EU RSS  → rss_eu_sample.csv─┘             ↑
-                                    active learning feedback
-                                    (user corrections in dashboard)
+GNews API    → gnews_sample.csv   ─┐
+GPDP web     → gpdp_sample.csv    ─┤
+22 ONG RSS   → ong_sample.csv     ─┤
+4 EU RSS     → rss_eu_sample.csv  ─┼─→ text_analysis.py → *_analyzed.csv → SQLite
+AGCOM RSS    → agcom_sample.csv   ─┤             ↑
+8 Tech News  → tech_news_sample.csv┤    active learning feedback
+EP RSS + API → eu_parl_sample.csv ─┘    (user corrections in dashboard)
 ```
 
 All sources share a unified schema (`id_univoco`, `hash_contenuto`, `testo_completo`, ...). Raw files are append-only — data is never deleted, deduplication happens by hash.
