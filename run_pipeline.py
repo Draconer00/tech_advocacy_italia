@@ -1,27 +1,29 @@
+import io
 import os
 import subprocess
 import sys
 import time
-from dotenv import load_dotenv # Aggiungi questa riga
+from dotenv import load_dotenv
 
-load_dotenv() # Aggiungi questa riga per caricare le chiavi dal file .env
+load_dotenv()
+
+# Forza stdout/stderr del processo padre in UTF-8 su Windows (cp1252 non supporta emoji)
+if sys.platform == "win32":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 def run_command(command):
     print(f"Executing: {' '.join(command)}")
     try:
         env = os.environ.copy()
         env["PYTHONPATH"] = os.getcwd()
-        # 1. Forza i "figli" (gli scraper) a stampare le emoji in UTF-8
-        env["PYTHONIOENCODING"] = "utf-8" 
-        
-        # 2. Aggiungi encoding="utf-8" per decifrare correttamente i risultati
+        env["PYTHONIOENCODING"] = "utf-8"
         result = subprocess.run(command, check=True, capture_output=True, text=True, env=env, encoding="utf-8")
         print(result.stdout)
     except subprocess.CalledProcessError as e:
-        print(f"⚠️ Attenzione: errore eseguendo comando: {e}")
+        print(f"[ATTENZIONE] Errore eseguendo comando: {e}")
         print(e.stderr)
-        print("✅ Continuo comunque con i passi successivi...\n")
-        # NON USIAMO PIU' sys.exit(1) - continuiamo sempre
+        print("[OK] Continuo comunque con i passi successivi...\n")
         return False
 
 def main():
@@ -41,6 +43,7 @@ def main():
         "scrapers/scraper_agcom.py",
         "scrapers/scraper_tech_news.py",
         "scrapers/scraper_eu_parl.py",
+        "scrapers/scraper_gdpr_fines.py",
     ]
     
     for scraper in scrapers:

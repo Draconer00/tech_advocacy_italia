@@ -481,6 +481,7 @@ def main() -> None:
         {'nome': 'AGCOM',                'file_raw': 'agcom_sample.csv',       'file_processed': 'agcom_analyzed.csv'},
         {'nome': 'Tech News Italia',     'file_raw': 'tech_news_sample.csv',   'file_processed': 'tech_news_analyzed.csv'},
         {'nome': 'Parlamento Europeo',   'file_raw': 'eu_parl_sample.csv',     'file_processed': 'eu_parl_analyzed.csv'},
+        {'nome': 'Sanzioni GDPR',        'file_raw': 'gdpr_fines_sample.csv',  'file_processed': 'gdpr_fines_analyzed.csv'},
     ]
 
     for fonte in fonti:

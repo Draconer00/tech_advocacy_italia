@@ -156,8 +156,119 @@ df_master = df_master.drop_duplicates(subset=['titolo', 'fonte'], keep='first')
 df_master['data'] = pd.to_datetime(df_master['data'], errors='coerce').dt.date
 df_master = df_master.sort_values('data', ascending=False).reset_index(drop=True)
 
+# --- CARICAMENTO DATI AGGIUNTIVI PER ANALISI TEMPORALE ---
+@st.cache_data
+def carica_dati_rss_eu():
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'rss_eu_analyzed.csv')
+    if os.path.exists(percorso_csv):
+        return pd.read_csv(percorso_csv)
+    return pd.DataFrame()
+
+@st.cache_data
+def carica_dati_tech_news():
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'tech_news_analyzed.csv')
+    if os.path.exists(percorso_csv):
+        return pd.read_csv(percorso_csv)
+    return pd.DataFrame()
+
+@st.cache_data
+def carica_dati_eu_parl():
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'eu_parl_analyzed.csv')
+    if os.path.exists(percorso_csv):
+        return pd.read_csv(percorso_csv)
+    return pd.DataFrame()
+
+@st.cache_data
+def carica_dati_agcom():
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'agcom_analyzed.csv')
+    if os.path.exists(percorso_csv):
+        return pd.read_csv(percorso_csv)
+    return pd.DataFrame()
+
+def _estrai_data_pubblicazione(df: pd.DataFrame) -> pd.Series:
+    """Tenta di leggere la data da colonne note, restituisce una Series datetime con NaT per date malformate."""
+    for col in ['data_pubblicazione', 'Data', 'publishedAt']:
+        if col in df.columns:
+            return pd.to_datetime(df[col], errors='coerce')
+    return pd.Series(pd.NaT, index=df.index)
+
+@st.cache_data
+def carica_dati_per_analisi_temporale():
+    """Unifica tutti i dataset in un formato standard per l'analisi temporale."""
+    df_gpdp = carica_dati_garante()
+    df_ong_loc = carica_dati_ong()
+    df_gnews_loc = carica_dati_gnews()
+    df_rss = carica_dati_rss_eu()
+    df_tech = carica_dati_tech_news()
+    df_eu = carica_dati_eu_parl()
+    df_agcom = carica_dati_agcom()
+
+    fonti_config = [
+        (df_gpdp,   'GPDP'),
+        (df_ong_loc,'ONG'),
+        (df_gnews_loc, 'GNews'),
+        (df_rss,    'EU RSS'),
+        (df_tech,   'Tech News'),
+        (df_eu,     'Parlamento EU'),
+        (df_agcom,  'AGCOM'),
+    ]
+
+    blocchi = []
+    for df_src, etichetta in fonti_config:
+        if df_src.empty:
+            continue
+        blocco = pd.DataFrame()
+        blocco['data'] = _estrai_data_pubblicazione(df_src)
+        blocco['fonte'] = etichetta
+        # Parole chiave — colonna Parole_Chiave o keywords
+        for col_kw in ['Parole_Chiave', 'keywords']:
+            if col_kw in df_src.columns:
+                blocco['parole_chiave_raw'] = df_src[col_kw].values
+                break
+        else:
+            blocco['parole_chiave_raw'] = None
+        # Topic label se presente
+        for col_tp in ['Topic_Emergente', 'topic', 'topic_label']:
+            if col_tp in df_src.columns:
+                blocco['topic_label'] = df_src[col_tp].values
+                break
+        else:
+            blocco['topic_label'] = None
+        # Importo EUR (solo GPDP potrebbe averlo)
+        if 'importo_eur' in df_src.columns:
+            blocco['importo_eur'] = pd.to_numeric(df_src['importo_eur'], errors='coerce')
+        else:
+            blocco['importo_eur'] = float('nan')
+        blocchi.append(blocco)
+
+    if not blocchi:
+        return pd.DataFrame(columns=['data', 'fonte', 'parole_chiave_raw', 'topic_label', 'importo_eur'])
+
+    df_unione = pd.concat(blocchi, ignore_index=True)
+    df_unione = df_unione.dropna(subset=['data'])
+    df_unione['mese'] = df_unione['data'].dt.to_period('M')
+    return df_unione
+
+def _parse_parole_chiave(valore) -> list:
+    """Converte una stringa-lista Python in lista reale, con gestione degli errori."""
+    if isinstance(valore, list):
+        return valore
+    if not isinstance(valore, str) or not valore.strip():
+        return []
+    try:
+        parsed = ast.literal_eval(valore)
+        if isinstance(parsed, list):
+            return [str(p).strip() for p in parsed if str(p).strip()]
+        return []
+    except Exception:
+        return []
+
 # --- CREAZIONE DELLE SCHEDE (TABS) ---
-tab_home, tab_ong, tab_garante, tab_network, tab_mappa_posizionamento = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante", "🕸️ Network Temi", "📍 Mappa Posizionamento"])
+tab_home, tab_ong, tab_garante, tab_network, tab_mappa_posizionamento, tab_analisi_temporale = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante", "🕸️ Network Temi", "📍 Mappa Posizionamento", "📈 Analisi Temporale"])
 
 # ==========================================
 # SCHEDA 0: HOME RADAR UNIFICATO
@@ -908,3 +1019,280 @@ with tab_network:
                     st.success(f"✅ Salvate {len(modifiche_network)} correzioni. I vettori verranno mostrati in verde nella prossima generazione del grafo.")
                 else:
                     st.info("Nessuna modifica effettuata")
+
+# ==========================================
+# SCHEDA 6: ANALISI TEMPORALE
+# ==========================================
+with tab_analisi_temporale:
+    st.header("📈 Analisi Temporale")
+    st.markdown("""
+    Questa sezione offre due viste analitiche sull'evoluzione nel tempo dei dati raccolti:
+    - **Sezione A**: Andamento dei provvedimenti/documenti per mese, raggruppati per fonte
+    - **Sezione B**: Tendenze dei temi principali nelle ultime settimane
+    """)
+
+    df_temporale = carica_dati_per_analisi_temporale()
+
+    if df_temporale.empty:
+        st.warning("Nessun dato temporale disponibile. Assicurati che gli scraper abbiano prodotto i file CSV analizzati in data/processed/.")
+    else:
+        # --- FILTRO INTERVALLO TEMPORALE (condiviso dalle due sezioni) ---
+        st.subheader("🗓️ Intervallo Temporale")
+        col_filtro_temp1, col_filtro_temp2 = st.columns([2, 2])
+
+        data_min = df_temporale['data'].min().date()
+        data_max = df_temporale['data'].max().date()
+
+        with col_filtro_temp1:
+            scelta_intervallo = st.selectbox(
+                "Periodo di analisi",
+                options=[
+                    ("Ultimi 6 mesi", 180),
+                    ("Ultimo anno", 365),
+                    ("Tutto lo storico", 0),
+                ],
+                format_func=lambda x: x[0],
+                index=0
+            )
+
+        giorni_intervallo = scelta_intervallo[1]
+        if giorni_intervallo > 0:
+            soglia_temporale = pd.Timestamp.now() - pd.Timedelta(days=giorni_intervallo)
+            df_filtrato_temp = df_temporale[df_temporale['data'] >= soglia_temporale].copy()
+        else:
+            df_filtrato_temp = df_temporale.copy()
+
+        with col_filtro_temp2:
+            st.metric("Documenti nel periodo selezionato", len(df_filtrato_temp))
+
+        st.divider()
+
+        # ==========================================
+        # SEZIONE A — TIMELINE PROVVEDIMENTI
+        # ==========================================
+        st.subheader("📊 Sezione A — Timeline Provvedimenti per Fonte")
+        st.markdown(
+            "Numero di documenti pubblicati ogni mese, suddivisi per fonte di provenienza. "
+            "Consente di individuare periodi di maggiore attività regolatoria o giornalistica."
+        )
+
+        if df_filtrato_temp.empty:
+            st.info("Nessun documento nel periodo selezionato.")
+        else:
+            # Raggruppa per mese e fonte
+            conteggio_mensile = (
+                df_filtrato_temp
+                .groupby([df_filtrato_temp['data'].dt.to_period('M').astype(str), 'fonte'])
+                .size()
+                .reset_index(name='conteggio')
+                .rename(columns={'data': 'mese'})
+            )
+            conteggio_mensile = conteggio_mensile.sort_values('mese')
+
+            fig_timeline_fonti = px.bar(
+                conteggio_mensile,
+                x='mese',
+                y='conteggio',
+                color='fonte',
+                barmode='stack',
+                title='Documenti per mese, raggruppati per fonte',
+                labels={
+                    'mese': 'Mese',
+                    'conteggio': 'Numero documenti',
+                    'fonte': 'Fonte'
+                }
+            )
+            fig_timeline_fonti.update_layout(
+                xaxis_title="Mese",
+                yaxis_title="Numero documenti",
+                legend_title="Fonte",
+                hovermode='x unified',
+                xaxis=dict(tickangle=-45)
+            )
+            st.plotly_chart(fig_timeline_fonti, width='stretch')
+
+            # Grafico secondario: importo EUR multo (solo se la colonna esiste con valori reali)
+            ha_importo_eur = (
+                'importo_eur' in df_filtrato_temp.columns
+                and df_filtrato_temp['importo_eur'].notna().any()
+                and (df_filtrato_temp['importo_eur'] > 0).any()
+            )
+
+            if ha_importo_eur:
+                st.markdown("**Totale sanzioni (EUR) per mese — solo GPDP/AGCOM**")
+                df_sanzioni = df_filtrato_temp[df_filtrato_temp['importo_eur'].notna() & (df_filtrato_temp['importo_eur'] > 0)].copy()
+                sanzioni_mensili = (
+                    df_sanzioni
+                    .groupby(df_sanzioni['data'].dt.to_period('M').astype(str))['importo_eur']
+                    .sum()
+                    .reset_index()
+                    .rename(columns={'data': 'mese'})
+                    .sort_values('mese')
+                )
+                fig_sanzioni = px.line(
+                    sanzioni_mensili,
+                    x='mese',
+                    y='importo_eur',
+                    markers=True,
+                    title='Totale sanzioni (EUR) per mese',
+                    labels={'mese': 'Mese', 'importo_eur': 'Importo totale (€)'}
+                )
+                fig_sanzioni.update_layout(
+                    xaxis_title="Mese",
+                    yaxis_title="Importo totale (€)",
+                    hovermode='x unified',
+                    xaxis=dict(tickangle=-45)
+                )
+                st.plotly_chart(fig_sanzioni, width='stretch')
+            else:
+                st.info(
+                    "ℹ️ La colonna `importo_eur` non è presente o non contiene valori nei dati attuali. "
+                    "Il grafico delle sanzioni verrà mostrato automaticamente non appena i dati saranno disponibili."
+                )
+
+        st.divider()
+
+        # ==========================================
+        # SEZIONE B — TENDENZE TEMATICHE
+        # ==========================================
+        st.subheader("🔍 Sezione B — Tendenze dei Temi nel Tempo")
+        st.markdown(
+            "Evoluzione mensile delle parole chiave/temi più frequenti estratti dai documenti. "
+            "Consente di identificare quali argomenti stanno crescendo o calando di importanza."
+        )
+
+        # Estrai parole chiave da tutti i documenti nel periodo, ignorando stopword banali
+        STOPWORD_KW = {
+            'di', 'del', 'la', 'il', 'le', 'lo', 'un', 'una', 'e', 'in', 'per', 'da',
+            'dei', 'a', 'con', 'non', 'si', 'su', 'al', 'che', 'è', 'gli', 'i', 'o',
+            'ha', 'ma', 'se', 'più', 'tra', 'nei', 'della', 'delle', 'degli', 'al',
+            'i', 'ii', 'iii', 'iv', 'it', 'in', 'the', 'of', 'and', 'to', 'a',
+        }
+
+        righe_kw = []
+        for _, riga in df_filtrato_temp.iterrows():
+            kw_lista = _parse_parole_chiave(riga.get('parole_chiave_raw'))
+            mese_str = riga['data'].to_period('M').strftime('%Y-%m')
+            for kw in kw_lista:
+                kw_norm = kw.lower().strip()
+                if kw_norm and kw_norm not in STOPWORD_KW and len(kw_norm) > 2:
+                    righe_kw.append({'mese': mese_str, 'parola': kw_norm})
+
+        if not righe_kw:
+            st.info(
+                "Nessuna parola chiave trovata nel periodo selezionato. "
+                "Verifica che i CSV analizzati contengano la colonna `Parole_Chiave`."
+            )
+        else:
+            df_kw = pd.DataFrame(righe_kw)
+
+            # Top 10 parole chiave globali nel periodo
+            top_parole = (
+                df_kw.groupby('parola')
+                .size()
+                .sort_values(ascending=False)
+                .head(10)
+                .index.tolist()
+            )
+
+            # Pivot: mesi × parole chiave
+            df_kw_pivot = (
+                df_kw[df_kw['parola'].isin(top_parole)]
+                .groupby(['mese', 'parola'])
+                .size()
+                .reset_index(name='conteggio')
+                .sort_values('mese')
+            )
+
+            fig_trend = px.line(
+                df_kw_pivot,
+                x='mese',
+                y='conteggio',
+                color='parola',
+                markers=True,
+                title='Top 10 temi — frequenza mensile',
+                labels={
+                    'mese': 'Mese',
+                    'conteggio': 'Occorrenze',
+                    'parola': 'Tema'
+                }
+            )
+            fig_trend.update_layout(
+                xaxis_title="Mese",
+                yaxis_title="Occorrenze mensili",
+                legend_title="Tema",
+                hovermode='x unified',
+                xaxis=dict(tickangle=-45)
+            )
+            st.plotly_chart(fig_trend, width='stretch')
+
+            # --- Indicatori crescita/declino (ultimi 2 mesi vs 2 mesi precedenti) ---
+            mesi_ordinati = sorted(df_kw_pivot['mese'].unique())
+
+            if len(mesi_ordinati) >= 4:
+                mesi_recenti = mesi_ordinati[-2:]
+                mesi_precedenti = mesi_ordinati[-4:-2]
+
+                def _freq_media(df_p, mesi_sel):
+                    sub = df_p[df_p['mese'].isin(mesi_sel)]
+                    return sub.groupby('parola')['conteggio'].mean()
+
+                freq_recente = _freq_media(df_kw_pivot, mesi_recenti)
+                freq_precedente = _freq_media(df_kw_pivot, mesi_precedenti)
+
+                confronto = pd.DataFrame({
+                    'freq_recente': freq_recente,
+                    'freq_precedente': freq_precedente,
+                }).fillna(0)
+
+                confronto['variazione_pct'] = (
+                    (confronto['freq_recente'] - confronto['freq_precedente'])
+                    / confronto['freq_precedente'].replace(0, float('nan'))
+                    * 100
+                ).round(1)
+
+                confronto = confronto.dropna(subset=['variazione_pct']).sort_values('variazione_pct', ascending=False)
+
+                st.markdown(f"**Variazione % frequenza: {mesi_precedenti[0]}–{mesi_precedenti[1]} → {mesi_recenti[0]}–{mesi_recenti[1]}**")
+
+                col_trend_su, col_trend_giu = st.columns(2)
+
+                with col_trend_su:
+                    st.markdown("📈 **In crescita**")
+                    trending_up = confronto[confronto['variazione_pct'] > 0].head(5)
+                    if trending_up.empty:
+                        st.info("Nessun tema in crescita rilevato.")
+                    else:
+                        for parola, riga in trending_up.iterrows():
+                            st.metric(
+                                label=parola.title(),
+                                value=f"{riga['freq_recente']:.1f} occ/mese",
+                                delta=f"+{riga['variazione_pct']:.0f}%"
+                            )
+
+                with col_trend_giu:
+                    st.markdown("📉 **In calo**")
+                    trending_down = confronto[confronto['variazione_pct'] < 0].tail(5).sort_values('variazione_pct')
+                    if trending_down.empty:
+                        st.info("Nessun tema in calo rilevato.")
+                    else:
+                        for parola, riga in trending_down.iterrows():
+                            st.metric(
+                                label=parola.title(),
+                                value=f"{riga['freq_recente']:.1f} occ/mese",
+                                delta=f"{riga['variazione_pct']:.0f}%"
+                            )
+            else:
+                st.info(
+                    "Dati insufficienti per calcolare le tendenze di crescita/calo "
+                    "(sono necessari almeno 4 mesi distinti di dati)."
+                )
+
+            st.divider()
+
+            # Tabella di riepilogo parole chiave
+            st.markdown("**Tabella dettagliata — occorrenze mensili per tema**")
+            df_tabella = df_kw_pivot.pivot_table(
+                index='mese', columns='parola', values='conteggio', fill_value=0
+            ).reset_index()
+            st.dataframe(df_tabella, hide_index=True, width='stretch')

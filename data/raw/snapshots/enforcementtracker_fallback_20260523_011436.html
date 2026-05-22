@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>GDPR Enforcement Tracker - list of GDPR fines</title>
+
+    <meta name="description" content="List and overview of fines and penalties under the EU General Data Protection Regulation (GDPR, DSGVO)">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="">
+    <meta name="twitter:creator" content="">
+    <meta property="og:url" content="https://www.enforcementtracker.com">
+    <meta property="og:title" content="GDPR Enforcement Tracker - list of GDPR fines">
+    <meta property="og:description" content="List and overview of fines and penalties under the EU General Data Protection Regulation (GDPR, DSGVO)">
+    <meta property="og:image" content="">
+
+	<script type="text/javascript" src="./jquery-3.3.1.min.js"></script>
+
+	    <script type="text/javascript" src="./bootstrap.min.js"></script>
+
+   <link rel="stylesheet" type="text/css" href="./bootstrap.min.css">
+
+<script type="text/javascript" src="./js/mdb.min.js"></script>
+<script type="text/javascript" src="./js/popper.min.js"></script>
+
+
+    <link rel="stylesheet" type="text/css" href="./datatables/datatables.min.css" />
+    <script type="text/javascript" src="./datatables/datatables.min.js"></script>
+    <script type="text/javascript" src="./datatables/datatables.min.js"></script>
+    <link rel="stylesheet" style="text/css" href="./datatables/responsive.dataTables.min.css">
+    <script type="text/javascript" src="./datatables/dataTables.responsive.min.js"></script>
+
+    <script type='text/javascript' src='./jquery.marquee.min.js'></script>
+
+    <link href="./style.css" rel="stylesheet" type="text/css">
+
+
+    <link rel="stylesheet" style="text/css" href="./css/responsive.dataTables.min.css">
+    <script type="text/javascript" src="./js/natural.js"></script>
+
+
+  </head>
+
+<style>
+
+#penalties td:nth-child(2) {
+  padding-top:22px;
+  padding-right:15px;
+  width: 60px !important;
+}
+
+#penalties td:nth-child(3) {
+  width: 60px !important;
+  padding-left:10px;
+}
+
+</style>
+
+  <body style="margin:0;">
+
+    <div class="container">
+
+      <div class="wrapper">
+
+        <!-- Sidebar -->
+        <nav id="sidebar">
+          <div class="sidebar-header">
+                      </div>
+
+
+                    <ul id="etNavigation" style="margin-top:20px" class="list-unstyled components2">
+            <li class="active"><a href="https://www.enforcementtracker.com/" id="" class="" onclick="" style="background:white; color:#0D535F; font-size: 1.1em !important;">Fines Database</a></li>
+            <li class="active"><a href="https://www.enforcementtracker.com/?insights" id="" class="" onclick="" style="background:#0D535F; color:white; font-size: 1.1em !important;">Fines Statistics</a></li>
+            <li class="active"><a href="#contactSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle" style="background:#0D535F; color:white; font-size: 1.1em !important;">Submit new fine / correction</a>
+            <ul class="collapse list-unstyled" id="contactSubmenu">
+              <li><a href="mailto:fines@enforcementtracker.com?subject=New%20fine%20-%20enforcementtracker.com&body=Dear%20Enforcement%20Tracker-Team,%0D%0A%0D%0AI%20would%20like%20to%20submit%20a%20new%20fine:%0D%0A%0D%0AURL:%20%0D%0ACountry:%20%0D%0ACompany:%20%0D%0ADate:%20%0D%0AAmount:%20%0D%0ASummary:%20">Submit New Fine (E-Mail)</a></li>
+              <li><a href="mailto:fines@enforcementtracker.com?subject=Correction%20of%20a%20fine%20-%20enforcementtracker.com&body=Dear%20Enforcement%20Tracker-Team,%0D%0A%0D%0AI%20would%20like%20to%20submit%20a%20correction%20of%20a%20fine:%0D%0A%0D%0AETid:%20%0D%0ADescription:%20">Submit Correction (E-Mail)</a></li>
+            </ul>
+          </li>
+
+          <li class="active"><a href="https://cms.law/en/int/publication/gdpr-enforcement-tracker-report" id="" target="_blank" class="" onclick="" style="background:#0D535F; color:white; font-size: 1.1em !important;"><img src='buttons/external_link.png' style="margin-right:5px" width='13px'> GDPR ET Report</a></li>
+          </ul>
+          
+
+
+          <div id="finesFilter" style="margin-top:20px; padding-top:10px; display:none;" class="list-unstyled components">
+            <div style="padding-left:10px;"><span><a href="#/" id="resetButton" style="visibility:hidden; padding-right:10px; float:right" onclick="resetAllFilter();return false;">[x] Remove all filters</a></div>
+            <div style="clear:both"></div><br />
+
+
+            <div><span style="padding:10px; font-size: 1.0em !important;">Filter by country:</span><br /><div style="padding:10px;"><a href="#\/" id="all_countries" class="country_selector" onclick="draw_Countries('all_countries');return false;"><img src='./flags/flag_EU.png' class='country_selector_img' id='all_countries_img' title='Show fines from all countries' alt='Flag of the EU' width='15%' style="border: 1px solid white; margin:3px"></a><a href="#\/" id="AUSTRIA" class="country_selector" onclick="draw_Countries('AUSTRIA');return false;"><img class="country_selector_img" id="AUSTRIA_img" src="./flags/flag_austria.png" title="Show fines from AUSTRIA" alt="AUSTRIA" width="15%" style="margin:3px"></a><a href="#\/" id="BELGIUM" class="country_selector" onclick="draw_Countries('BELGIUM');return false;"><img class="country_selector_img" id="BELGIUM_img" src="./flags/flag_belgium.png" title="Show fines from BELGIUM" alt="BELGIUM" width="15%" style="margin:3px"></a><a href="#\/" id="BULGARIA" class="country_selector" onclick="draw_Countries('BULGARIA');return false;"><img class="country_selector_img" id="BULGARIA_img" src="./flags/flag_bulgaria.png" title="Show fines from BULGARIA" alt="BULGARIA" width="15%" style="margin:3px"></a><a href="#\/" id="CROATIA" class="country_selector" onclick="draw_Countries('CROATIA');return false;"><img class="country_selector_img" id="CROATIA_img" src="./flags/flag_croatia.png" title="Show fines from CROATIA" alt="CROATIA" width="15%" style="margin:3px"></a><a href="#\/" id="CYPRUS" class="country_selector" onclick="draw_Countries('CYPRUS');return false;"><img class="country_selector_img" id="CYPRUS_img" src="./flags/flag_cyprus.png" title="Show fines from CYPRUS" alt="CYPRUS" width="15%" style="margin:3px"></a><a href="#\/" id="CZECH REPUBLIC" class="country_selector" onclick="draw_Countries('CZECH REPUBLIC');return false;"><img class="country_selector_img" id="CZECH REPUBLIC_img" src="./flags/flag_czech republic.png" title="Show fines from CZECH REPUBLIC" alt="CZECH REPUBLIC" width="15%" style="margin:3px"></a><a href="#\/" id="DENMARK" class="country_selector" onclick="draw_Countries('DENMARK');return false;"><img class="country_selector_img" id="DENMARK_img" src="./flags/flag_denmark.png" title="Show fines from DENMARK" alt="DENMARK" width="15%" style="margin:3px"></a><a href="#\/" id="ESTONIA" class="country_selector" onclick="draw_Countries('ESTONIA');return false;"><img class="country_selector_img" id="ESTONIA_img" src="./flags/flag_estonia.png" title="Show fines from ESTONIA" alt="ESTONIA" width="15%" style="margin:3px"></a><a href="#\/" id="FINLAND" class="country_selector" onclick="draw_Countries('FINLAND');return false;"><img class="country_selector_img" id="FINLAND_img" src="./flags/flag_finland.png" title="Show fines from FINLAND" alt="FINLAND" width="15%" style="margin:3px"></a><a href="#\/" id="FRANCE" class="country_selector" onclick="draw_Countries('FRANCE');return false;"><img class="country_selector_img" id="FRANCE_img" src="./flags/flag_france.png" title="Show fines from FRANCE" alt="FRANCE" width="15%" style="margin:3px"></a><a href="#\/" id="GERMANY" class="country_selector" onclick="draw_Countries('GERMANY');return false;"><img class="country_selector_img" id="GERMANY_img" src="./flags/flag_germany.png" title="Show fines from GERMANY" alt="GERMANY" width="15%" style="margin:3px"></a><a href="#\/" id="GREECE" class="country_selector" onclick="draw_Countries('GREECE');return false;"><img class="country_selector_img" id="GREECE_img" src="./flags/flag_greece.png" title="Show fines from GREECE" alt="GREECE" width="15%" style="margin:3px"></a><a href="#\/" id="HUNGARY" class="country_selector" onclick="draw_Countries('HUNGARY');return false;"><img class="country_selector_img" id="HUNGARY_img" src="./flags/flag_hungary.png" title="Show fines from HUNGARY" alt="HUNGARY" width="15%" style="margin:3px"></a><a href="#\/" id="ICELAND" class="country_selector" onclick="draw_Countries('ICELAND');return false;"><img class="country_selector_img" id="ICELAND_img" src="./flags/flag_iceland.png" title="Show fines from ICELAND" alt="ICELAND" width="15%" style="margin:3px"></a><a href="#\/" id="IRELAND" class="country_selector" onclick="draw_Countries('IRELAND');return false;"><img class="country_selector_img" id="IRELAND_img" src="./flags/flag_ireland.png" title="Show fines from IRELAND" alt="IRELAND" width="15%" style="margin:3px"></a><a href="#\/" id="ISLE OF MAN" class="country_selector" onclick="draw_Countries('ISLE OF MAN');return false;"><img class="country_selector_img" id="ISLE OF MAN_img" src="./flags/flag_isle of man.png" title="Show fines from ISLE OF MAN" alt="ISLE OF MAN" width="15%" style="margin:3px"></a><a href="#\/" id="ITALY" class="country_selector" onclick="draw_Countries('ITALY');return false;"><img class="country_selector_img" id="ITALY_img" src="./flags/flag_italy.png" title="Show fines from ITALY" alt="ITALY" width="15%" style="margin:3px"></a><a href="#\/" id="LATVIA" class="country_selector" onclick="draw_Countries('LATVIA');return false;"><img class="country_selector_img" id="LATVIA_img" src="./flags/flag_latvia.png" title="Show fines from LATVIA" alt="LATVIA" width="15%" style="margin:3px"></a><a href="#\/" id="LIECHTENSTEIN" class="country_selector" onclick="draw_Countries('LIECHTENSTEIN');return false;"><img class="country_selector_img" id="LIECHTENSTEIN_img" src="./flags/flag_liechtenstein.png" title="Show fines from LIECHTENSTEIN" alt="LIECHTENSTEIN" width="15%" style="margin:3px"></a><a href="#\/" id="LITHUANIA" class="country_selector" onclick="draw_Countries('LITHUANIA');return false;"><img class="country_selector_img" id="LITHUANIA_img" src="./flags/flag_lithuania.png" title="Show fines from LITHUANIA" alt="LITHUANIA" width="15%" style="margin:3px"></a><a href="#\/" id="LUXEMBOURG" class="country_selector" onclick="draw_Countries('LUXEMBOURG');return false;"><img class="country_selector_img" id="LUXEMBOURG_img" src="./flags/flag_luxembourg.png" title="Show fines from LUXEMBOURG" alt="LUXEMBOURG" width="15%" style="margin:3px"></a><a href="#\/" id="MALTA" class="country_selector" onclick="draw_Countries('MALTA');return false;"><img class="country_selector_img" id="MALTA_img" src="./flags/flag_malta.png" title="Show fines from MALTA" alt="MALTA" width="15%" style="margin:3px"></a><a href="#\/" id="NORWAY" class="country_selector" onclick="draw_Countries('NORWAY');return false;"><img class="country_selector_img" id="NORWAY_img" src="./flags/flag_norway.png" title="Show fines from NORWAY" alt="NORWAY" width="15%" style="margin:3px"></a><a href="#\/" id="POLAND" class="country_selector" onclick="draw_Countries('POLAND');return false;"><img class="country_selector_img" id="POLAND_img" src="./flags/flag_poland.png" title="Show fines from POLAND" alt="POLAND" width="15%" style="margin:3px"></a><a href="#\/" id="PORTUGAL" class="country_selector" onclick="draw_Countries('PORTUGAL');return false;"><img class="country_selector_img" id="PORTUGAL_img" src="./flags/flag_portugal.png" title="Show fines from PORTUGAL" alt="PORTUGAL" width="15%" style="margin:3px"></a><a href="#\/" id="ROMANIA" class="country_selector" onclick="draw_Countries('ROMANIA');return false;"><img class="country_selector_img" id="ROMANIA_img" src="./flags/flag_romania.png" title="Show fines from ROMANIA" alt="ROMANIA" width="15%" style="margin:3px"></a><a href="#\/" id="SLOVAKIA" class="country_selector" onclick="draw_Countries('SLOVAKIA');return false;"><img class="country_selector_img" id="SLOVAKIA_img" src="./flags/flag_slovakia.png" title="Show fines from SLOVAKIA" alt="SLOVAKIA" width="15%" style="margin:3px"></a><a href="#\/" id="SLOVENIA" class="country_selector" onclick="draw_Countries('SLOVENIA');return false;"><img class="country_selector_img" id="SLOVENIA_img" src="./flags/flag_slovenia.png" title="Show fines from SLOVENIA" alt="SLOVENIA" width="15%" style="margin:3px"></a><a href="#\/" id="SPAIN" class="country_selector" onclick="draw_Countries('SPAIN');return false;"><img class="country_selector_img" id="SPAIN_img" src="./flags/flag_spain.png" title="Show fines from SPAIN" alt="SPAIN" width="15%" style="margin:3px"></a><a href="#\/" id="SWEDEN" class="country_selector" onclick="draw_Countries('SWEDEN');return false;"><img class="country_selector_img" id="SWEDEN_img" src="./flags/flag_sweden.png" title="Show fines from SWEDEN" alt="SWEDEN" width="15%" style="margin:3px"></a><a href="#\/" id="THE NETHERLANDS" class="country_selector" onclick="draw_Countries('THE NETHERLANDS');return false;"><img class="country_selector_img" id="THE NETHERLANDS_img" src="./flags/flag_the netherlands.png" title="Show fines from THE NETHERLANDS" alt="THE NETHERLANDS" width="15%" style="margin:3px"></a><a href="#\/" id="UNITED KINGDOM" class="country_selector" onclick="draw_Countries('UNITED KINGDOM');return false;"><img class="country_selector_img" id="UNITED KINGDOM_img" src="./flags/flag_united kingdom.png" title="Show fines from UNITED KINGDOM" alt="UNITED KINGDOM" width="15%" style="margin:3px"></a></div></div><br /><div><span style="padding:10px; font-size: 1.0em !important;">Filter by violation (Art.):</span><br /><div style="padding:10px;"><a href="#\/" id="all_fines" class="fine_selector" onclick="draw_Fines('all_fines');return false;"><div class='fine_selector_div' id='all_fines_div' style="background:white; color:#0D535F; width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">All</div></a><a href="#\/" id="4" class="fine_selector" onclick="draw_Fines('4');return false;"><div class="fine_selector_div" id="4_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">4</div></a><a href="#\/" id="5" class="fine_selector" onclick="draw_Fines('5');return false;"><div class="fine_selector_div" id="5_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">5</div></a><a href="#\/" id="6" class="fine_selector" onclick="draw_Fines('6');return false;"><div class="fine_selector_div" id="6_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">6</div></a><a href="#\/" id="7" class="fine_selector" onclick="draw_Fines('7');return false;"><div class="fine_selector_div" id="7_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">7</div></a><a href="#\/" id="8" class="fine_selector" onclick="draw_Fines('8');return false;"><div class="fine_selector_div" id="8_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">8</div></a><a href="#\/" id="9" class="fine_selector" onclick="draw_Fines('9');return false;"><div class="fine_selector_div" id="9_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">9</div></a><a href="#\/" id="10" class="fine_selector" onclick="draw_Fines('10');return false;"><div class="fine_selector_div" id="10_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">10</div></a><a href="#\/" id="11" class="fine_selector" onclick="draw_Fines('11');return false;"><div class="fine_selector_div" id="11_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">11</div></a><a href="#\/" id="12" class="fine_selector" onclick="draw_Fines('12');return false;"><div class="fine_selector_div" id="12_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">12</div></a><a href="#\/" id="13" class="fine_selector" onclick="draw_Fines('13');return false;"><div class="fine_selector_div" id="13_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">13</div></a><a href="#\/" id="14" class="fine_selector" onclick="draw_Fines('14');return false;"><div class="fine_selector_div" id="14_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">14</div></a><a href="#\/" id="15" class="fine_selector" onclick="draw_Fines('15');return false;"><div class="fine_selector_div" id="15_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">15</div></a><a href="#\/" id="16" class="fine_selector" onclick="draw_Fines('16');return false;"><div class="fine_selector_div" id="16_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">16</div></a><a href="#\/" id="17" class="fine_selector" onclick="draw_Fines('17');return false;"><div class="fine_selector_div" id="17_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">17</div></a><a href="#\/" id="18" class="fine_selector" onclick="draw_Fines('18');return false;"><div class="fine_selector_div" id="18_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">18</div></a><a href="#\/" id="19" class="fine_selector" onclick="draw_Fines('19');return false;"><div class="fine_selector_div" id="19_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">19</div></a><a href="#\/" id="20" class="fine_selector" onclick="draw_Fines('20');return false;"><div class="fine_selector_div" id="20_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">20</div></a><a href="#\/" id="21" class="fine_selector" onclick="draw_Fines('21');return false;"><div class="fine_selector_div" id="21_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">21</div></a><a href="#\/" id="22" class="fine_selector" onclick="draw_Fines('22');return false;"><div class="fine_selector_div" id="22_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">22</div></a><a href="#\/" id="23" class="fine_selector" onclick="draw_Fines('23');return false;"><div class="fine_selector_div" id="23_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">23</div></a><a href="#\/" id="24" class="fine_selector" onclick="draw_Fines('24');return false;"><div class="fine_selector_div" id="24_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">24</div></a><a href="#\/" id="25" class="fine_selector" onclick="draw_Fines('25');return false;"><div class="fine_selector_div" id="25_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">25</div></a><a href="#\/" id="26" class="fine_selector" onclick="draw_Fines('26');return false;"><div class="fine_selector_div" id="26_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">26</div></a><a href="#\/" id="27" class="fine_selector" onclick="draw_Fines('27');return false;"><div class="fine_selector_div" id="27_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">27</div></a><a href="#\/" id="28" class="fine_selector" onclick="draw_Fines('28');return false;"><div class="fine_selector_div" id="28_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">28</div></a><a href="#\/" id="29" class="fine_selector" onclick="draw_Fines('29');return false;"><div class="fine_selector_div" id="29_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">29</div></a><a href="#\/" id="30" class="fine_selector" onclick="draw_Fines('30');return false;"><div class="fine_selector_div" id="30_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">30</div></a><a href="#\/" id="31" class="fine_selector" onclick="draw_Fines('31');return false;"><div class="fine_selector_div" id="31_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">31</div></a><a href="#\/" id="32" class="fine_selector" onclick="draw_Fines('32');return false;"><div class="fine_selector_div" id="32_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">32</div></a><a href="#\/" id="33" class="fine_selector" onclick="draw_Fines('33');return false;"><div class="fine_selector_div" id="33_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">33</div></a><a href="#\/" id="34" class="fine_selector" onclick="draw_Fines('34');return false;"><div class="fine_selector_div" id="34_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">34</div></a><a href="#\/" id="35" class="fine_selector" onclick="draw_Fines('35');return false;"><div class="fine_selector_div" id="35_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">35</div></a><a href="#\/" id="36" class="fine_selector" onclick="draw_Fines('36');return false;"><div class="fine_selector_div" id="36_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">36</div></a><a href="#\/" id="37" class="fine_selector" onclick="draw_Fines('37');return false;"><div class="fine_selector_div" id="37_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">37</div></a><a href="#\/" id="38" class="fine_selector" onclick="draw_Fines('38');return false;"><div class="fine_selector_div" id="38_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">38</div></a><a href="#\/" id="39" class="fine_selector" onclick="draw_Fines('39');return false;"><div class="fine_selector_div" id="39_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">39</div></a><a href="#\/" id="42" class="fine_selector" onclick="draw_Fines('42');return false;"><div class="fine_selector_div" id="42_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">42</div></a><a href="#\/" id="43" class="fine_selector" onclick="draw_Fines('43');return false;"><div class="fine_selector_div" id="43_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">43</div></a><a href="#\/" id="44" class="fine_selector" onclick="draw_Fines('44');return false;"><div class="fine_selector_div" id="44_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">44</div></a><a href="#\/" id="46" class="fine_selector" onclick="draw_Fines('46');return false;"><div class="fine_selector_div" id="46_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">46</div></a><a href="#\/" id="48" class="fine_selector" onclick="draw_Fines('48');return false;"><div class="fine_selector_div" id="48_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">48</div></a><a href="#\/" id="58" class="fine_selector" onclick="draw_Fines('58');return false;"><div class="fine_selector_div" id="58_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">58</div></a><a href="#\/" id="83" class="fine_selector" onclick="draw_Fines('83');return false;"><div class="fine_selector_div" id="83_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">83</div></a><a href="#\/" id="88" class="fine_selector" onclick="draw_Fines('88');return false;"><div class="fine_selector_div" id="88_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;">88</div></a><a href="#\/" id="GDPR" class="fine_selector" onclick="draw_Fines('GDPR');return false;"><div class="fine_selector_div" id="GDPR_div" style="width:15%; margin:3px; font-size:.8em; float:left; padding:2px; text-align:center;"></div></a></div></div>
+
+
+</div>
+
+
+        </nav>
+
+
+
+
+
+
+        <div id="content">
+
+
+          
+          <script>
+            document.getElementById("finesFilter").style.display = "block";
+          </script>
+          <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container-fluid">
+
+              <!--   <button type="button" id="sidebarCollapse" class="btn btn-info">
+                        <i class="fas fa-align-left"></i>
+                        <span>Toggle Sidebar</span>
+                    </button> -->
+
+              <div class="collapse navbar-collapse" id="navbarSupportedContent" style="height:100px">
+
+                
+                <div id="carouselTicker" style="margin-left:30px; width:100% !important" class="carousel slide" data-ride="carousel">
+                  <div class="carousel-inner">
+                    <div class="carousel-item active" style="width:100% !important">
+                      <div class="d-block w-100" style="width:100% !important" alt="First ticker"><span><b>The Netherlands: Fine against Uber in the amount of EUR 290 million. </b><br>The Dutch DPA has imposed a fine of EUR 290 million on Uber for unlawfully transferring personal data of European drivers to the United States.  </span></div>                    </div>
+                    <div class="carousel-item" style="width:100% !important">
+                      <div class="d-block w-100" style="width:100% !important" alt="Second ticker"><span><b>6 years GDPR: 5th edition of the CMS Enforcement Tracker Report now available</b><br>The 2024 edition of the CMS Enforcement Tracker Report is now available providing a deep dive into fines imposed under the GDPR: <a href='https://cms.law/en/int/publication/gdpr-enforcement-tracker-report' target='_blank'>link</a> </span></div>                    </div>
+                    <div class="carousel-item" style="width:100% !important">
+                      <div class="d-block w-100" style="width:100% !important" alt="Third ticker"><span><b>Ireland: Record fine against Meta Platforms Ireland Limited in the amount of EUR 1.2 billion</b><br>The Irish DPA (DPC) has fined Meta Platforms Ireland Limited EUR 1.2 billion for unlawfully transferring personal data to the United States </span></div>                    </div>
+                  </div>
+                  <ol class="carousel-indicators">
+                    <li data-target="#carouselTicker" data-slide-to="0" class="active"></li>
+                    <li data-target="#carouselTicker" data-slide-to="1"></li>
+                    <li data-target="#carouselTicker" data-slide-to="2"></li>
+                  </ol>
+                </div>
+
+              </div>
+            </div>
+          </nav>
+
+          <h1>
+            GDPR Enforcement Tracker
+          </h1>
+          <div class="logo">tracked by <a href="https://cms.law/en/int/publication/privacy-data-protection-and-cybersecurity"><img src="./logo.png" width="90px" alt="CMS" border="0"></a></div>
+
+          <div class="intro">
+            The CMS.Law GDPR Enforcement Tracker is an overview of fines and penalties which data protection authorities within the EU have imposed under the EU General Data Protection Regulation (GDPR, DSGVO). Our aim is to keep this list as up-to-date as possible. Since not all fines are made public, this list can of course never be complete, which is why we appreciate any <a href="mailto:fines@enforcementtracker.com?subject=New%20fine%20-%20enforcementtracker.com&body=Dear%20Enforcement%20Tracker-Team,%0D%0A%0D%0AI%20would%20like%20to%20submit%20a%20new%20fine:%0D%0A%0D%0AURL:%20%0D%0ACountry:%20%0D%0ACompany:%20%0D%0ADate:%20%0D%0AAmount:%20%0D%0ASummary:%20" style="text-decoration: underline; color: blue">indication of further GDPR fines and penalties</a>. <i>Please note that we do not list any fines imposed under national / non-European laws (with the exception of fines under the UK GDPR), under non-data protection laws (e.g. competition laws / electronic communication laws) and under "old" pre-GDPR-laws. We have, however, included a limited number of essential ePrivacy fines under national member state laws.</i>
+          </div>
+
+          <div id="ETIDInfo" class="intro" style="border-color: gray; border-width: 2px; border-style: solid; padding:5px">
+            <b>New features: "ETid" and "Direct URL"! <br/>We have assigned a unique and permanent ID to each fine in our database, which makes it possible to precisely address fines, e.g. in publications. Once an "ETid" has been assigned to a fine, it remains the same, even if the fine is overturned or amended by courts at a later date, or if we add fines that were issued chronologically before. The "Direct URL" (click "+" or on a specific ETid to view details of a fine) can be used to share fines online, e.g. on Twitter or other media.</b>
+          </div>
+
+          <div id="showFiltered" style="display:none"><hr /><a href="#/" onclick="resetAllFilter();return false;"><h4 id="showFilteredDetails"></h4><b>[x] Reset filter and go to all fines</b></a><br /><br /></div>
+          <div id="splashScreen"></div>
+
+          <table id="penalties" class="table hover table-sm display compact col-md-auto" cellspacing="0" style="width:100%;visibility:hidden">
+
+
+
+</table>
+
+
+<script>
+  function copyETID(i) {
+    /* Get the text field */
+    document.getElementById("hiddenInput").style.display = "block";
+    document.getElementById("hiddenInput").value="https://www.enforcementtracker.com/ETid-"+i;
+    var copyText = document.getElementById("hiddenInput");
+
+   /* Select the text field */
+   copyText.select();
+   copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+
+   /* Copy the text inside the text field */
+   document.execCommand("copy");
+   document.getElementById("hiddenInput").style.display = "none";
+
+   $(".myShare"+i).html("<img src='buttons/copy_button_done.png' width='20px' alt='ETid "+i+"'>");
+
+   setTimeout(() => {  $(".myShare"+i).html("<img src='buttons/copy_button.png' width='20px' alt='ETid "+i+"'>"); }, 1000);
+
+  }
+  </script>
+
+
+          <input type='text' value='' id='hiddenInput' style="display:none">
+
+                    <div style="margin: 10px;">&nbsp;</div>
+          <div class="fixed-bottom imprint"><a href="https://www.enforcementtracker.com/">Home</a> <a href="?license">License</a> <a href="?privacy">Privacy</a> <a href="?imprint">Imprint</a></div>
+
+
+        </div>
+      </div>
+    </div>
+    <script>
+      filterCountriesActive = 0;
+      filterViolationsActive = 0;
+
+      /* Action for Toggle Sidebar */
+      $(document).ready(function() {
+
+
+        $('#sidebarCollapse').on('click', function() {
+          $('#sidebar').toggleClass('active');
+        });
+
+      });
+
+      $(document).ready(function() {
+        economicValue = 0;
+        totalRevenue = 0;
+        fineMultiplierBeg = 0;
+        fineMultiplierEnd = 0;
+
+
+          $.fn.dataTable.ext.type.order["natural-pre"] = function(data) {
+      data = data.replace(/[^0-9]/g, '');
+
+      if (parseFloat(data)>-1) {
+        return parseFloat( data );
+      } else {
+        return -1;
+      }
+
+};
+
+        table = $('#penalties').DataTable({
+          "ajax": {
+            "url": "/data4sfk3j4hwe324kjhfdwe.json",
+            "dataSrc": function (json ) {
+              document.getElementById("splashScreen").style.display = "none";
+              document.getElementById("penalties").style.visibility = "visible";
+              return json.data;
+            }
+          },
+          "fnInitComplete": function(oSettings, json) {
+            var etid_opened="";
+            etid_opened="";
+
+            if (typeof etid_opened !== '') {
+
+              etid_opened = etid_opened.replace(/[^0-9]/g, "");
+
+
+                if (etid_opened > 0) {
+                  table.column(1).search('^ETID-'+etid_opened+'$', true, false).draw();
+                  table.rows(':not(.parent)').nodes().to$().find('td:first-child').trigger('click');
+                  document.getElementById("showFilteredDetails").innerHTML="Details Page for ETid "+etid_opened;
+                  document.getElementById("showFiltered").style.display = "block";
+                  document.getElementById("finesFilter").style.display = "none";
+                  document.getElementById("penalties_length").style.display = "none";
+                  document.getElementById("penalties_filter").style.display = "none";
+                  $("#rowfilter input").css("display","none");
+                  document.getElementById("penalties_paginate").style.display = "none";
+                  var previous_penalties_info=document.getElementById("penalties_info").innerHTML;
+                  document.getElementById("penalties_info").innerHTML="Only showing ETid "+etid_opened+". Click link above to reset filter and show all fines";
+                }
+              }
+   },
+       "deferRender": true,
+          responsive: true,
+          responsive: {
+            details: {
+                type: 'column'
+            }
+        },
+        columnDefs: [ {
+            className: 'dtr-control',
+            orderable: false,
+            targets:   0,
+            responsivePriority: 1,
+            width: '40px'
+          },
+        {
+              targets: 1,
+              type: "natural",
+              title: "ETid",
+              responsivePriority: 2,
+              width: '60px',
+              render: function (data, type, row, meta)
+              {
+                if (type === 'display') {
+                  data = '<a href="https://www.enforcementtracker.com/' + encodeURIComponent(data) + '">' + data + '</a>';
+                }
+                return data;
+              }
+            },
+        {
+              responsivePriority: 3,
+              targets: 2,
+              title: "Country",
+              width: '60px'
+            },
+            {
+              targets: 3,
+              title: "Authority"
+            },
+            {
+              responsivePriority: 4,
+              targets: 4,
+              type: "date",
+              title: "Date of Decision",
+              width: '80px'
+            },
+            {
+              responsivePriority: 5,
+              targets: 5,
+              title: "Fine [€]",
+              width: '80px',
+              type: 'natural'
+            },
+            {
+              responsivePriority: 6,
+              targets: 6,
+              title: "Controller/Processor"
+            },
+            {
+              targets: 7,
+              title: "Sector"
+            },
+            {
+              responsivePriority: 7,
+              targets: 8,
+              title: "Quoted Art."
+            },
+            {
+              responsivePriority: 8,
+              targets: 9,
+              title: "Type",
+              width: '100px'
+            },
+            {
+              targets: 10,
+              title: "Summary"
+            },
+            {
+              responsivePriority: 9,
+              targets: 11,
+              title: "Source",
+              width: '30px'
+            },
+            {
+              targets: 12,
+              responsivePriority: 10,
+              title: "Direct URL"
+            }
+          ],
+          "order": [
+            [1, "desc"]
+          ],
+          "columns": [
+            {
+              "orderable": false,
+              "width": "40px"
+            },
+            {
+              "width": "60px"
+            },
+            {
+              "width": "60px"
+            },
+            {
+              "orderable": false,
+              "className": "none"
+            },
+            {
+              "width": "80px"
+            },
+            {
+              "width": "80px"
+            },
+            {
+              "orderable": false
+            },
+            {
+              "orderable": false,
+              "className": "none"
+            },
+            {
+              "orderable": false
+            },
+            {
+              "orderable": false
+            },
+            {
+              "orderable": false,
+              "className": "none"
+            },
+            {
+              "orderable": false,
+              "width": "30px"
+            },
+            {
+              "orderable": false,
+              "className": "none"
+            }
+          ],
+          "orderCellsTop": true,
+          "fixedHeader": true
+
+        });
+        $('.dataTables_length').addClass('bs-select');
+
+        $('#penalties thead tr').clone(true).appendTo('#penalties thead');
+        var j = 0;
+        $('#penalties thead tr:eq(1)').attr("id", "rowfilter");
+        $('#penalties thead tr:eq(0) th').css("border-bottom","0px");
+        $('#penalties thead tr:eq(0) th').css("border-top","0px");
+        $('#penalties thead tr:eq(1) th').css("border-top","0px");
+        $('#penalties thead tr:eq(1) th').removeClass("sorting")
+        $('#penalties thead tr:eq(1) th').removeClass("sorting_desc")
+        $('#penalties thead tr:eq(1) th').removeClass("sorting_asc")
+        $('#penalties thead tr:eq(1) th').removeAttr("aria-controls");
+        $('#penalties thead tr:eq(1) th').removeAttr("aria-label");
+        $('#penalties thead tr:eq(1) th').removeAttr("aria-sort");
+        $('#penalties thead tr:eq(1) th').removeAttr("tabindex");
+        $('#penalties thead tr:eq(1) th').addClass("sorting_disabled")
+        $('#penalties thead tr:eq(1) th').each(function(i) {
+          j = j + 1;
+          if (j != 1 && j != 4 && j != 5 && j != 8 && j != 9 && j != 11 && j != 12 && j != 13) {
+            var title = $(this).text();
+            $(this).html('<input type="text" style="width: 100%; font-size:7pt" placeholder="Filter Column" />');
+            $('input', this).on('keyup change', function() {
+              if (table.column(i).search() !== this.value) {
+                table.column(i).search(this.value).draw();
+              }
+            });
+            $('input', this).click(function() {
+              event.stopPropagation();
+
+            });
+          } else {
+            $(this).html('');
+            $(this).attr('name', 'dummy' + j)
+          }
+        });
+        $('th[name ="dummy11"]').hide();
+        $('th[name ="dummy13"]').hide();
+        $('th[name ="dummy4"]').hide();
+        $('th[name ="dummy8"]').hide();
+
+
+
+
+
+      });
+
+      function draw_Countries(single_country) {
+        for (var i = 0; i < document.getElementsByClassName("country_selector_img").length; i += 1) {
+          document.getElementsByClassName("country_selector_img")[i].style.border = "0px";
+        }
+
+        document.getElementById(single_country + "_img").style.border = "1px solid white";
+
+        if (single_country == "all_countries") {
+          table.column(2).search("").draw();
+          filterCountriesActive = 0;
+        } else {
+          table.column(2).search(single_country, false, false).draw();
+          filterCountriesActive = 1;
+        }
+
+        if ((filterCountriesActive > 0) || (filterViolationsActive > 0)) {
+          document.getElementById("resetButton").style.visibility = "visible";
+        } else {
+          document.getElementById("resetButton").style.visibility = "hidden";
+        }
+      }
+
+      function draw_Fines(single_fine) {
+        for (var i = 0; i < document.getElementsByClassName("fine_selector_div").length; i += 1) {
+          document.getElementsByClassName("fine_selector_div")[i].style.backgroundColor = "#0D535F";
+          document.getElementsByClassName("fine_selector_div")[i].style.color = "white";
+        }
+
+        document.getElementById(single_fine + "_div").style.backgroundColor = "white";
+        document.getElementById(single_fine + "_div").style.color = "#0D535F";
+
+        if (single_fine == "all_fines") {
+          table.column(8).search("").draw();
+          filterViolationsActive = 0;
+        } else {
+          single_fine = single_fine.replace(' GDPR', '');
+          table.column(8).search(single_fine + " ", false, false).draw();
+          filterViolationsActive = 1;
+        }
+
+        if ((filterCountriesActive > 0) || (filterViolationsActive > 0)) {
+          document.getElementById("resetButton").style.visibility = "visible";
+        } else {
+          document.getElementById("resetButton").style.visibility = "hidden";
+        }
+      }
+
+      function resetAllFilter() {
+        document.getElementById("finesFilter").style.display = "block";
+
+        for (var i = 0; i < document.getElementsByClassName("fine_selector_div").length; i += 1) {
+          document.getElementsByClassName("fine_selector_div")[i].style.backgroundColor = "#0D535F";
+          document.getElementsByClassName("fine_selector_div")[i].style.color = "white";
+        }
+
+        for (var i = 0; i < document.getElementsByClassName("country_selector_img").length; i += 1) {
+          document.getElementsByClassName("country_selector_img")[i].style.border = "0px";
+        }
+
+        document.getElementById("all_countries_img").style.border = "1px solid white";
+        document.getElementById("all_fines_div").style.backgroundColor = "white";
+        document.getElementById("all_fines_div").style.color = "#0D535F";
+
+        table.rows('.parent').nodes().to$().find('td:first-child').trigger('click');
+        table.column(1).search("").draw();
+        table.column(2).search("").draw();
+        table.column(8).search("").draw();
+
+        document.getElementById("showFiltered").style.display = "none";
+        window.history.replaceState({}, document.title, "/");
+        document.getElementById("showFilteredDetails").innerHTML="";
+        document.getElementById("showFiltered").style.display = "none";
+        document.getElementById("penalties_length").style.display = "block";
+        document.getElementById("penalties_filter").style.display = "block";
+        $("#rowfilter input").css("display","block");
+        document.getElementById("penalties_paginate").style.display = "block";
+        if (typeof previous_penalties_info !== 'undefined') {
+          document.getElementById("penalties_info").innerHTML=previous_penalties_info;
+        }
+
+
+        filter = 0;
+          document.getElementById("resetButton").style.visibility = "hidden";
+      }
+
+      function step1Triggered() {
+        totalRevenue = document.getElementById("calcTotalRevenue").value;
+        totalRevenueInput = parseInt(document.getElementById("calcTotalRevenueInput").value);
+        var classSize = "";
+        var averageRevenue = 0;
+
+        if (totalRevenue <= 700000) {
+          classSize = "A.I";
+          averageRevenue = 350000;
+          economicValue = 972;
+        } else if (totalRevenue <= 1400000) {
+          classSize = "A.II";
+          averageRevenue = 1050000;
+          economicValue = 2917;
+        } else if (totalRevenue <= 2000000) {
+          classSize = "A.III";
+          averageRevenue = 1700000;
+          economicValue = 4722;
+        } else if (totalRevenue <= 5000000) {
+          classSize = "B.I";
+          averageRevenue = 3500000;
+          economicValue = 9722;
+        } else if (totalRevenue <= 7500000) {
+          classSize = "B.II";
+          averageRevenue = 6250000;
+          economicValue = 17361;
+        } else if (totalRevenue <= 10000000) {
+          classSize = "B.III";
+          averageRevenue = 8750000;
+          economicValue = 24306;
+        } else if (totalRevenue <= 12500000) {
+          classSize = "C.I";
+          averageRevenue = 11250000;
+          economicValue = 31250;
+        } else if (totalRevenue <= 15000000) {
+          classSize = "C.II";
+          averageRevenue = 13750000;
+          economicValue = 38194;
+        } else if (totalRevenue <= 20000000) {
+          classSize = "C.III";
+          averageRevenue = 17500000;
+          economicValue = 48611;
+        } else if (totalRevenue <= 25000000) {
+          classSize = "C.IV";
+          averageRevenue = 22500000;
+          economicValue = 62500;
+        } else if (totalRevenue <= 30000000) {
+          classSize = "C.V";
+          averageRevenue = 27500000;
+          economicValue = 76389;
+        } else if (totalRevenue <= 40000000) {
+          classSize = "C.VI";
+          averageRevenue = 35000000;
+          economicValue = 97222;
+        } else if (totalRevenue <= 50000000) {
+          classSize = "C.VII";
+          averageRevenue = 45000000;
+          economicValue = 125000;
+        } else if (totalRevenue <= 75000000) {
+          classSize = "D.I";
+          averageRevenue = 62500000;
+          economicValue = 173611;
+        } else if (totalRevenue <= 100000000) {
+          classSize = "D.II";
+          averageRevenue = 87500000;
+          economicValue = 243056;
+        } else if (totalRevenue <= 200000000) {
+          classSize = "D.III";
+          averageRevenue = 150000000;
+          economicValue = 416667;
+        } else if (totalRevenue <= 300000000) {
+          classSize = "D.IV";
+          averageRevenue = 250000000;
+          economicValue = 694444;
+        } else if (totalRevenue <= 400000000) {
+          classSize = "D.V";
+          averageRevenue = 350000000;
+          economicValue = 972222;
+        } else if (totalRevenue <= 500000000) {
+          classSize = "D.VI";
+          averageRevenue = 450000000;
+          economicValue = 1250000;
+        } else if (totalRevenue > 500000000) {
+          classSize = "D.VII";
+          if (totalRevenueInput > 500000000) {
+            totalRevenue = totalRevenueInput;
+          }
+          averageRevenue = totalRevenue;
+          economicValue = Math.round(averageRevenue / 360);
+        }
+
+        if (totalRevenue == 0) {
+          classSize = "...";
+          averageRevenue = 0;
+          economicValue = 0;
+          document.getElementById("calcInputRevenue").innerHTML = "";
+          document.getElementById("calcSizeClass").innerHTML = "...";
+          document.getElementById("calcAverageRevenue").innerHTML = "...";
+          document.getElementById("calcEconomicValue").innerHTML = "...";
+          document.getElementById("calcStep1Res").style.display = "none";
+          document.getElementById("calcStep2").style.display = "none";
+          document.getElementById("calcResetButton").style.display = "none";
+        } else if (totalRevenue > 500000000) {
+          document.getElementById("calcInputRevenue").innerHTML = "> 500.000.000,00 €";
+          document.getElementById("calcActualRevenueHint").style.display = "block";
+          document.getElementById("calcSizeClass").innerHTML = classSize;
+
+          if (totalRevenueInput > 500000000) {
+            document.getElementById("calcSizeClass").innerHTML = classSize;
+            document.getElementById("calcActualRevenue").innerHTML = averageRevenue.toLocaleString('de-DE', {
+              style: 'currency',
+              currency: 'EUR'
+            });
+            document.getElementById("calcEconomicValue").innerHTML = economicValue.toLocaleString('de-DE', {
+              style: 'currency',
+              currency: 'EUR'
+            });
+            document.getElementById("calcStep2").style.display = "block";
+            showResult();
+          } else {
+            document.getElementById("calcActualRevenue").innerHTML = "Enter value > € 500 Mio.";
+            document.getElementById("calcEconomicValue").innerHTML = "Enter value > € 500 Mio.";
+            document.getElementById("calcStep2").style.display = "none";
+            document.getElementById("calcStep3").style.display = "none";
+            document.getElementById("calcStep4").style.display = "none";
+          }
+          document.getElementById("calcStep1Res").style.display = "block";
+          document.getElementById("calcActualRevenueText").style.display = "block";
+          document.getElementById("calcAverageRevenueText").style.display = "none";
+          document.getElementById("calcResetButton").style.display = "block";
+        } else {
+          document.getElementById("calcTotalRevenueInput").value = "";
+          totalRevenue = Math.round(totalRevenue);
+          document.getElementById("calcInputRevenue").innerHTML = totalRevenue.toLocaleString('de-DE', {
+            style: 'currency',
+            currency: 'EUR'
+          });
+          document.getElementById("calcSizeClass").innerHTML = classSize;
+          document.getElementById("calcAverageRevenue").innerHTML = averageRevenue.toLocaleString('de-DE', {
+            style: 'currency',
+            currency: 'EUR'
+          });
+          document.getElementById("calcEconomicValue").innerHTML = economicValue.toLocaleString('de-DE', {
+            style: 'currency',
+            currency: 'EUR'
+          });
+          document.getElementById("calcStep1Res").style.display = "block";
+          document.getElementById("calcStep2").style.display = "block";
+          document.getElementById("calcActualRevenueText").style.display = "none";
+          document.getElementById("calcActualRevenueHint").style.display = "none";
+          document.getElementById("calcAverageRevenueText").style.display = "block";
+          document.getElementById("calcResetButton").style.display = "block";
+          showResult();
+        }
+
+
+      }
+
+      function step2Triggered() {
+        typeViolation = document.getElementsByName("calcTypeViolation");
+        severityViolation = document.getElementsByName("calcSeverityViolation");
+
+        if (typeViolation[0].checked) {
+          if (severityViolation[0].checked) {
+            fineMultiplierBeg = 1;
+            fineMultiplierEnd = 2;
+          } else if (severityViolation[1].checked) {
+            fineMultiplierBeg = 2;
+            fineMultiplierEnd = 4;
+          } else if (severityViolation[2].checked) {
+            fineMultiplierBeg = 4;
+            fineMultiplierEnd = 6;
+          } else if (severityViolation[3].checked) {
+            fineMultiplierBeg = 6;
+            fineMultiplierEnd = 100;
+          }
+        } else if (typeViolation[1].checked) {
+          if (severityViolation[0].checked) {
+            fineMultiplierBeg = 1;
+            fineMultiplierEnd = 4;
+          } else if (severityViolation[1].checked) {
+            fineMultiplierBeg = 4;
+            fineMultiplierEnd = 8;
+          } else if (severityViolation[2].checked) {
+            fineMultiplierBeg = 8;
+            fineMultiplierEnd = 12;
+          } else if (severityViolation[3].checked) {
+            fineMultiplierBeg = 12;
+            fineMultiplierEnd = 200;
+          }
+        }
+        if ((fineMultiplierBeg != 0) && (fineMultiplierEnd != 0)) {
+          document.getElementById("calcStep2Res").style.display = "block";
+          showResult();
+        }
+      }
+
+      function showResult() {
+        if ((fineMultiplierBeg != 0) && (fineMultiplierEnd != 0) && (economicValue != 0)) {
+          if (fineMultiplierEnd < 100) {
+            document.getElementById("calcSeverityFactor").innerHTML = fineMultiplierBeg + " - " + fineMultiplierEnd;
+            document.getElementById("calcIntermediateResult").innerHTML = (economicValue * fineMultiplierBeg).toLocaleString('de-DE', {
+              style: 'currency',
+              currency: 'EUR'
+            }) + " - " + (economicValue * fineMultiplierEnd).toLocaleString('de-DE', {
+              style: 'currency',
+              currency: 'EUR'
+            });
+          } else {
+            document.getElementById("calcSeverityFactor").innerHTML = "> " + fineMultiplierBeg;
+            if (fineMultiplierEnd == 100) {
+              if ((totalRevenue * 0.02) > 10000000) {
+                document.getElementById("calcIntermediateResult").innerHTML = (economicValue * fineMultiplierBeg).toLocaleString('de-DE', {
+                  style: 'currency',
+                  currency: 'EUR'
+                }) + " - " + (totalRevenue * 0.02).toLocaleString('de-DE', {
+                  style: 'currency',
+                  currency: 'EUR'
+                }) + "<br/>(max. 2 % of the total worldwide annual turnover)";
+              } else {
+                document.getElementById("calcIntermediateResult").innerHTML = (economicValue * fineMultiplierBeg).toLocaleString('de-DE', {
+                  style: 'currency',
+                  currency: 'EUR'
+                }) + " - " + (10000000).toLocaleString('de-DE', {
+                  style: 'currency',
+                  currency: 'EUR'
+                }) + "<br/>(max. 10.000.000,00 €)";
+              }
+            } else if (fineMultiplierEnd == 200) {
+              if ((totalRevenue * 0.04) > 20000000) {
+                document.getElementById("calcIntermediateResult").innerHTML = (economicValue * fineMultiplierBeg).toLocaleString('de-DE', {
+                  style: 'currency',
+                  currency: 'EUR'
+                }) + " - " + (totalRevenue * 0.04).toLocaleString('de-DE', {
+                  style: 'currency',
+                  currency: 'EUR'
+                }) + "<br />(max. 4 % of the total worldwide annual turnover)";
+              } else {
+                document.getElementById("calcIntermediateResult").innerHTML = (economicValue * fineMultiplierBeg).toLocaleString('de-DE', {
+                  style: 'currency',
+                  currency: 'EUR'
+                }) + " - " + (20000000).toLocaleString('de-DE', {
+                  style: 'currency',
+                  currency: 'EUR'
+                }) + "<br/>(max. 20.000.000,00 €)";
+              }
+            }
+          }
+          document.getElementById("calcStep3").style.display = "block";
+          document.getElementById("calcStep4").style.display = "block";
+        }
+      }
+
+      function calcReset() {
+        economicValue = 0;
+        totalRevenue = 0;
+        fineMultiplierBeg = 0;
+        fineMultiplierEnd = 0;
+        document.getElementById("calcInputRevenue").innerHTML = "";
+        document.getElementById("calcSizeClass").innerHTML = "...";
+        document.getElementById("calcAverageRevenue").innerHTML = "...";
+        document.getElementById("calcEconomicValue").innerHTML = "...";
+        document.getElementById("calcStep1Res").style.display = "none";
+        document.getElementById("calcStep2").style.display = "none";
+        document.getElementById("calcStep3").style.display = "none";
+        document.getElementById("calcStep4").style.display = "none";
+        document.getElementById("calcActualRevenueText").style.display = "none";
+        document.getElementById("calcActualRevenueHint").style.display = "none";
+        document.getElementById("calcResetButton").style.display = "none";
+        document.getElementById("calcStep2Res").style.display = "none";
+        document.getElementsByName("calcTypeViolation")[0].checked = false;
+        document.getElementsByName("calcTypeViolation")[1].checked = false;
+        document.getElementsByName("calcSeverityViolation")[0].checked = false;
+        document.getElementsByName("calcSeverityViolation")[1].checked = false;
+        document.getElementsByName("calcSeverityViolation")[2].checked = false;
+        document.getElementsByName("calcSeverityViolation")[3].checked = false;
+        document.getElementById("calcTotalRevenue").value = 0;
+        document.getElementById("calcTotalRevenueInput").value = "";
+      }
+
+      function step1TriggeredDutch() {
+        severityViolationDutch = document.getElementsByName("calcSeverityViolationDutch");
+
+        if (severityViolationDutch[0].checked) {
+          fineDutchBeg = 0;
+          fineDutchEnd = 200000;
+          fineDutchDefault = 100000;
+        } else if (severityViolationDutch[1].checked) {
+          fineDutchBeg = 120000;
+          fineDutchEnd = 500000;
+          fineDutchDefault = 310000;
+        } else if (severityViolationDutch[2].checked) {
+          fineDutchBeg = 300000;
+          fineDutchEnd = 750000;
+          fineDutchDefault = 525000;
+        } else if (severityViolationDutch[3].checked) {
+          fineDutchBeg = 450000;
+          fineDutchEnd = 1000000;
+          fineDutchDefault = 725000;
+        }
+
+        document.getElementById("calcIntermediateResultDutch").innerHTML = fineDutchBeg.toLocaleString('de-DE', {
+          style: 'currency',
+          currency: 'EUR'
+        }) + " - " + fineDutchEnd.toLocaleString('de-DE', {
+          style: 'currency',
+          currency: 'EUR'
+        }) + " (Default fine: " + fineDutchDefault.toLocaleString('de-DE', {
+          style: 'currency',
+          currency: 'EUR'
+        }) + ")";
+        document.getElementById("calcStep2Dutch").style.display = "block";
+        document.getElementById("calcStep3Dutch").style.display = "block";
+      }
+
+    </script>
+  </body>
+
+</html>
