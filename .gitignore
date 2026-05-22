@@ -1,2 +1,5 @@
 .venv/
 .env
+
+# Claude Code local configuration — agents, commands, memory, worktrees
+.claude/
