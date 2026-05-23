@@ -879,184 +879,393 @@ with tab_mappa_posizionamento:
 # SCHEDA 3: NETWORK MAP ONG <-> TEMI
 # ==========================================
 with tab_network:
-    st.header("🕸️ Mappa Network Relazioni ONG - Notizie")
+    st.header("🕸️ Mappa Network: Istituzioni, Temi ed Entità")
     st.markdown("""
-    Questa visualizzazione mostra il grafo di relazioni tra le Organizzazioni e i temi delle notizie.
-    ✅ **Nodi rossi**: ONG / Realtà analizzate
-    ✅ **Nodi gialli**: Temi / Argomenti
-    ✅ **Nodi rossi piccoli a rombo**: Notizie collegate
-    ✅ **Distanza**: Indica quanto vicino è il tema agli argomenti di cui si occupa l'ONG
+    Grafo basato sugli output NLP reali — nessuna corrispondenza di parole chiave codificata.
+    🔴 **Nodi rossi**: Istituzioni / Organizzazioni (dimensione = numero documenti)
+    🔵 **Nodi blu**: Temi / Parole chiave (dimensione = frequenza totale)
+    🟠 **Nodi arancioni**: Entità nominate (aziende, istituzioni) estratte da spaCy NER
     """)
 
-    import sys as _sys
-    _sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-    from scrapers.scraper_ong import PROFILI_ONG
+    # ------------------------------------------------------------------
+    # CARICAMENTO E AGGREGAZIONE DATI (cached)
+    # ------------------------------------------------------------------
+    @st.cache_data
+    def _carica_dati_network():
+        """Carica tutti i CSV/DB e restituisce un DataFrame unificato per il network."""
+        cartella_script = os.path.dirname(os.path.abspath(__file__))
+        base = os.path.join(cartella_script, '..', 'data', 'processed')
+        db_path = os.path.join(cartella_script, '..', 'data', 'tech_advocacy.db')
 
-    G = nx.Graph()
+        def _leggi_csv(nome_file):
+            p = os.path.join(base, nome_file)
+            if os.path.exists(p):
+                try:
+                    return pd.read_csv(p, low_memory=False)
+                except Exception:
+                    return pd.DataFrame()
+            return pd.DataFrame()
 
-    sinonimi = {
-        'intelligenza artificiale': 'Intelligenza Artificiale',
-        'ia': 'Intelligenza Artificiale', 'ai': 'Intelligenza Artificiale',
-        'artificial intelligence': 'Intelligenza Artificiale',
-        'crittografia': 'Crittografia', 'criptografia': 'Crittografia'
-    }
+        blocchi = []
 
-    def normalizza_tema(tema):
-        tema_low = tema.strip().lower()
-        for sin, standard in sinonimi.items():
-            if sin in tema_low or tema_low == sin:
-                return standard
-        return tema.strip().title()
+        # --- GPDP ---
+        df_src = _leggi_csv('gpdp_analyzed.csv')
+        if df_src.empty and os.path.exists(db_path):
+            try:
+                conn = sqlite3.connect(db_path)
+                df_src = pd.read_sql('SELECT * FROM provvedimenti_analyzed', conn)
+                conn.close()
+            except Exception:
+                df_src = pd.DataFrame()
+        if not df_src.empty:
+            df_src['_istituzione'] = 'GPDP'
+            cols = [c for c in ['_istituzione', 'Parole_Chiave', 'Entita_Coinvolte'] if c in df_src.columns or c == '_istituzione']
+            blocchi.append(df_src[cols])
 
-    # Nodi ONG: rossi grandi
-    for nome_ong, dati_ong in PROFILI_ONG.items():
-        G.add_node(nome_ong, color='#ff4b4b', size=25,
-                   title=f"{nome_ong}\n{dati_ong['descrizione'][:120]}...", group='ONG')
-        for tema in dati_ong.get('focus', []):
-            tema_norm = normalizza_tema(tema)
-            if tema_norm not in G:
-                G.add_node(tema_norm, color='#ffcc00', size=15, group='Tema')
-            G.add_edge(nome_ong, tema_norm, value=1, title="Focus principale")
-
-    # Nodi notizie: rombi rossi piccoli, size 8
-    parole_tema = list(set([t for d in PROFILI_ONG.values() for t in d.get('focus', [])]))
-    for _, notizia in df_ong.iterrows():
-        titolo = str(notizia.get('titolo', ''))[:50] + "..."
-        testo_notizia = (str(notizia.get('titolo', '')) + " " + str(notizia.get('testo_completo', ''))).lower()
-        ong_nome = notizia.get('nome_organizzazione', '')
-        tema_associato = None
-        for tema in parole_tema:
-            if tema.lower() in testo_notizia:
-                tema_associato = normalizza_tema(tema)
-                break
-        if ong_nome in G:
-            G.add_node(titolo, color='#ff4b4b', size=8, group='Notizia', shape='diamond')
-            G.add_edge(ong_nome, titolo, value=0.5, title="Notizia della ONG")
-            if tema_associato and tema_associato in G:
-                G.add_edge(titolo, tema_associato, value=0.3, title="Tema correlato")
-
-    # Statistiche
-    col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
-    numero_ong = len([n for n, d in G.nodes(data=True) if d.get('group') == 'ONG'])
-    numero_temi = len([n for n, d in G.nodes(data=True) if d.get('group') == 'Tema'])
-    numero_notizie = len([n for n, d in G.nodes(data=True) if d.get('group') == 'Notizia'])
-    numero_connessioni = G.number_of_edges()
-    col_stat1.metric("🔴 Organizzazioni", numero_ong)
-    col_stat2.metric("🟡 Temi Monitorati", numero_temi)
-    col_stat3.metric("🔴 Notizie Collegate", numero_notizie)
-    col_stat4.metric("🔗 Connessioni Totali", numero_connessioni)
-    st.divider()
-
-    net = Network(height='700px', width='100%', bgcolor='#0a0a0a',
-                  font_color='ffffff', select_menu=False, filter_menu=False, directed=False)
-    net.from_nx(G)
-    net.set_options("""
-    {
-      "physics": {
-        "enabled": true,
-        "barnesHut": {
-          "gravitationalConstant": -3200,
-          "centralGravity": 0.08,
-          "springLength": 160,
-          "springConstant": 0.009,
-          "damping": 0.95,
-          "avoidOverlap": 0.3
-        },
-        "minVelocity": 0.1,
-        "stabilization": {
-          "enabled": true,
-          "iterations": 80,
-          "fit": true,
-          "onlyDynamicEdges": false,
-          "updateInterval": 50
-        }
-      },
-      "interaction": {
-        "hideEdgesOnDrag": false,
-        "hideNodesOnDrag": false,
-        "hover": true,
-        "multiselect": true,
-        "navigationButtons": false,
-        "tooltipDelay": 50,
-        "zoomView": true,
-        "zoomSpeed": 0.25,
-        "dragView": true
-      },
-      "nodes": {
-        "borderWidth": 2,
-        "borderWidthSelected": 4,
-        "shape": "diamond",
-        "size": 14,
-        "font": {
-          "size": 12,
-          "face": "Verdana",
-          "color": "#ffffff",
-          "strokeWidth": 2,
-          "strokeColor": "#000000"
-        },
-        "shadow": false,
-        "labelHighlightBold": true
-      },
-      "edges": {
-        "color": {
-          "inherit": false,
-          "color": "#44ff00",
-          "highlight": "#00ffff",
-          "hover": "#ff00ff"
-        },
-        "width": 1,
-        "dashes": [5, 3],
-        "smooth": false
-      }
-    }
-    """)
-
-    path_html = 'network_graph.html'
-    net.save_graph(path_html)
-    with open(path_html, 'r', encoding='utf-8') as f:
-        html_content = f.read()
-    html_content = html_content.replace(
-        'var options = {',
-        'var options = {\n  zoomMax: 2.2,\n  zoomMin: 0.35,'
-    )
-    html_content = html_content.replace(
-        'background-color: #0a0a0a;',
-        'background: #000000;\nbackground-image: radial-gradient(#111111 1px, #000000 1px);\nbackground-size: 8px 8px;'
-    )
-    components.html(html_content, height=750)
-    os.remove(path_html)
-
-    st.info("💡 Trascina i nodi per muovere la rete. Clicca su un nodo per vedere i dettagli.")
-
-    st.divider()
-    st.subheader("✏️ Correggi associazione notizia → ONG")
-    st.markdown("Se il sistema ha associato una notizia alla ONG sbagliata, puoi correggerlo qui.")
-
-    notizie_disponibili = [n for n, d in G.nodes(data=True) if d.get('group') == 'Notizia']
-    ong_disponibili = list(PROFILI_ONG.keys())
-
-    if notizie_disponibili:
-        col_corr1, col_corr2 = st.columns(2)
-        with col_corr1:
-            notizia_sel = st.selectbox("Seleziona notizia da correggere", notizie_disponibili)
-        with col_corr2:
-            ong_corretta = st.selectbox("ONG corretta", ong_disponibili)
-
-        if st.button("Salva correzione"):
-            cartella_script = os.path.dirname(os.path.abspath(__file__))
-            path_feedback = os.path.join(cartella_script, '..', 'data', 'processed', 'training_data_feedback.csv')
-            feedback_row = pd.DataFrame([{
-                'titolo': notizia_sel.replace('...', ''),
-                'ong_corretta': ong_corretta,
-                'timestamp': pd.Timestamp.now().isoformat()
-            }])
-            if os.path.exists(path_feedback):
-                df_fb = pd.read_csv(path_feedback)
-                df_fb = pd.concat([df_fb, feedback_row], ignore_index=True)
+        # --- ONG ---
+        df_src = _leggi_csv('ong_analyzed.csv')
+        if not df_src.empty:
+            if 'nome_organizzazione' in df_src.columns:
+                df_src['_istituzione'] = df_src['nome_organizzazione'].fillna('ONG sconosciuta')
             else:
-                df_fb = feedback_row
-            df_fb.to_csv(path_feedback, index=False)
-            st.success(f"Correzione salvata: '{notizia_sel}' → {ong_corretta}")
+                df_src['_istituzione'] = 'ONG'
+            cols = [c for c in ['_istituzione', 'Parole_Chiave', 'Entita_Coinvolte'] if c in df_src.columns or c == '_istituzione']
+            blocchi.append(df_src[cols])
+
+        # --- RSS EU ---
+        df_src = _leggi_csv('rss_eu_analyzed.csv')
+        if not df_src.empty:
+            if 'ente_origine' in df_src.columns:
+                df_src['_istituzione'] = df_src['ente_origine'].fillna('EU RSS')
+            elif 'Ente_Origine' in df_src.columns:
+                df_src['_istituzione'] = df_src['Ente_Origine'].fillna('EU RSS')
+            else:
+                df_src['_istituzione'] = 'EU RSS'
+            cols = [c for c in ['_istituzione', 'Parole_Chiave', 'Entita_Coinvolte'] if c in df_src.columns or c == '_istituzione']
+            blocchi.append(df_src[cols])
+
+        # --- AGCOM ---
+        df_src = _leggi_csv('agcom_analyzed.csv')
+        if not df_src.empty:
+            df_src['_istituzione'] = 'AGCOM'
+            cols = [c for c in ['_istituzione', 'Parole_Chiave', 'Entita_Coinvolte'] if c in df_src.columns or c == '_istituzione']
+            blocchi.append(df_src[cols])
+
+        # --- Tech News ---
+        df_src = _leggi_csv('tech_news_analyzed.csv')
+        if not df_src.empty:
+            if 'nome_testata' in df_src.columns:
+                df_src['_istituzione'] = df_src['nome_testata'].fillna('Tech News')
+            elif 'ente_origine' in df_src.columns:
+                df_src['_istituzione'] = df_src['ente_origine'].fillna('Tech News')
+            else:
+                df_src['_istituzione'] = 'Tech News'
+            cols = [c for c in ['_istituzione', 'Parole_Chiave', 'Entita_Coinvolte'] if c in df_src.columns or c == '_istituzione']
+            blocchi.append(df_src[cols])
+
+        # --- Parlamento EU ---
+        df_src = _leggi_csv('eu_parl_analyzed.csv')
+        if not df_src.empty:
+            df_src['_istituzione'] = 'Parlamento EU'
+            cols = [c for c in ['_istituzione', 'Parole_Chiave', 'Entita_Coinvolte'] if c in df_src.columns or c == '_istituzione']
+            blocchi.append(df_src[cols])
+
+        # --- GDPR Fines ---
+        df_src = _leggi_csv('gdpr_fines_analyzed.csv')
+        if not df_src.empty:
+            if 'ente_origine' in df_src.columns:
+                df_src['_istituzione'] = df_src['ente_origine'].fillna('DPA')
+            else:
+                df_src['_istituzione'] = 'DPA'
+            cols = [c for c in ['_istituzione', 'Parole_Chiave', 'Entita_Coinvolte'] if c in df_src.columns or c == '_istituzione']
+            blocchi.append(df_src[cols])
+
+        if not blocchi:
+            return pd.DataFrame(columns=['_istituzione', 'Parole_Chiave', 'Entita_Coinvolte'])
+
+        df_unito = pd.concat(blocchi, ignore_index=True)
+        for col in ['Parole_Chiave', 'Entita_Coinvolte']:
+            if col not in df_unito.columns:
+                df_unito[col] = None
+        return df_unito
+
+    @st.cache_data
+    def _aggrega_network(max_topic: int, min_peso: int, fonti_incluse: tuple):
+        """Aggrega istituzioni, topic ed entità dal DataFrame unificato."""
+        stopwords = {
+            'di', 'del', 'della', 'delle', 'degli', 'dei', 'la', 'il', 'le', 'lo',
+            'un', 'una', 'e', 'in', 'per', 'da', 'a', 'con', 'non', 'si', 'su',
+            'al', 'che', 'è', 'gli', 'i', 'o', 'ha', 'ma', 'se', 'più', 'tra',
+            'nei', 'nel', 'alla', 'agli', 'col', 'sui', 'dai', 'fin', 'tra', 'fra',
+            'sono', 'stato', 'stati', 'come', 'cui', 'suo', 'sua', 'suoi', 'sue',
+            'loro', 'questo', 'questa', 'questi', 'queste', 'quando', 'anche',
+            'già', 'dopo', 'prima', 'però', 'dove', 'mentre', 'tutti',
+            'the', 'of', 'and', 'to', 'is', 'it', 'on', 'at', 'by', 'as',
+            'an', 'or', 'be', 'we', 'are', 'this', 'that', 'was', 'has',
+            'have', 'its', 'from', 'also', 'into', 'their', 'been', 'which',
+            'with', 'for', 'not', 'but', 'they', 'he', 'she', 'his', 'her',
+            'all', 'can', 'will', 'one', 'were', 'had', 'would', 'about',
+            'more', 'other', 'than', 'any', 'who', 'may', 'public', 'new',
+            'him', 'our', 'your', 'end', 'per', 'via', 'due',
+            'accessnow', 'accessnoworg',
+            'div', 'span', 'class', 'href', 'style', 'src', 'alt', 'type',
+            'http', 'https', 'html', 'body', 'head', 'script', 'link', 'nbsp',
+            'strong', 'table', 'tbody', 'thead', 'tr', 'td', 'th', 'ul', 'li',
+            'org', 'com', 'www', 'amp',
+            'company', 'controller', 'processor', 'decision', 'case',
+            'authority', 'protection', 'right', 'rights', 'law', 'act',
+            'article', 'regulation', 'complaint', 'fine', 'penalty',
+            'personal', 'subject', 'information', 'national', 'european',
+            'general', 'pursuant', 'accordance', 'therefore', 'however',
+            'null', 'none', 'nan', 'true', 'false',
+            'spain', 'france', 'germany', 'italy', 'austria', 'belgium', 'denmark',
+            'netherlands', 'sweden', 'norway', 'finland', 'poland', 'romania',
+            'greece', 'portugal', 'hungary', 'czechia', 'slovakia', 'croatia',
+            'bulgaria', 'ireland', 'luxembourg', 'cyprus', 'malta', 'latvia',
+            'lithuania', 'estonia', 'slovenia', 'liechtenstein', 'iceland',
+            'united', 'kingdom', 'swiss', 'switzerland',
+            'apd', 'gba', 'hdpa', 'eff', 'ecl', 'dpa', 'dpas',
+        }
+        _inst_words_lower: set = set()
+        df_raw = _carica_dati_network()
+        if df_raw.empty:
+            return {
+                'istituzione_docs': Counter(), 'inst_topic': Counter(),
+                'topic_freq': Counter(), 'topic_cooccur': Counter(),
+                'entity_freq': Counter(), 'entity_inst': Counter(),
+                'fonti_disponibili': [],
+            }
+
+        fonti_disponibili = sorted(df_raw['_istituzione'].dropna().unique().tolist())
+        if fonti_incluse:
+            df_raw = df_raw[df_raw['_istituzione'].isin(fonti_incluse)]
+
+        if df_raw.empty:
+            return {
+                'istituzione_docs': Counter(), 'inst_topic': Counter(),
+                'topic_freq': Counter(), 'topic_cooccur': Counter(),
+                'entity_freq': Counter(), 'entity_inst': Counter(),
+                'fonti_disponibili': fonti_disponibili,
+            }
+
+        istituzione_docs: Counter = Counter()
+        inst_topic: Counter = Counter()
+        topic_freq: Counter = Counter()
+        topic_cooccur: Counter = Counter()
+        entity_freq: Counter = Counter()
+        entity_inst: Counter = Counter()
+
+        for _, row in df_raw.iterrows():
+            istituzione = str(row.get('_istituzione', '')).strip()
+            if not istituzione:
+                continue
+            istituzione_docs[istituzione] += 1
+
+            import re as _re
+            for _w in _re.split(r'[\s\(\)/\-_,\.]+', istituzione.lower()):
+                if len(_w) >= 2:
+                    _inst_words_lower.add(_w)
+
+            kw_raw = row.get('Parole_Chiave', None)
+            keywords: list = []
+            if isinstance(kw_raw, list):
+                keywords = kw_raw
+            elif isinstance(kw_raw, str) and kw_raw.strip():
+                try:
+                    parsed = ast.literal_eval(kw_raw)
+                    if isinstance(parsed, list):
+                        keywords = [str(k).strip().lower() for k in parsed if str(k).strip()]
+                except Exception:
+                    pass
+            keywords = [
+                k.lower().strip() for k in keywords
+                if len(k.strip()) >= 3
+                and k.strip().lower() not in stopwords
+                and k.strip().lower() not in _inst_words_lower
+            ]
+            keywords_unici = list(dict.fromkeys(keywords))
+            for kw in keywords_unici:
+                topic_freq[kw] += 1
+                inst_topic[(istituzione, kw)] += 1
+            for i in range(len(keywords_unici)):
+                for j in range(i + 1, len(keywords_unici)):
+                    coppia = tuple(sorted([keywords_unici[i], keywords_unici[j]]))
+                    topic_cooccur[coppia] += 1
+
+            ent_raw = row.get('Entita_Coinvolte', None)
+            entita_doc: list = []
+            if isinstance(ent_raw, list):
+                entita_doc = ent_raw
+            elif isinstance(ent_raw, str) and ent_raw.strip():
+                try:
+                    parsed = ast.literal_eval(ent_raw)
+                    if isinstance(parsed, list):
+                        entita_doc = [str(e) for e in parsed]
+                except Exception:
+                    pass
+            for ent_str in entita_doc:
+                nome_ent = str(ent_str).split(' || ')[0].strip()
+                if nome_ent and len(nome_ent) >= 2:
+                    entity_freq[nome_ent] += 1
+                    entity_inst[(nome_ent, istituzione)] += 1
+
+        return {
+            'istituzione_docs': istituzione_docs, 'inst_topic': inst_topic,
+            'topic_freq': topic_freq, 'topic_cooccur': topic_cooccur,
+            'entity_freq': entity_freq, 'entity_inst': entity_inst,
+            'fonti_disponibili': fonti_disponibili,
+        }
+
+    # ------------------------------------------------------------------
+    # UI CONTROLS
+    # ------------------------------------------------------------------
+    _df_raw_preview = _carica_dati_network()
+    _tutte_le_fonti = sorted(_df_raw_preview['_istituzione'].dropna().unique().tolist()) if not _df_raw_preview.empty else []
+
+    if not _tutte_le_fonti:
+        st.warning("Nessun dato disponibile. Assicurati che gli scraper abbiano prodotto i file CSV in data/processed/.")
+    else:
+        col_ctrl1, col_ctrl2 = st.columns(2)
+        with col_ctrl1:
+            peso_minimo = st.slider("Peso minimo connessione", 1, 10, 2,
+                                    help="Rimuovi gli archi con peso inferiore a questa soglia")
+            max_topic_nodi = st.slider("Max nodi topic", 10, 50, 30,
+                                       help="Numero massimo di topic da mostrare nel grafo")
+        with col_ctrl2:
+            fonti_selezionate_net = st.multiselect(
+                "Fonti da includere",
+                options=_tutte_le_fonti,
+                default=_tutte_le_fonti,
+                help="Filtra il grafo per fonte di provenienza dei documenti"
+            )
+
+        dati_agg = _aggrega_network(
+            max_topic=max_topic_nodi,
+            min_peso=peso_minimo,
+            fonti_incluse=tuple(sorted(fonti_selezionate_net)) if fonti_selezionate_net else tuple(_tutte_le_fonti),
+        )
+
+        istituzione_docs = dati_agg['istituzione_docs']
+        inst_topic = dati_agg['inst_topic']
+        topic_freq = dati_agg['topic_freq']
+        topic_cooccur = dati_agg['topic_cooccur']
+        entity_freq = dati_agg['entity_freq']
+        entity_inst = dati_agg['entity_inst']
+
+        top_topics = set(k for k, _ in topic_freq.most_common(max_topic_nodi))
+        top_entities = set(k for k, _ in entity_freq.most_common(30))
+
+        # ------------------------------------------------------------------
+        # GRAFO
+        # ------------------------------------------------------------------
+        G = nx.Graph()
+
+        max_docs = max(istituzione_docs.values()) if istituzione_docs else 1
+        for inst, n_docs in istituzione_docs.items():
+            size = 20 + int(30 * (n_docs / max_docs))
+            G.add_node(inst, color='#ff4b4b', size=size,
+                       title=f"{inst}\n{n_docs} documenti", group='Istituzione')
+
+        max_freq_topic = max(topic_freq.values()) if topic_freq else 1
+        for kw in top_topics:
+            freq = topic_freq[kw]
+            size = 10 + int(20 * (freq / max_freq_topic))
+            G.add_node(kw, color='#4b8bff', size=size,
+                       title=f"Tema: {kw}\nFrequenza: {freq}", group='Topic')
+
+        max_freq_ent = max(entity_freq.values()) if entity_freq else 1
+        for ent in top_entities:
+            freq = entity_freq[ent]
+            size = 8 + int(15 * (freq / max_freq_ent))
+            G.add_node(ent, color='#ff9f40', size=size,
+                       title=f"Entità: {ent}\nMenzioni: {freq}", group='Entita')
+
+        for (inst, kw), peso in inst_topic.items():
+            if inst in G and kw in top_topics and kw in G and peso >= peso_minimo:
+                G.add_edge(inst, kw, value=peso, width=max(1, min(8, peso // 2)),
+                           title=f"{inst} → {kw}: {peso} documenti", color='#44aa44')
+
+        for (kw1, kw2), co_count in topic_cooccur.items():
+            if kw1 in top_topics and kw2 in top_topics and kw1 in G and kw2 in G and co_count >= 3:
+                G.add_edge(kw1, kw2, value=co_count, width=1,
+                           title=f"Co-occorrenza: {co_count} documenti",
+                           color='#336699', dashes=True)
+
+        for (ent, inst), peso in entity_inst.items():
+            if ent in top_entities and ent in G and inst in G and entity_freq.get(ent, 0) >= 3 and peso >= peso_minimo:
+                G.add_edge(ent, inst, value=peso, width=max(1, min(5, peso // 2)),
+                           title=f"{ent} → {inst}: {peso} documenti", color='#aa6600')
+
+        if len(G.nodes) > 0:
+            pos = nx.spring_layout(G, seed=42, k=2.5 / max(1, len(G.nodes) ** 0.5))
+            for node, (x, y) in pos.items():
+                G.nodes[node]['x'] = float(x) * 1000
+                G.nodes[node]['y'] = float(y) * 1000
+
+        # Statistiche
+        col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
+        n_istituzioni = len([n for n, d in G.nodes(data=True) if d.get('group') == 'Istituzione'])
+        n_temi = len([n for n, d in G.nodes(data=True) if d.get('group') == 'Topic'])
+        n_entita = len([n for n, d in G.nodes(data=True) if d.get('group') == 'Entita'])
+        n_connessioni = G.number_of_edges()
+        col_stat1.metric("🔴 Organizzazioni", n_istituzioni)
+        col_stat2.metric("🔵 Temi", n_temi)
+        col_stat3.metric("🟠 Entità", n_entita)
+        col_stat4.metric("🔗 Connessioni", n_connessioni)
+        st.divider()
+
+        if len(G.nodes) == 0:
+            st.warning("Nessun nodo nel grafo con i filtri selezionati. Riduci il peso minimo o aggiungi più fonti.")
+        else:
+            net = Network(height='720px', width='100%', bgcolor='#0a0a0a',
+                          font_color='#ffffff', select_menu=False, filter_menu=False, directed=False)
+            net.from_nx(G)
+            net.set_options("""
+            {
+              "nodes": {
+                "shape": "dot",
+                "borderWidth": 2,
+                "borderWidthSelected": 4,
+                "font": {"size": 11, "face": "Verdana", "color": "#ffffff",
+                         "strokeWidth": 2, "strokeColor": "#000000"},
+                "shadow": false
+              },
+              "edges": {"color": {"inherit": false}, "smooth": false},
+              "layout": {"randomSeed": 42},
+              "physics": {"enabled": false},
+              "interaction": {
+                "hideEdgesOnDrag": false, "hover": true, "multiselect": true,
+                "navigationButtons": false, "tooltipDelay": 50,
+                "zoomView": true, "zoomSpeed": 0.25, "dragView": true
+              }
+            }
+            """)
+
+            path_html = 'network_graph_nlp.html'
+            net.save_graph(path_html)
+            with open(path_html, 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            html_content = html_content.replace(
+                'var options = {',
+                'var options = {\n  zoomMax: 2.5,\n  zoomMin: 0.2,'
+            )
+            html_content = html_content.replace(
+                'background-color: #0a0a0a;',
+                'background: #000000;\nbackground-image: radial-gradient(#111111 1px, #000000 1px);\nbackground-size: 8px 8px;'
+            )
+            components.html(html_content, height=750)
+            os.remove(path_html)
+
+            st.info("💡 Trascina i nodi per esplorare la rete. Passa il mouse sopra un nodo per i dettagli.")
+            st.markdown("""
+**Legenda:**
+- 🔴 Nodo rosso = Istituzione/ONG (dimensione proporzionale al numero di documenti)
+- 🔵 Nodo blu = Tema/Parola chiave estratta da TF-IDF (dimensione = frequenza)
+- 🟠 Nodo arancione = Entità nominata da spaCy NER (aziende, istituzioni, persone)
+- Arco verde = Istituzione pubblica quel tema
+- Arco blu tratteggiato = Due temi co-occorrono in ≥3 documenti
+- Arco arancione = Entità menzionata da quell'istituzione
+""")
 
 
 # ==========================================
