@@ -1,56 +1,65 @@
-# 📚 Fonti e Repository Aggiuntivi Attendibili
+# Data Sources — Tech Advocacy Radar
 
-Questo documento contiene l'elenco di fonti pubbliche, dataset e repository open source che puoi integrare nel progetto per aumentare la quantità e qualità dei dati.
-
----
-
-## ✅ Repository Github Utili
-
-| Repository | Descrizione | Tipo Dati | Licenza |
-|------------|-------------|-----------|---------|
-| https://github.com/topics/italia-open-data | Collezione di tutti i progetti open data italiani | Dataset vari | Miste |
-| https://github.com/italia/opendata | Repository ufficiale dati.gov.it | Dati pubblici PA | CC-BY |
-| https://github.com/EDRi/edri-digital-rights-monitor | Monitoraggio diritti digitali EDRi | Report, policy | MIT |
-| https://github.com/noyb/gdpr-enforcement-database | Database mondiale sanzioni GDPR | Multate GPDP internazionali | CC0 |
-| https://github.com/AlgorithmWatch/gdpr-enforcement | Dataset storico sanzioni Garante Privacy | Dataset strutturato | CC-BY |
-| https://github.com/privacyinternational/datasets | Privacy International ricerche e dati | Report internazionali | Open |
-| https://github.com/accessnow/holidays | Monitoraggio shutdown internet globali | Eventi | MIT |
-| https://github.com/civictechitalia/awesome-civictech-italy | Elenco completo organizzazioni civic tech italiane | Directory ONG | CC0 |
+Reference list of monitored sources and candidate sources for future integration.
 
 ---
 
-## 📰 Fonti Ufficiali e Feed Aggiuntivi
+## Currently Monitored Sources
 
-### Istituzioni Italiane
-- [ ] Garante Privacy feed RSS ufficiale: `https://www.garanteprivacy.it/web/guest/home/docweb?p_p_id=101&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&_101_struts_action=%2Fasset_publisher%2Fview_rss&_101_assetEntryId=0&_101_type=entries&_101_version=2.0`
-- [ ] AGCOM comunicati e provvedimenti: `https://www.agcom.it/rss`
-- [ ] Autorità Garante Concorrenza e Mercato: `https://www.agcm.it/rss`
-- [ ] Parlamento Italiano - Monitoraggio leggi: `https://www.parlamento.it/rss`
+### Italian Institutions
+| Source | Type | Scraper |
+|--------|------|---------|
+| Garante Privacy (GPDP) | Enforcement decisions, rulings | `scraper_gpdp.py` |
+| AGCOM | Press releases, deliberations | `scraper_agcom.py` |
 
-### Europee
-- [ ] Commissione Europea DG Connect: `https://digital-strategy.ec.europa.eu/en/rss.xml`
-- [ ] EDPS (Garante Privacy UE): `https://edps.europa.eu/news/rss_en.xml`
-- [ ] Consiglio d'Europa Diritti Umani: `https://www.coe.int/en/web/hrcouncil/rss`
+### Italian Civil Society (23 organisations)
+Aggregated via `scraper_ong.py`. Full list available in `PROFILI_ONG` within `scrapers/scraper_ong.py`.
 
-### Organizzazioni Internazionali
-- [ ] Access Now News: `https://www.accessnow.org/feed/`
-- [ ] Electronic Frontier Foundation: `https://www.eff.org/rss/updates.xml`
-- [ ] Privacy International: `https://privacyinternational.org/rss.xml`
-- [ ] Open Rights Group UK: `https://www.openrightsgroup.org/feed/`
+Includes: Privacy Network, Hermes Center, The Good Lobby Italia, AlgorithmWatch Italy, Antigone, STRALI, Italiani Senza Cittadinanza, NINA, Slow Web, and others.
+
+### European Regulators
+| Source | Country | Scraper |
+|--------|---------|---------|
+| EDPB | European Union | `scraper_rss_eu.py` |
+| CNIL | France | `scraper_rss_eu.py` |
+| AEPD | Spain | `scraper_rss_eu.py` |
+| ICO | United Kingdom | `scraper_rss_eu.py` |
+
+### European Parliament
+Committees monitored: LIBE (civil liberties), IMCO (internal market), ITRE (industry/AI). Source: `scraper_eu_parl.py`.
+
+### International Organisations
+Included in `scraper_ong.py`: EDRi, Noyb, Access Now, Electronic Frontier Foundation, Privacy International, Open Rights Group, AlgorithmWatch, SOMO.
+
+### Italian Tech Media (8 outlets)
+Wired Italia, Punto Informatico, Agenda Digitale, Corriere Comunicazioni, Data Manager Online, Cybersecurity360, Innovation Post, StartupItalia. Source: `scraper_tech_news.py`.
+
+### GDPR Enforcement Database
+GDPRhub (noyb, CC BY-SA 4.0) with fallback to enforcementtracker.com (CMS Law). Source: `scraper_gdpr_fines.py`.
 
 ---
 
-## 📊 Dataset Pubblici
+## Candidate Sources for Future Integration
 
-1. **GDPR Fines Dataset** - oltre 2000 sanzioni GDPR raccolte a livello mondiale
-2. **Digital Rights Tracker** - stato dei diritti digitali per ogni paese europeo
-3. **AI Act Monitor** - monitoraggio implementazione AI Act in UE
-4. **Italian Law Database** - estrazione automatica nuove leggi e decreti
+### Italian Institutions
+- AGCM (Autorità Garante della Concorrenza e del Mercato) — antitrust and consumer protection
+- Italian Parliament — legislative monitoring via parlamento.it
+- Corte dei Conti — public spending oversight
+
+### European Institutions
+- EDPS (European Data Protection Supervisor)
+- Council of Europe — Human Rights Commissioner
+- European Commission DG Connect — digital strategy publications
+
+### Public Datasets
+- **GDPRhub full case database** — structured GDPR enforcement records worldwide (CC BY-SA 4.0)
+- **AI Act Monitor** — implementation tracking across EU member states
+- **Digital Rights Tracker** — per-country digital rights status across Europe
 
 ---
 
-## 🚀 Come Integrare
+## Adding New RSS Sources
 
-Puoi aggiungere queste fonti semplicemente aggiungendo l'URL del feed RSS nel file `scrapers/scraper_ong.py` all'interno del dizionario `fonti_ong`. Lo scraper è già predisposto per gestire automaticamente qualsiasi feed RSS standard.
+New RSS feeds can be added by including them in the `PROFILI_ONG` dictionary in `scrapers/scraper_ong.py`. The scraper handles any standard RSS 2.0 or Atom feed without additional configuration.
 
-Per i dataset strutturati puoi creare nuovi scraper ad-hoc o importare direttamente i file CSV nella cartella `data/raw/`.
+For structured datasets (CSV, JSON, API), create a dedicated scraper following the conventions in any existing scraper file: SHA-256 hashing, append-only persistence, and unified schema output.

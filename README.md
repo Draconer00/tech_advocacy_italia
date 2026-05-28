@@ -1,103 +1,144 @@
-# Tech Advocacy Italy — Digital Rights Radar
+# Tech Advocacy Radar
 
-## About the Project
+An open-source civic intelligence platform for monitoring digital rights, privacy regulation, and AI governance in Italy and Europe.
 
-This project maps the ecosystem of digital rights, algorithmic accountability, and data privacy advocacy in Italy and Europe. It aggregates and semantically analyzes documents from institutional regulators, civil society organizations, and news sources, transforming raw text into a structured, queryable knowledge base.
+---
 
-The result is an interactive **Advocacy Radar**: a Streamlit dashboard that shows which organizations are active on which topics, how the regulatory landscape is evolving, and how Italian enforcement decisions compare with European counterparts.
+## Overview
+
+Tech Advocacy Radar aggregates and semantically analyses public-interest documents from institutional regulators, civil society organisations, and news sources. It transforms heterogeneous raw text into a structured, queryable knowledge base and presents the results through an interactive dashboard designed for journalists, researchers, policy professionals, and activists.
+
+The system monitors over 35 sources continuously, processes documents in Italian and English, and provides seven analytical views including network visualisation, geographic classification, temporal trend analysis, and a two-dimensional positioning map.
+
+---
 
 ## Architecture
 
 ```
 tech_advocacy_italia/
 │
-├── .github/workflows/     ← CI/CD pipeline (runs daily at 02:00 UTC)
+├── scrapers/                  ← Data ingestion layer (8 independent scrapers)
+│   ├── scraper_gpdp.py        ← Italian Data Protection Authority (web scraper)
+│   ├── scraper_ong.py         ← 23 civil society organisations (RSS feeds)
+│   ├── scraper_gnews.py       ← GNews API (requires GNEWS_API_KEY)
+│   ├── scraper_rss_eu.py      ← European regulators: EDPB, CNIL, AEPD, ICO
+│   ├── scraper_agcom.py       ← AGCOM communications authority (RSS)
+│   ├── scraper_tech_news.py   ← 8 Italian tech media outlets (relevance-filtered)
+│   ├── scraper_eu_parl.py     ← European Parliament (RSS + Open Data API)
+│   └── scraper_gdpr_fines.py  ← GDPR enforcement database (GDPRhub)
 │
-├── scrapers/              ← Data extraction layer
-│   ├── scraper_gpdp.py    ← Italian Data Protection Authority (web scraper)
-│   ├── scraper_ong.py     ← 22 civil society RSS feeds
-│   ├── scraper_gnews.py   ← GNews API (requires GNEWS_API_KEY secret)
-│   ├── scraper_rss_eu.py  ← 4 European regulators (EDPB, CNIL, AEPD, ICO)
-│   ├── scraper_agcom.py   ← AGCOM (comunicati, delibere, consultazioni)
-│   ├── scraper_tech_news.py ← 8 Italian tech outlets, relevance-filtered
-│   └── scraper_eu_parl.py ← European Parliament (RSS + Open Data API)
-│
-├── nlp/                   ← Intelligence layer
-│   ├── text_analysis.py   ← spaCy NER, BERT sentiment, TF-IDF, active learning
-│   ├── deduplication.py   ← Semantic dedup via sentence-transformers + DBSCAN
-│   ├── train_classifier.py     ← XLM-RoBERTa fine-tuning on user corrections
-│   └── train_impact_model.py   ← Random Forest impact classifier
+├── nlp/                       ← NLP processing layer
+│   └── text_analysis.py       ← spaCy NER, TF-IDF, sentiment, active learning
 │
 ├── app/
-│   ├── dashboard.py       ← Streamlit interactive dashboard (6 tabs)
-│   └── db_manager.py      ← Database inspection and maintenance UI
+│   └── dashboard.py           ← Streamlit interactive dashboard (7 tabs)
 │
 ├── data/
-│   ├── raw/               ← Append-only raw CSV (never overwritten)
-│   ├── processed/         ← NLP-enriched CSV + SQLite unified database
-│   └── utils/             ← nlp_blacklist.csv (dynamic exclusion list)
+│   ├── raw/                   ← Append-only raw CSV files (git-ignored)
+│   ├── processed/             ← NLP-enriched CSV + SQLite database (git-ignored)
+│   └── utils/                 ← nlp_blacklist.csv
 │
-├── utils/
-│   └── logger_config.py   ← Shared logging setup
-│
-├── requirements.txt
-└── .env                   ← Local secrets (git-ignored)
+├── run_pipeline.py            ← Single-command full pipeline execution
+└── requirements.txt
 ```
+
+---
 
 ## Data Flow
 
 ```
-GNews API    → gnews_sample.csv   ─┐
-GPDP web     → gpdp_sample.csv    ─┤
-22 ONG RSS   → ong_sample.csv     ─┤
-4 EU RSS     → rss_eu_sample.csv  ─┼─→ text_analysis.py → *_analyzed.csv → SQLite
-AGCOM RSS    → agcom_sample.csv   ─┤             ↑
-8 Tech News  → tech_news_sample.csv┤    active learning feedback
-EP RSS + API → eu_parl_sample.csv ─┘    (user corrections in dashboard)
+GPDP (web)        →  gpdp_sample.csv       ─┐
+23 NGO RSS feeds  →  ong_sample.csv         │
+GNews API         →  gnews_sample.csv       │
+EU regulators     →  rss_eu_sample.csv      ├─→ text_analysis.py → *_analyzed.csv → SQLite
+AGCOM RSS         →  agcom_sample.csv       │         ↑
+8 Tech outlets    →  tech_news_sample.csv   │  human-in-the-loop corrections
+EU Parliament     →  eu_parl_sample.csv     │  (dashboard feedback interface)
+GDPRhub           →  gdpr_fines_sample.csv ─┘
 ```
 
-All sources share a unified schema (`id_univoco`, `hash_contenuto`, `testo_completo`, ...). Raw files are append-only — data is never deleted, deduplication happens by hash.
+All sources share a unified schema. Raw files are append-only — records are never deleted, deduplication is performed by SHA-256 hash at ingestion time.
 
-## Running Locally
+---
+
+## NLP Pipeline
+
+Each document is processed through the following stages:
+
+1. **Text cleaning** — HTML removal, URL stripping, domain-specific blacklist filtering
+2. **Named Entity Recognition** — spaCy `it_core_news_md`, categories: Organisation, Person, Location
+3. **TF-IDF keyword extraction** — corpus-wide vectorisation (scikit-learn), top keywords per document
+4. **Geographic classification** — rule-based: Italy / Europe / International
+5. **Fuzzy deduplication** — `SequenceMatcher` at threshold 0.85
+6. **Entity linking** — keyword-overlap scoring against NGO profile registry
+7. **Urgency index** — 1–5 score via sentence-transformers embeddings + active learning classifier
+
+---
+
+## Dashboard
+
+The Streamlit dashboard provides seven analytical views:
+
+| Tab | Description |
+|-----|-------------|
+| Home Radar | Rolling 14-day overview with urgency-coded document feed |
+| ONG Campaigns | Aggregated feed from all monitored civil society organisations |
+| Network Themes | Force-directed graph: NGOs → focus topics → recent documents |
+| Geographic Analysis | Cross-source view filterable by geography, source, and alert level |
+| Time Analysis | Monthly document volume, keyword trends, GDPR fine amounts over time |
+| Position Map | 2D Cartesian map: Italy↔Global (X) × Technical↔Legal (Y) |
+| Database Manager | Direct SQL access, schema inspection, data retention tools |
+
+---
+
+## Quick Start
 
 ```bash
 pip install -r requirements.txt
 python -m spacy download it_core_news_md
 
-# Set GNews API key (get one free at gnews.io)
+# Set GNews API key (free tier available at gnews.io)
 # Windows:
 $env:GNEWS_API_KEY="your_key"
 # Linux/Mac:
 export GNEWS_API_KEY="your_key"
 
-# Run scrapers
+# Run the full pipeline
+python run_pipeline.py
+
+# Or run steps individually
 python scrapers/scraper_gpdp.py
 python scrapers/scraper_ong.py
-python scrapers/scraper_gnews.py
-python scrapers/scraper_rss_eu.py
-
-# Run NLP pipeline
 python nlp/text_analysis.py
-
-# Launch dashboard
 python -m streamlit run app/dashboard.py
 ```
 
-## Automated Pipeline (GitHub Actions)
+---
 
-The workflow in `.github/workflows/update_data.yml` runs automatically every night at 02:00 UTC:
+## Automated Scheduling
 
-1. Four scraper jobs run in parallel
-2. The NLP job waits for all scrapers, downloads their artifacts, runs analysis
-3. Results are committed back to the repository
+The pipeline is compatible with GitHub Actions and cron scheduling. The workflow in `.github/workflows/` runs daily at 02:00 UTC: scrapers execute, the NLP pipeline processes new documents, and results are committed back to the repository. Add `GNEWS_API_KEY` as a GitHub repository secret to enable the news scraper in CI.
 
-To enable GNews in CI: add `GNEWS_API_KEY` as a GitHub repository secret (Settings → Secrets and variables → Actions).
+---
 
-## Key Features
+## Key Design Principles
 
-- **Multi-source normalization** — heterogeneous sources unified to one schema
-- **Multi-level deduplication** — hash (scraper level) + fuzzy (NLP level) + semantic/DBSCAN
-- **NLP pipeline** — NER (spaCy), sentiment (BERT), keywords (TF-IDF corpus-level), acronym recognition
-- **Active learning** — user corrections in the dashboard retrain the impact classifier at each pipeline run
-- **Stable visualizations** — network graph with fixed seed, ONG positions cached permanently
-- **No cloud dependencies** — everything runs locally or on GitHub Actions with open-source models
+- **Append-only storage** — no historical data is ever overwritten or deleted
+- **Full traceability** — every dashboard output traces back to a source document and URL
+- **No cloud dependencies** — the entire pipeline runs locally or on GitHub Actions using open-source models
+- **Human oversight** — all model predictions are inspectable and correctable through the dashboard
+- **Reproducibility** — fixed random seeds, versioned dependencies, deterministic graph layouts
+
+---
+
+## License
+
+This project is released under the [MIT License](LICENSE). Data collected by the scrapers is not included in the repository; users are responsible for running the ingestion pipeline against the original public sources.
+
+---
+
+## Related Publication
+
+This platform is described in:
+
+> *Tech Advocacy Radar: An NLP Pipeline for Monitoring Digital Rights in Italy and Europe* — [venue, year]

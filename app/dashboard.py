@@ -156,8 +156,120 @@ df_master = df_master.drop_duplicates(subset=['titolo', 'fonte'], keep='first')
 df_master['data'] = pd.to_datetime(df_master['data'], errors='coerce').dt.date
 df_master = df_master.sort_values('data', ascending=False).reset_index(drop=True)
 
+# --- CARICAMENTO DATI AGGIUNTIVI PER ANALISI TEMPORALE ---
+@st.cache_data
+def carica_dati_rss_eu():
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'rss_eu_analyzed.csv')
+    if os.path.exists(percorso_csv):
+        return pd.read_csv(percorso_csv)
+    return pd.DataFrame()
+
+@st.cache_data
+def carica_dati_tech_news():
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'tech_news_analyzed.csv')
+    if os.path.exists(percorso_csv):
+        return pd.read_csv(percorso_csv)
+    return pd.DataFrame()
+
+@st.cache_data
+def carica_dati_eu_parl():
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'eu_parl_analyzed.csv')
+    if os.path.exists(percorso_csv):
+        return pd.read_csv(percorso_csv)
+    return pd.DataFrame()
+
+@st.cache_data
+def carica_dati_agcom():
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'agcom_analyzed.csv')
+    if os.path.exists(percorso_csv):
+        return pd.read_csv(percorso_csv)
+    return pd.DataFrame()
+
+def _estrai_data_pubblicazione(df: pd.DataFrame) -> pd.Series:
+    """Tenta di leggere la data da colonne note, restituisce una Series datetime con NaT per date malformate."""
+    for col in ['data_pubblicazione', 'Data', 'publishedAt']:
+        if col in df.columns:
+            return pd.to_datetime(df[col], errors='coerce')
+    return pd.Series(pd.NaT, index=df.index)
+
+@st.cache_data
+def carica_dati_per_analisi_temporale():
+    """Unifica tutti i dataset in un formato standard per l'analisi temporale."""
+    df_gpdp = carica_dati_garante()
+    df_ong_loc = carica_dati_ong()
+    df_gnews_loc = carica_dati_gnews()
+    df_rss = carica_dati_rss_eu()
+    df_tech = carica_dati_tech_news()
+    df_eu = carica_dati_eu_parl()
+    df_agcom = carica_dati_agcom()
+
+    fonti_config = [
+        (df_gpdp,   'GPDP'),
+        (df_ong_loc,'ONG'),
+        (df_gnews_loc, 'GNews'),
+        (df_rss,    'EU RSS'),
+        (df_tech,   'Tech News'),
+        (df_eu,     'Parlamento EU'),
+        (df_agcom,  'AGCOM'),
+    ]
+
+    blocchi = []
+    for df_src, etichetta in fonti_config:
+        if df_src.empty:
+            continue
+        blocco = pd.DataFrame()
+        blocco['data'] = _estrai_data_pubblicazione(df_src)
+        blocco['fonte'] = etichetta
+        # Parole chiave — colonna Parole_Chiave o keywords
+        for col_kw in ['Parole_Chiave', 'keywords']:
+            if col_kw in df_src.columns:
+                blocco['parole_chiave_raw'] = df_src[col_kw].values
+                break
+        else:
+            blocco['parole_chiave_raw'] = None
+        # Topic label se presente
+        for col_tp in ['Topic_Emergente', 'topic', 'topic_label']:
+            if col_tp in df_src.columns:
+                blocco['topic_label'] = df_src[col_tp].values
+                break
+        else:
+            blocco['topic_label'] = None
+        # Importo EUR (solo GPDP potrebbe averlo)
+        if 'importo_eur' in df_src.columns:
+            blocco['importo_eur'] = pd.to_numeric(df_src['importo_eur'], errors='coerce')
+        else:
+            blocco['importo_eur'] = float('nan')
+        blocchi.append(blocco)
+
+    if not blocchi:
+        return pd.DataFrame(columns=['data', 'fonte', 'parole_chiave_raw', 'topic_label', 'importo_eur'])
+
+    df_unione = pd.concat(blocchi, ignore_index=True)
+    df_unione['data'] = pd.to_datetime(df_unione['data'], errors='coerce')
+    df_unione = df_unione.dropna(subset=['data'])
+    df_unione['mese'] = df_unione['data'].dt.to_period('M')
+    return df_unione
+
+def _parse_parole_chiave(valore) -> list:
+    """Converte una stringa-lista Python in lista reale, con gestione degli errori."""
+    if isinstance(valore, list):
+        return valore
+    if not isinstance(valore, str) or not valore.strip():
+        return []
+    try:
+        parsed = ast.literal_eval(valore)
+        if isinstance(parsed, list):
+            return [str(p).strip() for p in parsed if str(p).strip()]
+        return []
+    except Exception:
+        return []
+
 # --- CREAZIONE DELLE SCHEDE (TABS) ---
-tab_home, tab_ong, tab_garante, tab_network, tab_mappa_posizionamento = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante", "🕸️ Network Temi", "📍 Mappa Posizionamento"])
+tab_home, tab_ong, tab_garante, tab_network, tab_mappa_posizionamento, tab_analisi_temporale = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante", "🕸️ Network Temi", "📍 Mappa Posizionamento", "📈 Analisi Temporale"])
 
 # ==========================================
 # SCHEDA 0: HOME RADAR UNIFICATO
@@ -480,14 +592,117 @@ with tab_mappa_posizionamento:
     from nlp.text_analysis import calcola_score_posizionamento
     from scrapers.scraper_ong import PROFILI_ONG
 
+    # Mapping Ambito_Geografico → score X già calcolato dal NLP pipeline
+    _AMBITO_SCORE = {
+        'Italia':              -0.65,
+        'Europa':               0.15,
+        'USA / Internazionale': 0.75,
+        'Asia':                 0.55,
+    }
+    # Baseline geografica dal profilo ONG (area_geografica)
+    _AREA_ONG_SCORE = {
+        'italia':          -0.5,
+        'europa':           0.1,
+        'unione europea':   0.1,
+        'internazionale':   0.6,
+        'mondiale':         0.7,
+    }
+    # Parole chiave bilingui per asse Y (legale=positivo, tecnico=negativo)
+    _KW_LEGALE = (
+        # Italiano
+        "legge", "normativa", "provvedimento", "multa", "sentenza", "regolamento",
+        "tribunale", "avvocato", "giurisprudenza", "ricorso", "decreto", "sanzione",
+        "violazione", "illecito", "procedimento", "delibera", "autorità", "gdpr",
+        "direttiva", "codice privacy", "corte", "giudice", "contenziosi",
+        # Inglese
+        "regulation", "enforcement", "fine", "court", "compliance",
+        "lawsuit", "ruling", "judgment", "penalty", "legislation",
+        "infringement", "supervisory authority", "legal action", "appeal",
+        "complaint", "sanction", "legal challenge", "gdpr article",
+        "data protection authority", "dpa decision",
+    )
+    _KW_TECNICO = (
+        # Italiano
+        "algoritmo", "crittografia", "software", "hardware",
+        "intelligenza artificiale", "machine learning", "dataset",
+        "biometri", "cybersecurity", "exploit", "vulnerabilit", "hacker",
+        "cifratura", "open source", "api", "rete neurale", "llm", "deepfake",
+        # Inglese
+        "algorithm", "encryption", "neural network", "biometric",
+        "vulnerability", "open source software", "artificial intelligence",
+        "surveillance technology", "fingerprinting", "large language model",
+        "deepfake", "adversarial", "model training", "training data",
+        "technical standard", "interoperability",
+    )
+
+    # Baseline Y derivata dal profilo PROFILI_ONG (focus dichiarato).
+    # Negativo = orientamento tecnico, positivo = orientamento legale/policy.
+    _BASELINE_Y_ONG = {
+        "Hermes Center":                   -0.50,  # crittografia, anonimato, censura
+        "AI Forensics":                    -0.45,  # audit IA, trasparenza algoritmica
+        "AlgorithmWatch":                  -0.40,  # auditing algoritmico, trasparenza IA
+        "Electronic Frontier Foundation":  -0.25,  # libertà digitale, crittografia, brevetti
+        "Slow Web":                        -0.20,  # decentralizzazione, etica digitale
+        "NINA":                            -0.20,  # critica IA, filosofia tecnologica
+        "Privacy International":           -0.15,  # sorveglianza di massa, dati, AI
+        "Access Now":                      -0.15,  # internet freedom, shutdown, sorveglianza
+        "Privacy Network":                 -0.05,  # dati personali, sorveglianza, IA
+        "Open Rights Group":                0.00,  # GDPR, sorveglianza, open data
+        "EDRi (Europa)":                    0.15,  # policy europea, diritti civili, regolamentazione
+        "Consiglio d'Europa":               0.25,  # diritti umani, governance AI, etica
+        "The Good Lobby Italia":            0.20,  # democrazia, trasparenza istituzionale
+        "Amnesty Italia":                   0.20,  # diritti umani, giustizia
+        "Antigone":                         0.25,  # carceri, giustizia penale
+        "SOMO (Multinazionali)":            0.15,  # corporate accountability, diritti economici
+        "Italiani Senza Cittadinanza":      0.15,  # cittadinanza, migrazioni
+        "STRALI":                           0.10,  # lavoro, economia
+        "EDPS Garante Privacy UE":          0.30,  # GDPR, applicazione normativa, IA
+        "Commissione Europea DG Connect":   0.35,  # AI Act, DSA, DMA
+        "AI Act Monitor":                   0.40,  # AI Act, regolamentazione IA, conformità
+        "Noyb (Privacy UE)":                0.50,  # GDPR, contenziosi strategici, multate
+    }
+
+    def _calcola_scores(row) -> pd.Series:
+        # --- Asse X: geografia ---
+        ambito = str(row.get('Ambito_Geografico', '')).strip()
+        score_geo = _AMBITO_SCORE.get(ambito, 0.0)
+        # Sfuma con baseline ONG (area_geografica dal profilo)
+        area_ong = str(row.get('area_geografica', '')).lower()
+        for k, v in _AREA_ONG_SCORE.items():
+            if k in area_ong:
+                score_geo = round((score_geo + v) / 2, 3)
+                break
+
+        # --- Asse Y: tech/legale ---
+        # 40% baseline da profilo ONG (cosa fa l'org), 60% da testo (di cosa parla l'articolo)
+        nome_ong = str(row.get('nome_organizzazione', ''))
+        baseline_y = _BASELINE_Y_ONG.get(nome_ong, 0.0)
+
+        # Analisi testuale bilingue: usa titolo + fino a 1500 char di testo
+        testo = ' '.join(filter(None, [
+            str(row.get('titolo', '')),
+            str(row.get('testo_completo', ''))[:1500],
+        ])).lower()
+        punti_tl = 0.0
+        for p in _KW_LEGALE:
+            if p in testo:
+                punti_tl += 0.1
+        for p in _KW_TECNICO:
+            if p in testo:
+                punti_tl -= 0.1
+        text_signal = max(-1.0, min(1.0, punti_tl))
+
+        score_tl = round(max(-1.0, min(1.0, 0.6 * baseline_y + 0.4 * text_signal)), 3)
+
+        return pd.Series([score_tl, score_geo])
+
     if df_ong.empty:
         st.warning("Nessun dato ONG disponibile")
     else:
         # Prepara dati notizie
         df_notizie = df_ong.copy()
         df_notizie[['score_tech_legale', 'score_geografia']] = df_notizie.apply(
-            lambda row: pd.Series(calcola_score_posizionamento(row['titolo'] + " " + row.get('descrizione_organizzazione', ''))),
-            axis=1
+            _calcola_scores, axis=1
         )
         df_notizie['tipo'] = 'Notizia'
         # ✅ Rinomina colonna per compatibilità
@@ -675,16 +890,13 @@ with tab_network:
     if df_ong.empty:
         st.warning("Nessun dato ONG disponibile per costruire il network")
     else:
-        # Importa profili ONG (risolve problema path)
         import sys
         import os
         sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
         from scrapers.scraper_ong import PROFILI_ONG
 
-        # Crea grafo NetworkX
         G = nx.Graph()
 
-        # ✅ Normalizza sinonimi comuni - case insensitive e permutazioni
         sinonimi = {
             'intelligenza artificiale': 'Intelligenza Artificiale',
             'ia': 'Intelligenza Artificiale',
@@ -701,49 +913,38 @@ with tab_network:
                     return standard
             return tema.strip().title()
 
-        # Aggiungi nodi ONG
         for nome_ong, dati_ong in PROFILI_ONG.items():
-            G.add_node(nome_ong, 
-                      color='#ff4b4b', 
+            G.add_node(nome_ong,
+                      color='#ff4b4b',
                       size=25,
                       title=f"{nome_ong}\n{dati_ong['descrizione'][:120]}...",
                       group='ONG')
-            
-            # Aggiungi temi come nodi e collegamenti
+
             for tema in dati_ong.get('focus', []):
                 tema_norm = normalizza_tema(tema)
                 if tema_norm not in G:
                     G.add_node(tema_norm, color='#4b8bff', size=15, group='Tema')
-                # Peso della connessione: 1 = correlazione diretta
                 G.add_edge(nome_ong, tema_norm, value=1, title=f"Focus principale")
 
-        # Aggiungi notizie e connettili AI TEMI (NON direttamente alle ONG)
         parole_tema = []
         for _, dati_ong in PROFILI_ONG.items():
             parole_tema.extend(dati_ong.get('focus', []))
         parole_tema = list(set(parole_tema))
 
-        # ✅ FILTRO NETWORK: ULTIMO 30 GIORNI O LIVELLO ALLARME >=3
         from datetime import datetime, timedelta
         soglia_data = datetime.now().date() - timedelta(days=30)
-        
+
         df_ong['data_pubblicazione'] = pd.to_datetime(df_ong['data_pubblicazione'], errors='coerce').dt.date
-        
-        # Applica filtro
+
         mask = (df_ong['data_pubblicazione'] >= soglia_data) | (df_ong['livello_allarme'] >= 3)
         df_ong_filtrato = df_ong[mask].copy()
 
         for _, notizia in df_ong_filtrato.iterrows():
             titolo = notizia['titolo'][:50] + "..."
             testo_notizia = (notizia['titolo'] + " " + notizia.get('testo_completo', '')).lower()
-            
-            # ✅ NUOVA GERARCHIA: Notizia -> ONG -> Tema
             ong_nome = notizia['nome_organizzazione']
-            
-            # ✅ CERCA LA MIGLIORE CORRISPONDENZA NON LA PRIMA
-            # Calcola punteggio per ogni ONG: quanti dei suoi temi sono presenti nella notizia
+
             punteggi_ong = {}
-            
             for nome_ong, dati_ong in PROFILI_ONG.items():
                 conteggio_match = 0
                 for tema in dati_ong.get('focus', []):
@@ -751,44 +952,33 @@ with tab_network:
                         conteggio_match += 1
                 if conteggio_match > 0:
                     punteggi_ong[nome_ong] = conteggio_match
-            
+
             ong_migliore = None
             punteggio_massimo = 0
-            
-            # Prendi la ONG con il numero maggiore di corrispondenze
             for nome_ong, punteggio in punteggi_ong.items():
                 if punteggio > punteggio_massimo:
                     punteggio_massimo = punteggio
                     ong_migliore = nome_ong
-            
+
             if ong_migliore is not None and ong_migliore in G:
                 G.add_node(titolo, color='#4bff8b', size=8, group='Notizia', shape='diamond')
-                # Collega la notizia SOLAMENTE alla ONG con la migliore corrispondenza
                 G.add_edge(ong_migliore, titolo, value=0.5, title=f"Corrispondenza: {punteggio_massimo} temi")
                 G.add_edge(ong_nome, titolo, value=0.5, title="Notizia della ONG")
 
-        # Statistiche Network
         col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
-        
         numero_ong = len([n for n, d in G.nodes(data=True) if d.get('group') == 'ONG'])
         numero_temi = len([n for n, d in G.nodes(data=True) if d.get('group') == 'Tema'])
         numero_notizie = len([n for n, d in G.nodes(data=True) if d.get('group') == 'Notizia'])
         numero_connessioni = G.number_of_edges()
-        
         col_stat1.metric("🔴 Organizzazioni", numero_ong)
         col_stat2.metric("🔵 Temi Monitorati", numero_temi)
         col_stat3.metric("🟢 Notizie Collegate", numero_notizie)
         col_stat4.metric("🔗 Connessioni Totali", numero_connessioni)
-        
         st.divider()
 
-        # Converti in grafo PyVis interattivo
-        net = Network(height='700px', width='100%', bgcolor='#0a0a0a', font_color='ffffff', 
+        net = Network(height='700px', width='100%', bgcolor='#0a0a0a', font_color='ffffff',
                       select_menu=False, filter_menu=False, directed=False)
-        
         net.from_nx(G)
-        
-        # ✅ STABILIZZAZIONE GRAFO PYWIS - SEMPRE LA STESSA DISPOSIZIONE
         net.set_options("""
         {
           "nodes": {
@@ -847,44 +1037,33 @@ with tab_network:
           }
         }
         """)
-        
-        # Genera e visualizza
+
         path_html = 'network_graph.html'
         net.save_graph(path_html)
-        
         with open(path_html, 'r', encoding='utf-8') as f:
             html_content = f.read()
-            
-        # Sfondo particellare e limiti zoom
         html_content = html_content.replace(
             'var options = {',
             'var options = {\n  zoomMax: 2.2,\n  zoomMin: 0.35,'
         )
-        
-        # Sfondo statico pixel puntinato Y2K + ASSI FISSI
         html_content = html_content.replace(
             'background-color: #0a0a0a;',
             'background: #000000;\nbackground-image: linear-gradient(rgba(30,30,30,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(30,30,30,0.3) 1px, transparent 1px), radial-gradient(#111111 1px, #000000 1px);\nbackground-size: 100% 100%, 100% 100%, 8px 8px;\nbackground-position: center center, center center, 0 0;'
         )
-        
         components.html(html_content, height=750)
-
         os.remove(path_html)
 
         st.info("💡 Trascina i nodi per muovere la rete. Clicca su un nodo per vedere i dettagli.")
-        
         st.divider()
-        
+
         st.subheader("✏️ Correggi Associazioni Notizie")
         st.markdown("Se una notizia è associata alla ONG sbagliata puoi correggere l'associazione qui:")
-        
-        # Sistema di correzione associazioni
-        if df_ong.empty == False:
+
+        if not df_ong.empty:
             df_correzione_network = df_ong[['data_pubblicazione', 'nome_organizzazione', 'titolo', 'url']].head(50).copy()
             df_correzione_network['associazione_corretta'] = df_correzione_network['nome_organizzazione']
-            
             ong_lista = list(PROFILI_ONG.keys())
-            
+
             df_modificato_network = st.data_editor(
                 df_correzione_network,
                 column_config={
@@ -899,12 +1078,289 @@ with tab_network:
                 hide_index=True,
                 width='stretch'
             )
-            
+
             salva_associazioni = st.button("💾 Salva Correzioni Associazioni", type="primary")
-            
             if salva_associazioni:
                 modifiche_network = df_modificato_network[df_modificato_network['associazione_corretta'] != df_modificato_network['nome_organizzazione']]
                 if len(modifiche_network) > 0:
                     st.success(f"✅ Salvate {len(modifiche_network)} correzioni. I vettori verranno mostrati in verde nella prossima generazione del grafo.")
                 else:
                     st.info("Nessuna modifica effettuata")
+
+
+# ==========================================
+# SCHEDA 6: ANALISI TEMPORALE
+# ==========================================
+with tab_analisi_temporale:
+    st.header("📈 Analisi Temporale")
+    st.markdown("""
+    Questa sezione offre due viste analitiche sull'evoluzione nel tempo dei dati raccolti:
+    - **Sezione A**: Andamento dei provvedimenti/documenti per mese, raggruppati per fonte
+    - **Sezione B**: Tendenze dei temi principali nelle ultime settimane
+    """)
+
+    df_temporale = carica_dati_per_analisi_temporale()
+
+    if df_temporale.empty:
+        st.warning("Nessun dato temporale disponibile. Assicurati che gli scraper abbiano prodotto i file CSV analizzati in data/processed/.")
+    else:
+        # --- FILTRO INTERVALLO TEMPORALE (condiviso dalle due sezioni) ---
+        st.subheader("🗓️ Intervallo Temporale")
+        col_filtro_temp1, col_filtro_temp2 = st.columns([2, 2])
+
+        data_min = df_temporale['data'].min().date()
+        data_max = df_temporale['data'].max().date()
+
+        with col_filtro_temp1:
+            scelta_intervallo = st.selectbox(
+                "Periodo di analisi",
+                options=[
+                    ("Ultimi 6 mesi", 180),
+                    ("Ultimo anno", 365),
+                    ("Tutto lo storico", 0),
+                ],
+                format_func=lambda x: x[0],
+                index=0
+            )
+
+        giorni_intervallo = scelta_intervallo[1]
+        if giorni_intervallo > 0:
+            soglia_temporale = pd.Timestamp.now() - pd.Timedelta(days=giorni_intervallo)
+            df_filtrato_temp = df_temporale[df_temporale['data'] >= soglia_temporale].copy()
+        else:
+            df_filtrato_temp = df_temporale.copy()
+
+        with col_filtro_temp2:
+            st.metric("Documenti nel periodo selezionato", len(df_filtrato_temp))
+
+        st.divider()
+
+        # ==========================================
+        # SEZIONE A — TIMELINE PROVVEDIMENTI
+        # ==========================================
+        st.subheader("📊 Sezione A — Timeline Provvedimenti per Fonte")
+        st.markdown(
+            "Numero di documenti pubblicati ogni mese, suddivisi per fonte di provenienza. "
+            "Consente di individuare periodi di maggiore attività regolatoria o giornalistica."
+        )
+
+        if df_filtrato_temp.empty:
+            st.info("Nessun documento nel periodo selezionato.")
+        else:
+            # Raggruppa per mese e fonte
+            conteggio_mensile = (
+                df_filtrato_temp
+                .groupby([df_filtrato_temp['data'].dt.to_period('M').astype(str), 'fonte'])
+                .size()
+                .reset_index(name='conteggio')
+                .rename(columns={'data': 'mese'})
+            )
+            conteggio_mensile = conteggio_mensile.sort_values('mese')
+
+            fig_timeline_fonti = px.bar(
+                conteggio_mensile,
+                x='mese',
+                y='conteggio',
+                color='fonte',
+                barmode='stack',
+                title='Documenti per mese, raggruppati per fonte',
+                labels={
+                    'mese': 'Mese',
+                    'conteggio': 'Numero documenti',
+                    'fonte': 'Fonte'
+                }
+            )
+            fig_timeline_fonti.update_layout(
+                xaxis_title="Mese",
+                yaxis_title="Numero documenti",
+                legend_title="Fonte",
+                hovermode='x unified',
+                xaxis=dict(tickangle=-45)
+            )
+            st.plotly_chart(fig_timeline_fonti, width='stretch')
+
+            # Grafico secondario: importo EUR multo (solo se la colonna esiste con valori reali)
+            ha_importo_eur = (
+                'importo_eur' in df_filtrato_temp.columns
+                and df_filtrato_temp['importo_eur'].notna().any()
+                and (df_filtrato_temp['importo_eur'] > 0).any()
+            )
+
+            if ha_importo_eur:
+                st.markdown("**Totale sanzioni (EUR) per mese — solo GPDP/AGCOM**")
+                df_sanzioni = df_filtrato_temp[df_filtrato_temp['importo_eur'].notna() & (df_filtrato_temp['importo_eur'] > 0)].copy()
+                sanzioni_mensili = (
+                    df_sanzioni
+                    .groupby(df_sanzioni['data'].dt.to_period('M').astype(str))['importo_eur']
+                    .sum()
+                    .reset_index()
+                    .rename(columns={'data': 'mese'})
+                    .sort_values('mese')
+                )
+                fig_sanzioni = px.line(
+                    sanzioni_mensili,
+                    x='mese',
+                    y='importo_eur',
+                    markers=True,
+                    title='Totale sanzioni (EUR) per mese',
+                    labels={'mese': 'Mese', 'importo_eur': 'Importo totale (€)'}
+                )
+                fig_sanzioni.update_layout(
+                    xaxis_title="Mese",
+                    yaxis_title="Importo totale (€)",
+                    hovermode='x unified',
+                    xaxis=dict(tickangle=-45)
+                )
+                st.plotly_chart(fig_sanzioni, width='stretch')
+            else:
+                st.info(
+                    "ℹ️ La colonna `importo_eur` non è presente o non contiene valori nei dati attuali. "
+                    "Il grafico delle sanzioni verrà mostrato automaticamente non appena i dati saranno disponibili."
+                )
+
+        st.divider()
+
+        # ==========================================
+        # SEZIONE B — TENDENZE TEMATICHE
+        # ==========================================
+        st.subheader("🔍 Sezione B — Tendenze dei Temi nel Tempo")
+        st.markdown(
+            "Evoluzione mensile delle parole chiave/temi più frequenti estratti dai documenti. "
+            "Consente di identificare quali argomenti stanno crescendo o calando di importanza."
+        )
+
+        # Estrai parole chiave da tutti i documenti nel periodo, ignorando stopword banali
+        STOPWORD_KW = {
+            'di', 'del', 'la', 'il', 'le', 'lo', 'un', 'una', 'e', 'in', 'per', 'da',
+            'dei', 'a', 'con', 'non', 'si', 'su', 'al', 'che', 'è', 'gli', 'i', 'o',
+            'ha', 'ma', 'se', 'più', 'tra', 'nei', 'della', 'delle', 'degli', 'al',
+            'i', 'ii', 'iii', 'iv', 'it', 'in', 'the', 'of', 'and', 'to', 'a',
+        }
+
+        righe_kw = []
+        for _, riga in df_filtrato_temp.iterrows():
+            kw_lista = _parse_parole_chiave(riga.get('parole_chiave_raw'))
+            mese_str = riga['data'].to_period('M').strftime('%Y-%m')
+            for kw in kw_lista:
+                kw_norm = kw.lower().strip()
+                if kw_norm and kw_norm not in STOPWORD_KW and len(kw_norm) > 2:
+                    righe_kw.append({'mese': mese_str, 'parola': kw_norm})
+
+        if not righe_kw:
+            st.info(
+                "Nessuna parola chiave trovata nel periodo selezionato. "
+                "Verifica che i CSV analizzati contengano la colonna `Parole_Chiave`."
+            )
+        else:
+            df_kw = pd.DataFrame(righe_kw)
+
+            # Top 10 parole chiave globali nel periodo
+            top_parole = (
+                df_kw.groupby('parola')
+                .size()
+                .sort_values(ascending=False)
+                .head(10)
+                .index.tolist()
+            )
+
+            # Pivot: mesi × parole chiave
+            df_kw_pivot = (
+                df_kw[df_kw['parola'].isin(top_parole)]
+                .groupby(['mese', 'parola'])
+                .size()
+                .reset_index(name='conteggio')
+                .sort_values('mese')
+            )
+
+            fig_trend = px.line(
+                df_kw_pivot,
+                x='mese',
+                y='conteggio',
+                color='parola',
+                markers=True,
+                title='Top 10 temi — frequenza mensile',
+                labels={
+                    'mese': 'Mese',
+                    'conteggio': 'Occorrenze',
+                    'parola': 'Tema'
+                }
+            )
+            fig_trend.update_layout(
+                xaxis_title="Mese",
+                yaxis_title="Occorrenze mensili",
+                legend_title="Tema",
+                hovermode='x unified',
+                xaxis=dict(tickangle=-45)
+            )
+            st.plotly_chart(fig_trend, width='stretch')
+
+            # --- Indicatori crescita/declino (ultimi 2 mesi vs 2 mesi precedenti) ---
+            mesi_ordinati = sorted(df_kw_pivot['mese'].unique())
+
+            if len(mesi_ordinati) >= 4:
+                mesi_recenti = mesi_ordinati[-2:]
+                mesi_precedenti = mesi_ordinati[-4:-2]
+
+                def _freq_media(df_p, mesi_sel):
+                    sub = df_p[df_p['mese'].isin(mesi_sel)]
+                    return sub.groupby('parola')['conteggio'].mean()
+
+                freq_recente = _freq_media(df_kw_pivot, mesi_recenti)
+                freq_precedente = _freq_media(df_kw_pivot, mesi_precedenti)
+
+                confronto = pd.DataFrame({
+                    'freq_recente': freq_recente,
+                    'freq_precedente': freq_precedente,
+                }).fillna(0)
+
+                confronto['variazione_pct'] = (
+                    (confronto['freq_recente'] - confronto['freq_precedente'])
+                    / confronto['freq_precedente'].replace(0, float('nan'))
+                    * 100
+                ).round(1)
+
+                confronto = confronto.dropna(subset=['variazione_pct']).sort_values('variazione_pct', ascending=False)
+
+                st.markdown(f"**Variazione % frequenza: {mesi_precedenti[0]}–{mesi_precedenti[1]} → {mesi_recenti[0]}–{mesi_recenti[1]}**")
+
+                col_trend_su, col_trend_giu = st.columns(2)
+
+                with col_trend_su:
+                    st.markdown("📈 **In crescita**")
+                    trending_up = confronto[confronto['variazione_pct'] > 0].head(5)
+                    if trending_up.empty:
+                        st.info("Nessun tema in crescita rilevato.")
+                    else:
+                        for parola, riga in trending_up.iterrows():
+                            st.metric(
+                                label=parola.title(),
+                                value=f"{riga['freq_recente']:.1f} occ/mese",
+                                delta=f"+{riga['variazione_pct']:.0f}%"
+                            )
+
+                with col_trend_giu:
+                    st.markdown("📉 **In calo**")
+                    trending_down = confronto[confronto['variazione_pct'] < 0].tail(5).sort_values('variazione_pct')
+                    if trending_down.empty:
+                        st.info("Nessun tema in calo rilevato.")
+                    else:
+                        for parola, riga in trending_down.iterrows():
+                            st.metric(
+                                label=parola.title(),
+                                value=f"{riga['freq_recente']:.1f} occ/mese",
+                                delta=f"{riga['variazione_pct']:.0f}%"
+                            )
+            else:
+                st.info(
+                    "Dati insufficienti per calcolare le tendenze di crescita/calo "
+                    "(sono necessari almeno 4 mesi distinti di dati)."
+                )
+
+            st.divider()
+
+            # Tabella di riepilogo parole chiave
+            st.markdown("**Tabella dettagliata — occorrenze mensili per tema**")
+            df_tabella = df_kw_pivot.pivot_table(
+                index='mese', columns='parola', values='conteggio', fill_value=0
+            ).reset_index()
+            st.dataframe(df_tabella, hide_index=True, width='stretch')
