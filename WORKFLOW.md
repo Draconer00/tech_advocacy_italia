@@ -1,352 +1,147 @@
-# 🔄 WORKFLOW: Pipeline Tech Advocacy Italy
+# Pipeline Workflow — Tech Advocacy Radar
 
-Guida completa e ufficiale della pipeline di estrazione, analisi semantica, network analysis e visualizzazione.
-
-Questo documento è valido sia per utenti non tecnici che per sviluppatori.
-Aggiornato al 02/05/2026
+Complete reference for running the data ingestion, NLP processing, and dashboard layers.
 
 ---
 
-## 🎯 Che cosa fa questo progetto
-
-Questo sistema crea una mappa in tempo reale dell'ecosistema dei diritti digitali in Italia e Europa. Non è un semplice aggregatore di notizie:
-
-✅ **Monitora** oltre 25 fonti ufficiali tra ONG, istituzioni europee e garanti
-✅ **Analizza semanticamente** ogni documento con NLP
-✅ **Crea relazioni** tra temi, organizzazioni e notizie
-✅ **Visualizza** un network dinamico dove si vede chi parla di cosa
-✅ **Permette correzioni umane** che migliorano continuamente il modello
-✅ **✅ NUOVO: Storico permanente per sempre**: tutti i dati vengono mantenuti per sempre
-
----
-
-## 📍 Architettura Generale
+## Architecture
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   SCRAPERS  │────▶│  DATI RAW   │────▶│  NLP ENGINE │────▶│  DASHBOARD  │
+│   SCRAPERS  │────▶│   RAW DATA  │────▶│  NLP ENGINE │────▶│  DASHBOARD  │
 └─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
-       │                   │                   │                   │
-       ▼                   ▼                   ▼                   ▼
-   25 Fonti             CSV Files        Classificazione      Network Map
-   RSS + Web            SQLite DB        Estrazione Entità     Time Series
+      │                    │                   │                    │
+      ▼                    ▼                   ▼                    ▼
+  35+ sources          CSV files         NER, TF-IDF,         7 analytical
+  RSS + Web            SQLite DB         classification,       views, human
+  Auto-translate       Append-only       active learning       feedback loop
 ```
 
-✅ **✅ NOVITÀ: NESSUNA SOVRASCRITTURA**
-✅ Tutti gli scraper adesso **NON CANCELLANO PIÙ NULLA**. Tutti i dati vengono aggiunti in append, deduplicati e mantenuti permanentemente.
-
 ---
 
-## 🚀 Sequenza di Esecuzione Completa
-
----
-
-### **Fase 1: Setup Iniziale** (Una sola volta)
+## Setup (once)
 
 ```bash
-# 1. Entra nella cartella del progetto
-cd tech_advocacy_italia
-
-# 2. Installa tutte le dipendenze
 pip install -r requirements.txt
-
-# 3. Scarica modello linguistico italiano
 python -m spacy download it_core_news_md
 ```
 
-✅ Fatto. Non c'è nient'altro da installare.
-
 ---
 
-### **Fase 2: Scraping Dati**
+## Step 1 — Data Ingestion
 
-✅ **✅ COMPORTAMENTO NUOVO:** Tutti gli scraper adesso usano lo stesso sistema di salvataggio permanente:
-✅ Aggiunge i nuovi dati a quelli esistenti
-✅ Deduplicazione automatica
-✅ Non cancella niente
-✅ Lo storico cresce per sempre
+Each scraper is independent and can be run in any order. All scrapers append to existing files without overwriting historical data.
 
-Ogni scraper è indipendente e produce dati standardizzati. Puoi eseguirli in qualsiasi ordine.
-
----
-
-#### 🔹 2.1 Garante Privacy GPDP
+### GPDP — Italian Data Protection Authority
 ```bash
 python scrapers/scraper_gpdp.py
 ```
+Extracts enforcement decisions and rulings from garanteprivacy.it. Resolves HTML meta-refresh redirects automatically. Output: `data/raw/gpdp_sample.csv`.
 
-✅ **Cosa fa**: Estrae solamente provvedimenti ufficiali. **NON scarica comunicati stampa, notizie o annunci**.
-✅ Output: `data/raw/gpdp_sample.csv`
-✅ Tempo: ~1 minuto
-✅ ✅ Storico permanente
-
----
-
-#### 🔹 2.2 Organizzazioni Civiche e Istituzioni Europee
+### NGOs and Civil Society
 ```bash
 python scrapers/scraper_ong.py
 ```
+Aggregates RSS feeds from 23 civil society organisations. Applies semantic deduplication via sentence-transformers. Output: `data/raw/ong_sample.csv`.
 
-✅ **23 Fonti Monitorate**:
-- 🇮🇹 13 Organizzazioni italiane
-- 🇪🇺 5 Istituzioni ufficiali europee
-- 🌍 5 Organizzazioni internazionali
-- ✅ **AI Act Monitor** incluso in modo nativo
-
-✅ Output: `data/raw/ong_sample.csv`
-✅ Tempo: ~30 secondi
-✅ Tutte le fonti sono elencate in modo pubblico e trasparente nel file stesso.
-✅ ✅ Storico permanente
-
----
-
-#### 🔹 2.3 Notizie Generali GNews
+### News (GNews API)
 ```bash
-$env:GNEWS_API_KEY="la_tua_chiave"
+# Windows
+$env:GNEWS_API_KEY="your_key"
+# Linux/Mac
+export GNEWS_API_KEY="your_key"
+
 python scrapers/scraper_gnews.py
 ```
+Queries the GNews API for Italian-language articles on privacy, AI, and digital rights. Requires a free API key from gnews.io. Output: `data/raw/gnews_sample.csv`.
 
-✅ Cosa fa: Ricerca notizie su temi di diritti digitali su tutti i media italiani
-✅ Output: `data/raw/gnews_sample.csv`
-✅ ✅ Storico permanente
-✅ ✅ Rimosso limite 3 minuti: salva TUTTE le notizie trovate
-
----
-
-#### 🔹 2.4 Regolatori Europei
+### European Regulators
 ```bash
 python scrapers/scraper_rss_eu.py
 ```
+Aggregates RSS feeds from EDPB, CNIL, ICO, and AEPD. All content is automatically translated to Italian via `deep-translator`. Output: `data/raw/rss_eu_sample.csv`.
 
-✅ Cosa fa: Monitora tutti i garanti privacy europei (EDPB, CNIL, ICO, AEPD)
-✅ ✅ Automaticamente traduce tutti i testi in italiano
-✅ Output: `data/raw/rss_eu_sample.csv`
-✅ ✅ Storico permanente
-
----
-
-#### 🔹 2.5 AGCOM
+### AGCOM
 ```bash
 python scrapers/scraper_agcom.py
 ```
+Collects press releases, rulings, and public consultations from the AGCOM communications authority. Output: `data/raw/agcom_sample.csv`.
 
-✅ Cosa fa: Monitora comunicati stampa, delibere e consultazioni pubbliche di AGCOM (Autorità per le Garanzie nelle Comunicazioni)
-✅ Testi già in italiano — nessuna traduzione necessaria
-✅ Output: `data/raw/agcom_sample.csv`
-✅ ✅ Storico permanente
-
----
-
-#### 🔹 2.6 Testate Tech Italiane
+### Italian Tech Media
 ```bash
 python scrapers/scraper_tech_news.py
 ```
+Monitors 8 Italian technology outlets (Wired Italia, Punto Informatico, Agenda Digitale, and others). Filters articles by relevance to privacy, AI, GDPR, and digital regulation. Output: `data/raw/tech_news_sample.csv`.
 
-✅ **8 Fonti Monitorate**: Wired Italia, Punto Informatico, Agenda Digitale, Corriere Comunicazioni, Data Manager Online, Cybersecurity360, Innovation Post, StartupItalia
-✅ Filtro per rilevanza: solo articoli su privacy, AI, GDPR, sorveglianza, normativa digitale
-✅ Output: `data/raw/tech_news_sample.csv`
-✅ ✅ Storico permanente
-
----
-
-#### 🔹 2.7 Parlamento Europeo
+### European Parliament
 ```bash
 python scrapers/scraper_eu_parl.py
 ```
+Combines EP news RSS (in Italian) with the Open Data API for structured legislative acts. Priority committees: LIBE, IMCO, ITRE. Output: `data/raw/eu_parl_sample.csv`.
 
-✅ Cosa fa: Combina RSS notizie EP (in italiano) + Open Data API EP per atti legislativi strutturati
-✅ Commissioni prioritarie: LIBE (libertà civili), IMCO (mercato interno), ITRE (industria/AI)
-✅ Filtro tematico: DSA, DMA, AI Act, privacy, cybersecurity
-✅ Output: `data/raw/eu_parl_sample.csv`
-✅ ✅ Storico permanente
+### GDPR Enforcement Database
+```bash
+python scrapers/scraper_gdpr_fines.py
+```
+Imports structured penalty records from GDPRhub (CC BY-SA 4.0) with fallback to enforcementtracker.com. Normalises fine amounts across European and US decimal formats. Output: `data/raw/gdpr_fines_sample.csv`.
 
 ---
 
-### **Fase 3: Analisi Semantica NLP**
+## Step 2 — NLP Processing
+
 ```bash
 python nlp/text_analysis.py
 ```
 
-✅ Questa è la parte intelligente del sistema:
-1. 🧹 Pulisce il testo da rumore, link e duplicati
-2. 🧠 Estrae automaticamente entità (aziende, persone, istituzioni)
-3. 🗺️ Classifica l'ambito geografico di ogni provvedimento
-4. 🔗 Entity Linking: riconosce automaticamente quale ONG viene citata
-5. 🤖 **Active Learning Livello 3**: Predice il livello di allarme 1-5 usando il modello che ha imparato dalle tue correzioni manuali
-6. 💾 Salva tutto in database SQLite per velocità
+Processes all eight raw sources sequentially:
 
-✅ Elabora TUTTE le fonti automaticamente: Garante Privacy, ONG, GNews, RSS EU, AGCOM, Tech News Italia, Parlamento Europeo
+1. Text cleaning (HTML, URLs, blacklist filtering)
+2. Named Entity Recognition — spaCy `it_core_news_md`
+3. TF-IDF keyword extraction — scikit-learn corpus-wide
+4. Geographic classification — Italy / Europe / International
+5. Fuzzy deduplication — SequenceMatcher at 0.85 threshold
+6. Entity linking — keyword-overlap scoring against NGO profiles
+7. Urgency index — sentence-transformers + active learning classifier
 
-✅ Output:
-- `data/processed/gpdp_analyzed.csv`
-- `data/processed/ong_analyzed.csv`
-- `data/processed/gnews_analyzed.csv`
-- `data/processed/rss_eu_analyzed.csv`
-- `data/processed/agcom_analyzed.csv`
-- `data/processed/tech_news_analyzed.csv`
-- `data/processed/eu_parl_analyzed.csv`
-- `data/tech_advocacy.db` (Database principale unificato)
+Output: `data/processed/*_analyzed.csv` (one per source) and `data/tech_advocacy.db`.
 
 ---
 
-### **Fase 4: Dashboard e Visualizzazione**
+## Step 3 — Dashboard
+
 ```bash
 python -m streamlit run app/dashboard.py
 ```
 
-✅ La dashboard si aprirà automaticamente nel browser all'indirizzo `http://localhost:8501`
+Opens the interactive dashboard at `http://localhost:8501`.
 
 ---
 
-## 🕸️ Funzionalità Network Map
+## Full Pipeline (single command)
 
-Questa è la caratteristica principale del progetto:
-
-✅ **Come funziona**:
-- Ogni ONG è un nodo rosso
-- Ogni tema di cui si occupa è un nodo blu
-- Ogni notizia è un nodo verde
-- La **distanza tra i nodi** rappresenta la correlazione semantica
-- Più due nodi sono vicini, più sono correlati semanticamente
-
-✅ **✅ NOVITÀ MAGGIO 2026**:
-✅ Disposizione STABILE e SEMPRE LA STESSA ad ogni refresh
-✅ Rimosso il caos dei nodi che si muovevano
-✅ Seed fisso 42
-✅ Solver forceAtlas2Based
-✅ Nessuna sovrapposizione nodi
-
-✅ **Caratteristiche**:
-- Stile brutalista minimalista, senza distrazioni
-- Zoom bloccato per evitare di perdere il contesto
-- Tutti i nodi sono draggabili
-- Sistema di correzione manuale: puoi ricollegare una notizia ad un'altra ONG se l'AI ha sbagliato
-- Le correzioni salvate vengono usate per migliorare le classificazioni future
-
----
-
-## 📍 Mappa di Posizionamento Cartesiano
-
-✅ ✅ NOVITÀ MAGGIO 2026:
-✅ Posizioni ONG **PERMANENTI e salvate in modo permanente
-✅ Non si perdono più, non tornano più al centro
-✅ Vengono aggiornate solamente quando ci sono nuovi dati
-✅ Ogni ONG mantiene per sempre la sua posizione calcolata storicamente
-
-✅ Funzionalità:
-- Tutte le ONG e le notizie sono posizionate su un piano cartesiano bidimensionale
-- ✅ **Asse X (Orizzontale)**: Italia ↔ Mondo
-- ✅ **Asse Y (Verticale)**: Legale ↔ Tecnico
-- ✅ Centroidi ONG calcolati come media di tutte le loro notizie
-- ✅ Dimensione del punto proporzionale al numero di articoli pubblicati
-
----
-
-## 🗄️ Database Manager
-
-✅ **✅ NUOVA SCHEDA MAGGIO 2026:
-✅ Pannello completo di gestione dati
-
-✅ Funzionalità disponibili:
-1.  📋 Visualizza tutte le tabelle e lo schema del database
-2.  📊 Anteprima dati con filtri
-3.  ⚡ Esegui query SQL dirette
-4.  🗑️ **Pulizia dati manuale: cancella dati più vecchi di 7/30/90/180/365 giorni
-5.  Backup automatico prima di ogni cancellazione
-
----
-
-##  Workflow Rapido End-to-End
-
-Per eseguire TUTTO in sequenza con un solo comando:
 ```bash
 python run_pipeline.py
 ```
 
-✅ ✅ NOVITÀ: Adesso la pipeline non si blocca più al primo errore, continua sempre fino alla fine e apre comunque la dashboard.
+Executes all scrapers, the NLP pipeline, and launches the dashboard in sequence. The pipeline continues even if individual scrapers fail, ensuring the dashboard always opens with the most recent available data.
 
 ---
 
-## 🛠️ Sistema Human-In-The-Loop
+## Automated Scheduling
 
-Questo progetto non è completamente automatico per scelta:
+The pipeline is compatible with GitHub Actions. The workflow in `.github/workflows/` runs daily at 02:00 UTC. Add `GNEWS_API_KEY` as a repository secret to enable the news scraper in CI.
 
-✅ Puoi correggere qualsiasi classificazione sbagliata direttamente dalla dashboard
-✅ Tutte le correzioni vengono salvate nel Golden Standard
-✅ **Ad ogni esecuzione della pipeline viene automaticamente addestrato un nuovo modello più accurato
-✅ Il modello migliora in modo continuo in base alle tue correzioni
-✅ Non c'è black box: puoi vedere e modificare ogni decisione
+All data is appended to the historical record on each run — no conflicts, no data loss.
 
 ---
 
-## 📊 Metriche e Performance
+## Troubleshooting
 
-| Metrica | Valore Attuale |
-|---------|----------------|
-| Fonti monitorate | 35+ |
-| Scraper attivi | 7 |
-| Organizzazioni civiche | 18 |
-| Istituzioni | 9 |
-| Testate tech italiane | 8 |
-| Tempo ciclo completo | ~3 minuti |
-| Deduplicazione NLP | -40% duplicati |
-| Velocità dashboard | < 100ms |
-| ✅ Storico permanente | Sempre attivo |
-
----
-
-## ❌ Troubleshooting Comuni
-
-| Errore | Soluzione |
-|--------|-----------|
-| `ModuleNotFoundError` | Esegui `pip install -r requirements.txt` |
-| `No module named 'scrapers'` | Usa `python -m streamlit run app/dashboard.py` invece di `streamlit run` |
-| Errore timeout GPDP | Il sito è lento, attendi e riprova |
-| Porta 8501 occupata | `streamlit run app/dashboard.py --server.port 8502` |
-| Modello spaCy mancante | `python -m spacy download it_core_news_md` |
-| ParserError CSV | Risolto automaticamente adesso, salta le righe malformate |
-| Dashboard non si apre su Windows | Risolto, adesso si apre correttamente |
-| ONG al centro nella mappa | Risolto, posizioni permanenti |
-
----
-
-## 📅 Scheduling Automatico
-
-✅ **Adesso compatibile al 100% con Github Actions e schedulazione automatica**
-
-Per aggiornare i dati automaticamente ogni giorno:
-```bash
-python run_pipeline.py
-```
-
-✅ Tutti i dati verranno aggiunti automaticamente allo storico, nessuna perdita di dati, nessun conflitto.
-
----
-
-## ✅ Checklist Funzionamento Corretto
-
-- [ ] Tutti gli scraper terminano senza errori
-- [ ] `text_analysis.py` non mostra warning
-- [ ] SQLite database è presente in `data/tech_advocacy.db`
-- [ ] Dashboard si apre correttamente
-- [ ] Tutte le 6 tab sono visibili
-- [ ] Network Map si carica e mostra i nodi
-- [ ] Mappa Posizionamento mostra punti e etichette ONG
-- [ ] Le posizioni delle ONG non cambiano più ad ogni refresh
-- [ ] Il file `ong_posizioni_permanenti.csv` è stato creato
-
----
-
-## 📚 Note Architetturali per Sviluppatori
-
-- Nessuna dipendenza da servizi cloud
-- Tutti i dati sono salvati localmente in open standard
-- Tutti i modelli sono open source
-- Nessuna telemetria
-- Tutto il codice è auditabile riga per riga
-- Le dipendenze sono fissate e versionate
-- Nessun magic code: ogni passaggio è esplicito e loggato
-
----
-
-> Questo progetto è progettato per essere trasparente, modificabile e affidabile. Non è ottimizzato per la velocità a tutti i costi, ma per essere comprensibile da chiunque.
+| Error | Solution |
+|-------|----------|
+| `ModuleNotFoundError` | Run `pip install -r requirements.txt` |
+| `No module named 'scrapers'` | Use `python -m streamlit run app/dashboard.py` |
+| spaCy model missing | Run `python -m spacy download it_core_news_md` |
+| GPDP timeout | The site is slow; wait and retry |
+| Port 8501 in use | Add `--server.port 8502` to the streamlit command |
+| `UnicodeEncodeError` on Windows | Fixed: stdout/stderr forced to UTF-8 at startup |
