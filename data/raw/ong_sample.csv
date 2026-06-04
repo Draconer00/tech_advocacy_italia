@@ -1714,142 +1714,750 @@ fb0b9e96b5019320f655901d4764fa612b4c08da187673548c0bc12dba027d97,ong,Noyb (Priva
 
 
             <div class=""field--field-p-text-text field""><ul><li><a href=""https://noyb.eu/sites/default/files/2026-05/LinkedIn_Beschwerde_redacted.pdf"">Complaint against LinkedIn</a> (DE)</li></ul><p><span lang=""EN-GB""><strong>Selling data: Yes! Right to access: No?&nbsp;</strong>LinkedIn is constantly trying to entice its users into signing up for a paid premium membership. This is primarily promoted through a feature that allows users to view a list of all visitors to their profile over the past 365 days. Many other providers also attempt to use user data to create a premium product. Yet, under EU law, such personal data should actually be accessible free of charge. This presents LinkedIn with a legal dilemma: the data hidden behind a premium membership would also have to be made available as part of a free access request under Article 15 GDPR.</span></p><p><span lang=""EN-GB""><strong>LinkedIn tracks profile visits.</strong> The reason is that visitor data, to a certain extent, constitutes shared data between visitors and those whose profiles are visited. Such activity data is often analysed to personalise the content or adverts displayed. Although LinkedIn allows users to opt out of this tracking, it does not ask for active consent (opt-in). It is therefore questionable to what extent the recording of profile visits is legal at all.</span></p><p><span lang=""EN-GB"">Martin Baumann, data protection lawyer at </span><em><span lang=""EN-GB"">noyb</span></em><span lang=""EN-GB"">: </span><em><span lang=""EN-GB"">“Selling data to its own users is a popular practice among companies. In reality, however, people have the right to receive their own data free of charge. It is absurd that companies only seem to recognise the importance of data protection when they want to sell data. For example, when LinkedIn has no problem handing over certain data in exchange for money – but suddenly becomes concerned about the privacy of other users when you exercise your right of access.”</span></em></p><p><span lang=""EN-GB""><strong>Data protection versus data protection.</strong> It is particularly absurd that LinkedIn is using a supposed ‘data protection interest’ as an argument to deny the right of access to data under the GDPR. Either the data must not be accessible to anyone, or – if it is clear to the visitor that the data is visible – it must also be disclosed in accordance with Article 15 GDPR.</span></p><p><span lang=""EN-GB"">Martin Baumann, data protection lawyer at </span><em><span lang=""EN-GB"">noyb</span></em><span lang=""EN-GB"">: </span><em><span lang=""EN-GB"">“The protection of the rights and freedoms of others can definitely be a reason for not disclosing shared personal data. However, if a company has sought the relevant consent and is clearly willing to make the same data available for a fee, this argument no longer holds water.”</span></em></p><p><span lang=""EN-GB""><strong>GDPR rights as a money-making opportunity?</strong> The GDPR sets out various rights to enable users to access and amend their data in the information society. However, companies often continue to charge a fee for this, whether it involves </span><a href=""https://noyb.eu/en/creditors-association-earns-millions-actually-cost-free-gdpr-rights""><span lang=""EN-GB"">access requests with a creditors’ association</span></a><span lang=""EN-GB""> or the </span><a href=""https://noyb.eu/en/wizz-air-eu1-flight-eu35-your-gdpr-right""><span lang=""EN-GB"">correction of names on tickets</span></a><span lang=""EN-GB"">. These fees are often long-established – but illegal.</span></p><p><span lang=""EN-GB""><strong>Complaint filed.</strong> </span><em><span lang=""EN-GB"">noyb</span></em><span lang=""EN-GB""> has therefore lodged a complaint with the Austrian Data Protection Authority on behalf of a LinkedIn user and is demanding a full response to his access request. Furthermore, </span><em><span lang=""EN-GB"">noyb</span></em><span lang=""EN-GB""> is proposing that a fine be imposed to prevent similar breaches in future.</span></p></div>",fb0b9e96b5019320f655901d4764fa612b4c08da187673548c0bc12dba027d97
-83c255fc2b9708128a4c853d3ebab0dc7c9d044ca9115d5a3ead8065517675b0,ong,Electronic Frontier Foundation,Organizzazione Legale,Internazionale,Prima organizzazione mondiale per la difesa dei diritti digitali,"Fri, 29 May 2026 20:15:43 +0000",2026-05-31T06:20:26.262289,"One Step Forward, Two Steps Back: CA's AB 1856 Exempts Open Source But Expands Age-Gating",https://www.eff.org/deeplinks/2026/05/one-step-forward-two-steps-back-cas-ab-1856-exempts-open-source-expands-age-gating,comunicato,1,it,"One Step Forward, Two Steps Back: CA's AB 1856 Exempts Open Source But Expands Age-Gating <div class=""field field--name-body field--type-text-with-summary field--label-hidden""><div class=""field__items""><div class=""field__item even""><p><span>After public outrage, California lawmakers are moving closer to exempting open-source operating systems from the sweeping age-bracketing regime mandated by last year’s Digital Age Assurance Act (AB 1043). Nonetheless, the current bill still jeopardizes internet users’ speech, privacy, and security.</span></p>
-<p>While the open source exemption, if passed, would improve the law, the remaining amendments proposed by AB 1856 would require all web browsers and websites to request and collect users’ ages. This is an expansion of last year's AB 1043's age-bracketing system that compounds its constitutional harms to users’ speech, privacy, and security. As AB 1856 moves on to the Senate, EFF will continue fighting for amendments that reduce those harms.</p>
-<h3>AB 1856 Extends AB 1043’s Age-Gating Regime</h3>
-<p><span>Last year, California passed </span><a href=""https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202520260AB1043""><span>AB 1043</span></a><span>, which requires all operating systems and app stores to create age-bracketing systems that segment users based on their ages. </span><a href=""https://www.eff.org/deeplinks/2026/03/ab-1043s-internet-age-gates-hurt-everyone""><span>As we’ve written</span></a><span>, that regime is a recipe for censorship: it creates unnecessary and unconstitutional barriers to accessing lawful online speech, threatens our right to anonymity, and pressures online services to collect troves of valuable and sensitive user data. On top of that, A.B. 1043’s wide-sweeping compliance burdens impose disproportionate harms on the open-source ecosystem that underpins much of the modern web. </span></p>
-<p><span>Given these flaws, lawmakers introduced </span><a href=""https://leginfo.legislature.ca.gov/faces/billTextClient.xhtml?bill_id=202520260AB1856""><span>AB 1856</span></a><span> this year as a supposed “clean-up” bill for AB 1043. But instead of sticking to fixing AB 1043’s unique and serious harms (like its impact on open-source operating systems), AB 1856 also expanded the regime even further—extending its age-bracketing requirements beyond operating systems and app stores to browsers and websites. </span></p>
-<p><span>EFF opposed AB 1856 on two grounds, which we explained in </span><a href=""https://www.eff.org/document/eff-letter-opposition-californias-ab-1856""><span>our opposition letter</span></a><span> to the Assembly: </span></p>
-<ol>
-<li><span>The harms that age-gating regimes pose to users’ speech, privacy, and anonymity; and</span></li>
-<li><span>The disproportionate harms that this particular regime imposes on open-source developers. </span></li>
-</ol>
-<h3>Open Source Concerns Somewhat Alleviated By Amendment</h3>
-<p><span>On May 28th, AB 1856 passed the Assembly in a nearly unanimous vote (68-1). </span></p>
-<p><span>Before that vote, however, AB 1856 was amended to relieve the compliance burden on open-source operating systems. This is a meaningful improvement and a welcome relief for open-source developers, who have been </span><a href=""https://www.linuxteck.com/california-age-verification-law-linux/""><span>loud</span></a><a href=""https://www.pcgamer.com/software/operating-systems/a-new-california-law-says-all-operating-systems-including-linux-need-to-have-some-form-of-age-verification-at-account-setup/""> <span>and</span></a><a href=""https://www.tomshardware.com/software/operating-systems/california-introduces-age-verification-law""> <span>clear</span></a><span> about </span><a href=""https://boingboing.net/2026/03/02/californias-age-verification-law-could-regulate-every-linux-command.html""><span>how much</span></a><span> of an </span><a href=""https://www.opensourceforu.com/2026/03/california-age-law-puts-open-source-operating-systems-in-a-compliance-dilemma/""><span>existential threat</span></a><span> A.B. 1043’s age-gating mandate would pose.</span></p>
-<p><span>The new exception reads: </span></p>
-<blockquote><p><span>“</span><span>Operating system provider” does not mean a person or entity that distributes an operating system or application under license terms that permit a recipient to copy, redistribute, and modify the software.</span><span>”</span></p>
-</blockquote>
-<p><span>EFF understands this amendment to exempt open-source operating systems from the requirement to collect and transmit users’ age-bracket data. That is a definite win for open-source developers. The bill is narrower now than it was before, and lawmakers clearly responded to concerns raised by EFF and the broader open-source community. </span></p>
-<p><span>Some important questions still remain—for example, it is unclear how the law would apply when an open-source operating system is incorporated into a commercial product or service. And, given the structure of where the exemption is placed under the “operating system provider” definition, lawmakers could stand to clarify that the exemption applies to open-source operating systems </span><i><span>and</span></i><span> applications.</span></p>
-<p><span>Nonetheless, that ambiguity aside, this amendment does substantially reduce the threat that AB 1043 could have on many open-source developers. </span></p>
-<h3>AB 1856 Still Expands the Problematic Age-Bracketing Regime</h3>
-<p><span>Don’t get us wrong—if this bill passes, we will be very happy that AB 1043 does not pose nearly the amount of harm to our friends behind open-source operating systems. But even after these amendments, EFF remains opposed to AB 1856 because it ultimately expands California’s sweeping age-bracketing framework far beyond the original scope of AB 1043. <br /></span><span></span></p>
-<p><span>In AB 1856 and its amendments, the Assembly failed to address the core problem with AB 1043’s age-bracketing regime: mandated age-gating systems threaten users’ speech, privacy, anonymity, and security. </span></p>
-<p class=""pull-quote""><span>Even after these amendments, EFF remains opposed to AB 1856 because it ultimately expands California’s sweeping age-bracketing framework far beyond the original scope of AB 1043. </span></p>
-<p><span>Even though AB 1043 does not explicitly require companies to perform age verification, it nonetheless imposes a liability structure that </span><a href=""https://www.eff.org/deeplinks/2026/03/ab-1043s-internet-age-gates-hurt-everyone""><span>strongly pressures companies to verify users’ ages anyway</span></a><span>. In practice, that could lead to more ID checks, more biometric scanning, more invasive data collection and risk of breach, and more barriers to adults’ and young people’s lawful speech.</span></p>
-<p><span>In fact, instead of narrowing AB 1043’s wide net, AB 1856 </span><i><span>expanded</span></i><span> it to add browser providers and website operators to the list of entities that must comply with its age-bracketing requirements. This dramatically broadens the scope of AB 1043 and pulls more services, developers, and users into an anonymity- and privacy-destroying data collection framework that has not yet been implemented or evaluated. The result would make it nearly impossible for regular internet users to avoid AB 1043’s age gates.</span></p>
-<h3>The Fight Moves to the Senate</h3>
-<p><span>On those grounds, EFF will continue to oppose AB 1856. Though it has passed the Assembly, the fight is not over. As the bill moves through the Senate, we’ll continue to push for amendments that actually “clean up” and narrow the scope of AB 1043, and offer more protection to users from the harms of age-gating systems. </span></p>
-
-</div></div></div>",83c255fc2b9708128a4c853d3ebab0dc7c9d044ca9115d5a3ead8065517675b0
-cca6e4f12ca4a18243e003c573af3dbdfa72daca8bf40863f26f651890503d1b,ong,Electronic Frontier Foundation,Organizzazione Legale,Internazionale,Prima organizzazione mondiale per la difesa dei diritti digitali,"Thu, 28 May 2026 16:37:42 +0000",2026-05-31T06:20:26.635764,Age Verification is a Privacy Nightmare,https://www.eff.org/deeplinks/2026/05/age-verification-privacy-nightmare,comunicato,1,it,"Age Verification is a Privacy Nightmare <div class=""field field--name-body field--type-text-with-summary field--label-hidden""><div class=""field__items""><div class=""field__item even""><p>In the rush to block young people from certain parts of the internet, lawmakers are creating a privacy and security nightmare for everyone. This scenario is already playing out globally. <a href=""https://supporters.eff.org/donate/spring--DL5"">Help us stop it and keep the web open and accessible for all.</a></p>
-<p class=""take-action""><a href=""https://supporters.eff.org/donate/spring--DL5"">JOIN EFF</a></p>
-<p class=""take-action take-explainer"">Protect the web for everyone</p>
-<p>Even with the best intentions, every online age verification scheme has the same result: <em>users are forced to reveal sensitive personal information to third parties simply to access the web.</em> Once that valuable data is centralized, it becomes an immediate target for leaks, hacks, and misuse. This isn’t hypothetical: <a href=""https://www.eff.org/deeplinks/2024/06/hack-age-verification-company-shows-privacy-danger-social-media-laws"">it has</a> <a href=""https://www.eff.org/deeplinks/2024/06/hack-age-verification-company-shows-privacy-danger-social-media-laws"">already</a> <a href=""https://www.eff.org/deeplinks/2024/06/hack-age-verification-company-shows-privacy-danger-social-media-laws"">happened</a> <a href=""https://www.malwarebytes.com/blog/news/2026/02/age-verification-vendor-persona-left-frontend-exposed"">several</a> <a href=""https://techcrunch.com/2025/08/13/how-we-found-teaonher-spilling-users-drivers-licenses-in-less-than-10-minutes"">times</a>.</p>
-<p><a href=""https://supporters.eff.org/donate/spring--DL5"">By age gating the web, we serve up a honeypot of private info ripe for bad actors. But you can help us stop this when you join EFF.</a></p>
-<p></p><div class=""caption caption-center""><div class=""caption-width-container""><div class=""caption-inner""><a href=""https://supporters.eff.org/donate/spring--DL5""><img alt=""A person wears an EFF Claw Back member t-shirt on the left. A person on the right wears a black sweatshirt with the Privacy Badger mascot on the chest."" height=""1200"" src=""https://www.eff.org/files/2026/05/18/claw_f_crewb.jpg"" title=""A person wears an EFF Claw Back member t-shirt on the left. A person on the right wears a black sweatshirt with the Privacy Badger mascot on the chest."" width=""1667"" /></a><p class=""caption-text"">Support digital rights in EFF's new Claw Back member t-shirt and Privacy Badger Crewneck.</p></div></div></div>
-
-<p>Thanks to our members, EFF is on the front lines fighting against online age gating and identity verification online. We’re working with lawmakers to pass better policies, educating the public, and fighting the wildfire of age verification proposals around the world. <a href=""https://supporters.eff.org/donate/spring--DL5"">Now all we need is you.</a></p>
-<h2>🐝 No, It’s Not a Bug</h2>
-<p>We all want young people to be safe online, but we don’t need to trade everyone's digital rights to achieve it. These new restrictive mandates are used to justify government-led censorship and expanded surveillance. That's no accident.</p>
-<p>Whether you trust today’s lawmakers or not, handing anyone keys to new forms of censorship and surveillance is a serious risk. Because history shows us that these powers are always abused. It’s time to demand better.</p>
-<p class=""take-action""><a href=""https://supporters.eff.org/donate/spring--DL5"">Join EFF today</a></p>
-<p class=""take-explainer"">Help us claw back your privacy</p>
-<p>____________________</p>
-<p><em><span class=""TextRun SCXW4268908 BCX0"" lang=""EN-US"" xml:lang=""EN-US""><span class=""NormalTextRun SCXW4268908 BCX0"">EFF is a member-supported U.S. 501(c)(3) organization. </span><span class=""NormalTextRun CommentStart CommentHighlightPipeRest CommentHighlightRest SCXW4268908 BCX0"">We've</span><span class=""NormalTextRun CommentHighlightRest SCXW4268908 BCX0""> received top rati</span><span class=""NormalTextRun CommentHighlightRest SCXW4268908 BCX0"">ngs </span><span class=""NormalTextRun CommentHighlightRest SCXW4268908 BCX0"">from the nonprofit watchdog Charity Navigator since 2013!</span><span class=""NormalTextRun CommentHighlightPipeRest SCXW4268908 BCX0""> Your donation is tax-deductible as allowed by law.</span></span></em></p>
-
-</div></div></div>",cca6e4f12ca4a18243e003c573af3dbdfa72daca8bf40863f26f651890503d1b
-3083b001c44562e6a81b816de476caddaaad4b01f0292e32d5b7b16d68c34613,ong,Electronic Frontier Foundation,Organizzazione Legale,Internazionale,Prima organizzazione mondiale per la difesa dei diritti digitali,"Tue, 26 May 2026 21:23:43 +0000",2026-05-31T06:20:26.996067,"More License Plate Reader Mission Creep: School Residency Verification, Background Checks, and Noise Complaints",https://www.eff.org/deeplinks/2026/05/more-license-plate-reader-mission-creep-school-residency-verification-background,comunicato,1,it,"More License Plate Reader Mission Creep: School Residency Verification, Background Checks, and Noise Complaints <div class=""field field--name-body field--type-text-with-summary field--label-hidden""><div class=""field__items""><div class=""field__item even""><p><strong></strong><span>An EFF analysis of millions of searches of Flock Safety <a href=""https://sls.eff.org/technologies/automated-license-plate-readers-alprs"">automated license plate reader</a> (ALPR) data by police has uncovered a troubling pattern: in the absence of a warrant requirement to search ALPR databases, law enforcement agencies have moved beyond specific investigations to use these surveillance networks for virtually any whim.</span></p>
-<p><span>Our findings suggest that the absence of a warrant requirement has fostered a culture of unrestricted access to sensitive location data, allowing agencies to leverage that data beyond the scope of specific criminal investigations.</span></p>
-<p><span>As a refresher: Law enforcement agencies lease or purchase camera systems from Flock Safety and then mount them by the side of the road and at intersections to document every vehicle that passes, including the plate, make, model, color and distinguishing characteristics, along with the date, time and location of where it was seen. </span></p>
-<p><span>Law enforcement's talking points—</span><a href=""https://www.documentcloud.org/documents/28163832-wpd-flock-emails-janjul2025-text-1/?mode=document#document/p24/a2818282""><span>often scripted by the company itself</span></a><span>—trumpet their role in solving high-stakes crimes. But the data reveals a different story. What they're not saying is that ALPRs are also frequently used for extremely low-level investigations, such as verifying whether a student lives within a particular school zone. In some cases, police have even used this tech to conduct employment background checks and investigations into loud music complaints. Recently, </span><a href=""https://www.eff.org/deeplinks/2026/03/traffic-violation-license-plate-reader-mission-creep-already-here""><span>a motorcyclist was even targeted</span></a><span> for simply holding a cell phone while riding.</span></p>
-<p><span>The reach of this ALPR surveillance is amplified by the nature of the indiscriminate sharing these technologies encourage. Most agencies choose to share broadly, often as part of a nationwide pool, making it common for a single city's system to be searched hundreds of thousands of times each month. By analyzing these ""network audit logs,"" privacy advocates and journalists have uncovered evidence of the technology being used to surveil </span><a href=""http://www.eff.org/deeplinks/2025/11/how-cops-are-using-flock-safetys-alpr-network-surveil-protesters-and-activists""><span>protesters</span></a><span>, </span><a href=""https://www.eff.org/deeplinks/2025/05/she-got-abortion-so-texas-cop-used-83000-cameras-track-her-down""><span>abortion-seekers</span></a><span>, </span><a href=""https://www.404media.co/ice-taps-into-nationwide-ai-enabled-camera-network-data-shows/""><span>immigrants</span></a><span>, and even </span><a href=""https://www.eff.org/deeplinks/2025/11/license-plate-surveillance-logs-reveal-racist-policing-against-romani-people""><span>ethnic Roma populations</span></a><span>. </span></p>
-<p><span>While these high-profile abuses are shocking, the more mundane uses are also problematic, signaling a massive, unchecked mission creep that has turned an alleged “crime-fighting” tool into a universal tracker of everyone’s movements. </span></p>
-<h3><span>Residency Checks</span></h3>
-<p><span>School systems in the U.S. conduct ""</span><a href=""https://legal.thomsonreuters.com/blog/residency-verification-in-public-schools-an-overview/""><span>residency verification</span></a><span>"" investigations of their parents or guardians to ensure enrolled children live in the district. To carry out these checks, some school districts have enlisted law enforcement officers for help, leveraging ALPR databases to track the comings and goings of families across the region. </span></p>
-<p><span>Buford City Schools in Georgia, which serves only about 6,000 students, illustrates the scale of this prying. Between January 2025 and March 2026, school police ran more than 375 searches where officers listed school residency verification, or simply ""RV,"" as the reason for the search. That accounts for more than half of all ALPR searches in that period, and in those three months of 2026, three-quarters of all searches were related to residency verification. </span></p>
-<p><span>School officials stand by the searches. ""[B]ecause Buford City Schools is a highly sought-after district, we experience ongoing challenges with residency fraud,"" a spokesperson told Appen Media, which shared the email with EFF. ""Flock Safety is one of the tools we use to verify residency and protect the integrity of the Buford City School System for families who live within the district.""</span></p>
-<p><span>A search of ALPR data will show a lot more than whether a family lives within the right zone. In these Buford cases, officers ran some searches across more than 5,800 different networks nationwide. Every time a plate is searched, it can reveal personal information about a family: when they go to the doctor, when they go to worship, when they go out at night, and where they travel on vacation. None of that is the school district's business, and these searches are a huge invasion of privacy. </span></p>
-<p><span>While Buford was by the far the most prolific, it wasn't the only agency to run school residency checks. For example, Delhi Township Police Department (DTPD) in Ohio ran 35 searches related to students in five schools in a three-month period during spring 2025, and similarly stood by the practice, citing a warning given to parents that submitting a false statement of residency may be a felony. </span></p>
-<p><span>After EFF sent an inquiry to DTPD, the agency conducted a brief investigation and found that ""these searches were not done to verify residency upon submission, but to investigate cases where it was believed the form was filled out with false information."" DTPD did not say what kind of evidence was required to establish suspicion before an ALPR query, nor did it offer information on how many of these investigations turned out to be justified. </span></p>
-<p><span>However, the official told EFF: ""in response to your inquiry, the department will be implementing a change to how these queries are documented in the Flock system and internally, to increase accountability and help avoid any confusion moving forward.""</span></p>
-<p><span>Other agencies that ran school residency searches include Cortland Police Department in Ohio and Lincoln Police Department in Alabama. Several agencies also ran searches with ""residency,"" ""residency investigation"" or ""residency verification"" as the reason, but that could refer to a number of public services. These agencies include Ridgeland Police Department in Mississippi, Fairfield County Sheriff's Office in South Carolina, Manteno Police Department in Illinois, Illinois Department of Natural Resources, and Mora County Sheriff's Office in New Mexico. </span></p>
-<h3><span>Background Checks</span></h3>
-<p><span>Few people would imagine that applying for a government job would open you up to an ALPR search. Yet, several law enforcement agencies ran searches through the Flock network related to employment. </span></p>
-<p><span>For example:</span></p>
-<ul>
-<li><span>Jefferson County Sheriff's Office in Missouri ran six searches across 2,853 networks, documenting ""employment"" in the reason field.</span></li>
-<li><span>Little Elm Police Department in Texas ran 10 searches across 6,306 networks, documenting ""EMPLOYMENT"" in the reason field.</span></li>
-<li><span>Ridgeland Police Department in Mississippi ran two searches across more than 6,000 networks documenting ""employment background inv"" in the reason field.</span></li>
-<li><span>Texas City Police Department, Texas ran three searches across 728 networks, documenting ""pre employment background"" in the reason field. </span></li>
-<li><span>Zion Police Department in Illinois ran a research across 585 networks documenting ""Employee Background"" in the reason field. </span></li>
-</ul>
-<p><span>Davidson Police Department in North Carolina logged a search listed as ""Employment Background,"" but in response to an inquiry from EFF, the chief described this as ""poor choice of words by our investigator."" He further stated that the agency does not use ALPRs as part of employment background checks, but in this case, the agency shared that a potential violation of a protective order came to light during a background check, hence the reference to it in the search log.</span></p>
-<p><span>In addition to the agencies mentioned, several agencies ran searches that simply referred to ""background check"" or ""background checks,"" which could be related to employment or perhaps some other issue, such as a </span><a href=""https://www.eff.org/deeplinks/2025/01/california-police-misused-state-databases-more-7000-times-2023""><span>concealed weapons permit</span></a><span>, for example. These include Avon Police Department in Indiana, Rockford Police Department in Illinois, San Bernardino County Sheriff's Office in California, and Seaford Police Department in Delaware.</span></p>
-<h3><span>Noise Complaints</span></h3>
-<p><span>Many people have probably been irritated at some point or another by a car blasting a deep bassline or even the infamous ""</span><a href=""https://www.youtube.com/watch?v=Wy4ZK4qBUrI""><span>whistle tip</span></a><span>."" Some may have even called the cops to complain about a neighbor’s house party. But that's a far cry from the types of serious crimes that Flock and its customers have claimed that the ALPR systems would be used to solve. </span></p>
-<p><span>Yet, EFF identified 26 agencies where officers felt it was appropriate to pry into a driver's life because of a noise complaint, ranging from house parties to loud exhausts to just ""music"": </span></p>
-<p><img alt=""A table of agencies and their searches that relate to noise complaints."" height=""576"" src=""https://www.eff.org/files/2026/05/26/noise2.png"" title=""A table of agencies and their searches that relate to noise complaints."" width=""641"" /></p>
-<p><span>Some of these agencies searched upwards of 6,500 networks’ cameras—the equivalent of launching a nationwide goose chase over a booming subwoofer or a busted muffler. </span></p>
-<h3><span>When Mission Creep Is Just Plain Creepy</span></h3>
-<p><span>An observant reader of this report may have noticed that Ridgeland Police Department in Mississippi ran searches in all three of the categories we reported above.</span></p>
-<p><span>However, after the city first installed the Flock Safety cameras, the then-police chief </span><a href=""https://www.wjtv.com/news/local/ridgeland-adds-12-license-plate-reader-cameras/""><span>told</span></a><span> the press that the technology helps solve cases that range from ""theft to crimes of violence""—without disclosing that the range would extend much further.</span></p>
-<p><span>When police and salespeople trot out cherry-picked cases to argue that a mass surveillance technology is an ""important"" tool,  they obfuscate that it's a convenient shortcut around due process. For serious crimes, police can already go through the standard legal process: making the case to a judge on why they should get a search warrant for location data, whether it's from cell phones or service providers. But police treat ALPR databases as if no such threshold exists, giving them free rein to track a person’s movements without a sliver of judicial oversight.</span></p>
-<p class=""pull-quote""><span>When police and salespeople trot out cherry-picked cases to argue that a mass surveillance technology is an ""important"" tool,  they obfuscate that it's a convenient shortcut around due process. </span></p>
-<p><span>""This is the same as if I put a police officer on the side of the road with a pen and a notepad and he writes down every license plate number that drives by,” the former chief </span><a href=""https://www.wlbt.com/2020/04/24/license-plate-readers-coming-ridgeland-help-solve-crimes/""><span>said</span></a><span>, repeating a commonly circulated talking point. </span></p>
-<p><span>That rhetoric may sound reasonable if we were just talking about a single camera on a street corner, but Ridgeland now operates more than 50 cameras—the equivalent of one for every 500 residents—and maintains access to tens of thousands more. </span></p>
-<p><span>If the chief had stood in front of the city’s aldermen and asked for permission to search more than 20,000 cameras so his officers could investigate the high crime of ""music,"" it’s quite unlikely that they would have been nodding their heads along. </span></p>
-<p><span>Ridgeland Police Department did not respond to EFF’s requests for comment.</span></p>
-
-</div></div></div>",3083b001c44562e6a81b816de476caddaaad4b01f0292e32d5b7b16d68c34613
-5669edf5fefe803c9aa5c13e189b45b5612db361eff05b634a89c21bca9ea502,ong,Hermes Center,Centro Ricerca,Italia,Centro internazionale studi su sicurezza informatica e diritti digitali,"Mon, 11 May 2026 14:43:09 +0000",2026-06-03T06:54:33.584621,L’AI Advisory Forum è in ritardo di sette mesi. Ecco la nostra lettera all’UE,https://hermescenter.org/lai-advisory-forum-e-in-ritardo-di-sette-mesi-ecco-la-nostra-lettera-allue/,comunicato,1,it,"L’AI Advisory Forum è in ritardo di sette mesi. Ecco la nostra lettera all’UE <p>Nonostante si stia procedendo con l'attuazione dell'AI Act, l'UE non ha ancora istituito l'AI Advisory Forum. EDRi lancia l'appello</p>
+5669edf5fefe803c9aa5c13e189b45b5612db361eff05b634a89c21bca9ea502,ong,Hermes Center,Centro Ricerca,Italia,Centro internazionale studi su sicurezza informatica e diritti digitali,"Mon, 11 May 2026 14:43:09 +0000",2026-06-04T06:44:42.253238,L’AI Advisory Forum è in ritardo di sette mesi. Ecco la nostra lettera all’UE,https://hermescenter.org/lai-advisory-forum-e-in-ritardo-di-sette-mesi-ecco-la-nostra-lettera-allue/,comunicato,1,it,"L’AI Advisory Forum è in ritardo di sette mesi. Ecco la nostra lettera all’UE <p>Nonostante si stia procedendo con l'attuazione dell'AI Act, l'UE non ha ancora istituito l'AI Advisory Forum. EDRi lancia l'appello</p>
 <p>The post <a href=""https://hermescenter.org/lai-advisory-forum-e-in-ritardo-di-sette-mesi-ecco-la-nostra-lettera-allue/"">L&#8217;AI Advisory Forum è in ritardo di sette mesi. Ecco la nostra lettera all&#8217;UE</a> appeared first on <a href=""https://hermescenter.org"">Hermes Center</a>.</p>",5669edf5fefe803c9aa5c13e189b45b5612db361eff05b634a89c21bca9ea502
-a310d293c688713109981339847c4a2a7484d02f6cd56fcb8d9f5b340bbd6c51,ong,AlgorithmWatch,Organizzazione di Ricerca,Internazionale,Monitora e valuta l'impatto sociale degli algoritmi e dell'intelligenza artificiale,"Mon, 01 Jun 2026 05:14:00 +0000",2026-06-03T06:54:34.474478,The AI Climate Hoax: Behind the Curtain of How Big Tech Greenwashes Impacts,https://algorithmwatch.org/en/ai-climate-hoax/,comunicato,1,it,"The AI Climate Hoax: Behind the Curtain of How Big Tech Greenwashes Impacts The tech companies driving AI expansion claim that AI will eventually help solve climate change. Our analysis indicates that such claims are not based on credible and verifiable data. On the contrary, the evidence for any significant positive climate impacts from AI is weak, while its substantial climate damage is clearly documented.",a310d293c688713109981339847c4a2a7484d02f6cd56fcb8d9f5b340bbd6c51
-8327d80eca0b37cfd8e622b1e434fb58d47583ce4ec2eefe0e65da3e9c7dca2a,ong,The Good Lobby Italia,Organizzazione Advocacy,Italia,Formazione e attivismo per la partecipazione democratica e il lobbying civico,"Fri, 15 May 2026 12:54:51 +0000",2026-06-03T06:54:34.910956,10 anni di FOIA: cos’è cambiato e cosa resta da fare,https://www.thegoodlobby.it/10-anni-di-foia/,comunicato,1,it,"10 anni di FOIA: cos’è cambiato e cosa resta da fare <p>Il 16 maggio 2016, il Consiglio dei ministri ha approvato, grazie a una mobilitazione dal basso senza precedenti, il decreto che introduceva il FOIA italiano, ovvero il diritto di accesso agli atti della Pubblica amministrazione. Per arrivarci sono serviti 666 giorni di campagna, 88.321 firme, oltre 30 organizzazioni coordinate, audizioni parlamentari, incontri al ministero, un tweet bombing durante una diretta social di Renzi. Prima di quel giorno, l&#8217;Italia era 97esima su 103 nazioni nel ranking globale del diritto di accesso all&#8217;informazione. Più di 90 Paesi nel mondo avevano già un Freedom of Information Act. Noi no.  &#160; Cosa è cambiato in dieci anni? La risposta onesta è: parecchio, e non abbastanza. &#160; &#160; Il parecchio  &#160; Grazie alla nostra storica mobilitazione le istituzioni hanno aperto finalmente le porte della &#8220;scatola nera&#8221; dello Stato e in questi 10 anni abbiamo visto i frutti di questa rivoluzione. Oggi, infatti, l’accessibilità dei dati pubblici è diventata la regola, non più l&#8217;eccezione. Chiunque può ora interrogare le amministrazioni senza dover dimostrare un interesse legale specifico, e i giornalisti e le attiviste hanno uno strumento in più per monitorare come vengono spesi i nostri soldi e come vengono prese le decisioni che impattano sulla nostra...</p>
+a310d293c688713109981339847c4a2a7484d02f6cd56fcb8d9f5b340bbd6c51,ong,AlgorithmWatch,Organizzazione di Ricerca,Internazionale,Monitora e valuta l'impatto sociale degli algoritmi e dell'intelligenza artificiale,"Mon, 01 Jun 2026 05:14:00 +0000",2026-06-04T06:44:38.380255,The AI Climate Hoax: Behind the Curtain of How Big Tech Greenwashes Impacts,https://algorithmwatch.org/en/ai-climate-hoax/,comunicato,1,it,"The AI Climate Hoax: Behind the Curtain of How Big Tech Greenwashes Impacts The tech companies driving AI expansion claim that AI will eventually help solve climate change. Our analysis indicates that such claims are not based on credible and verifiable data. On the contrary, the evidence for any significant positive climate impacts from AI is weak, while its substantial climate damage is clearly documented.",a310d293c688713109981339847c4a2a7484d02f6cd56fcb8d9f5b340bbd6c51
+8327d80eca0b37cfd8e622b1e434fb58d47583ce4ec2eefe0e65da3e9c7dca2a,ong,The Good Lobby Italia,Organizzazione Advocacy,Italia,Formazione e attivismo per la partecipazione democratica e il lobbying civico,"Fri, 15 May 2026 12:54:51 +0000",2026-06-04T06:44:42.658833,10 anni di FOIA: cos’è cambiato e cosa resta da fare,https://www.thegoodlobby.it/10-anni-di-foia/,comunicato,1,it,"10 anni di FOIA: cos’è cambiato e cosa resta da fare <p>Il 16 maggio 2016, il Consiglio dei ministri ha approvato, grazie a una mobilitazione dal basso senza precedenti, il decreto che introduceva il FOIA italiano, ovvero il diritto di accesso agli atti della Pubblica amministrazione. Per arrivarci sono serviti 666 giorni di campagna, 88.321 firme, oltre 30 organizzazioni coordinate, audizioni parlamentari, incontri al ministero, un tweet bombing durante una diretta social di Renzi. Prima di quel giorno, l&#8217;Italia era 97esima su 103 nazioni nel ranking globale del diritto di accesso all&#8217;informazione. Più di 90 Paesi nel mondo avevano già un Freedom of Information Act. Noi no.  &#160; Cosa è cambiato in dieci anni? La risposta onesta è: parecchio, e non abbastanza. &#160; &#160; Il parecchio  &#160; Grazie alla nostra storica mobilitazione le istituzioni hanno aperto finalmente le porte della &#8220;scatola nera&#8221; dello Stato e in questi 10 anni abbiamo visto i frutti di questa rivoluzione. Oggi, infatti, l’accessibilità dei dati pubblici è diventata la regola, non più l&#8217;eccezione. Chiunque può ora interrogare le amministrazioni senza dover dimostrare un interesse legale specifico, e i giornalisti e le attiviste hanno uno strumento in più per monitorare come vengono spesi i nostri soldi e come vengono prese le decisioni che impattano sulla nostra...</p>
 The post <a href=""https://www.thegoodlobby.it/10-anni-di-foia/"">10 anni di FOIA: cos’è cambiato e cosa resta da fare</a> first appeared on <a href=""https://www.thegoodlobby.it"">The Good Lobby Italia</a>.",8327d80eca0b37cfd8e622b1e434fb58d47583ce4ec2eefe0e65da3e9c7dca2a
-b76254bb96273dcfda8141363b46ab0a5d0e0e66f6cd4e9b892b22d932891efb,ong,The Good Lobby Italia,Organizzazione Advocacy,Italia,Formazione e attivismo per la partecipazione democratica e il lobbying civico,"Wed, 06 May 2026 11:29:40 +0000",2026-06-03T06:54:35.862319,Voto fuorisede: la legge è ferma in Senato. E adesso?,https://www.thegoodlobby.it/legge-voto-fuorisede-scadenza-senato/,comunicato,1,it,"Voto fuorisede: la legge è ferma in Senato. E adesso? <p>In questo articolo gli ultimi aggiornamenti sull’iter legislativo e quali sono i prossimi passi della nostra campagna per restituire il diritto di voto a chi vive lontano da casa.  Il disegno di legge di iniziativa popolare “Voglio Votare Fuorisede” (atto S. 1760), che abbiamo depositato insieme a Will Media e tutta la Rete Voto Fuorisede, avrebbe dovuto seguire un iter preciso. Secondo l’art. 74 del Regolamento del Senato, le Commissioni sono tenute a concludere l’esame di queste proposte entro tre mesi dall&#8217;assegnazione. Tuttavia, nonostante l&#8217;avvio formale il 18 febbraio, la discussione non è mai entrata nel vivo e la scadenza del 4 maggio è passata sotto silenzio. Siamo davanti a una situazione paradossale: una proposta sostenuta da oltre 50.000 firme ha seguito tutti i passaggi formali, ma è rimasta ferma sul piano politico. Secondo il regolamento, il testo dovrebbe ora essere calendarizzato in Assemblea, ma nei fatti il processo si è bloccato. Una mancanza che riteniamo inaccettabile e che non solo non rispetta i regolamenti d’aula, ma anche la chiara volontà espressa da decine di migliaia di firmatari.  &#160; &#160; La svolta alla Camera: il voto fuorisede entra nella riforma della legge elettorale &#160; Se il Senato tace, qualcosa si...</p>
+b76254bb96273dcfda8141363b46ab0a5d0e0e66f6cd4e9b892b22d932891efb,ong,The Good Lobby Italia,Organizzazione Advocacy,Italia,Formazione e attivismo per la partecipazione democratica e il lobbying civico,"Wed, 06 May 2026 11:29:40 +0000",2026-06-04T06:44:43.641319,Voto fuorisede: la legge è ferma in Senato. E adesso?,https://www.thegoodlobby.it/legge-voto-fuorisede-scadenza-senato/,comunicato,1,it,"Voto fuorisede: la legge è ferma in Senato. E adesso? <p>In questo articolo gli ultimi aggiornamenti sull’iter legislativo e quali sono i prossimi passi della nostra campagna per restituire il diritto di voto a chi vive lontano da casa.  Il disegno di legge di iniziativa popolare “Voglio Votare Fuorisede” (atto S. 1760), che abbiamo depositato insieme a Will Media e tutta la Rete Voto Fuorisede, avrebbe dovuto seguire un iter preciso. Secondo l’art. 74 del Regolamento del Senato, le Commissioni sono tenute a concludere l’esame di queste proposte entro tre mesi dall&#8217;assegnazione. Tuttavia, nonostante l&#8217;avvio formale il 18 febbraio, la discussione non è mai entrata nel vivo e la scadenza del 4 maggio è passata sotto silenzio. Siamo davanti a una situazione paradossale: una proposta sostenuta da oltre 50.000 firme ha seguito tutti i passaggi formali, ma è rimasta ferma sul piano politico. Secondo il regolamento, il testo dovrebbe ora essere calendarizzato in Assemblea, ma nei fatti il processo si è bloccato. Una mancanza che riteniamo inaccettabile e che non solo non rispetta i regolamenti d’aula, ma anche la chiara volontà espressa da decine di migliaia di firmatari.  &#160; &#160; La svolta alla Camera: il voto fuorisede entra nella riforma della legge elettorale &#160; Se il Senato tace, qualcosa si...</p>
 The post <a href=""https://www.thegoodlobby.it/legge-voto-fuorisede-scadenza-senato/"">Voto fuorisede: la legge è ferma in Senato. E adesso?</a> first appeared on <a href=""https://www.thegoodlobby.it"">The Good Lobby Italia</a>.",b76254bb96273dcfda8141363b46ab0a5d0e0e66f6cd4e9b892b22d932891efb
-84f6b8830c0efebbce0560cb9d501888a3b7d756e05afb3ccac104b7c3f6e377,ong,Antigone,Associazione,Italia,Associazione per i diritti e le garanzie nel sistema penitenziario,"Wed, 20 May 2026 05:03:57 +0000",2026-06-03T06:54:34.555566,"Chiuso, sovraffollato e malato: il carcere al tempo di Meloni",https://www.antigone.it/news/3639-chiuso-sovraffollato-e-malato-il-carcere-al-tempo-di-meloni,comunicato,1,it,"Chiuso, sovraffollato e malato: il carcere al tempo di Meloni <div class=""feed-description""><p><img alt=""carcere san vittore cella"" height=""169"" src=""https://www.antigone.it/images/articoli/carcere_san_vittore_cella.jpg"" style=""margin-right: 5px; float: left;"" width=""300"" />di Patrizio Gonnella su il manifesto del 20 maggio 2026</p>
+84f6b8830c0efebbce0560cb9d501888a3b7d756e05afb3ccac104b7c3f6e377,ong,Antigone,Associazione,Italia,Associazione per i diritti e le garanzie nel sistema penitenziario,"Wed, 20 May 2026 05:03:57 +0000",2026-06-04T06:44:41.690976,"Chiuso, sovraffollato e malato: il carcere al tempo di Meloni",https://www.antigone.it/news/3639-chiuso-sovraffollato-e-malato-il-carcere-al-tempo-di-meloni,comunicato,1,it,"Chiuso, sovraffollato e malato: il carcere al tempo di Meloni <div class=""feed-description""><p><img alt=""carcere san vittore cella"" height=""169"" src=""https://www.antigone.it/images/articoli/carcere_san_vittore_cella.jpg"" style=""margin-right: 5px; float: left;"" width=""300"" />di Patrizio Gonnella su il manifesto del 20 maggio 2026</p>
 <p>Celle allagate o sporche. Corridoi con rifiuti e cibo per terra. Celle lisce, che nel gergo penitenziario significa spazi oscuri dove accadono cose brutte. Agenti infiltrati nelle prigioni, gestione parallela della sicurezza affidata alla Polizia penitenziaria, svilimento del ruolo di direttori ed educatori, chiusura del carcere alla società civile, migliaia di detenuti murati nelle celle, decine di detenuti morti per cause restano perennemente da accertare, abuso dello strumento disciplinare e dell’isolamento in tutte le sue forme, celle sovraffollate oltre il limite della sopportazione. E ancora. Raddoppio in un anno del numero dei bimbi in carcere con le loro mamme; triplicazione dal 2022 del numero delle persone soggette a regime di vita chiuso.&nbsp;</p>
 <p>SONO QUESTI ALCUNI squarci drammatici del Rapporto periodico di Antigone sulle condizioni di detenzione non a caso intitolato Tutto chiuso, frutto di oltre cento visite svoltesi nel 2025. Questo è il carcere ai tempi del governo Meloni. Un sistema penitenziario in profonda crisi di umanità. Dal 2022 a oggi i detenuti sono cresciuti di ben 8 mila unità, nonostante siano tendenzialmente stabili tutti gli indici di delittuosità. Come è potuto accadere? Il mantra repressivo, securitario e vendicativo prodotto da un’alleanza politica tra alcuni sindacati autonomi della Polizia penitenziaria e le componenti più reazionarie del governo ha devastato il sistema penitenziario italiano. Il detenuto è trattato come un nemico da contenere, neutralizzare, tenere ben chiuso in cella. La retorica rieducativa si è andata lentamente spegnendo.&nbsp;</p>
 </div>",84f6b8830c0efebbce0560cb9d501888a3b7d756e05afb3ccac104b7c3f6e377
-860f66225b2929a0cfa2d269d50f12c8e4bde1c8494e0f817422860be1d3319c,ong,Antigone,Associazione,Italia,Associazione per i diritti e le garanzie nel sistema penitenziario,"Tue, 19 May 2026 07:40:23 +0000",2026-06-03T06:54:34.861536,"Rapporto Antigone: carceri sempre più affollate, più chiuse e lontane dal dettato costituzionale",https://www.antigone.it/news/3638-rapporto-antigone-carceri-sempre-piu-affollate-piu-chiuse-e-lontane-dal-dettato-costituzionale,comunicato,1,it,"Rapporto Antigone: carceri sempre più affollate, più chiuse e lontane dal dettato costituzionale <div class=""feed-description""><p style=""text-align: justify;""><img alt=""WhatsApp Image 2026-05-19 at 11.38.48"" height=""225"" src=""https://www.antigone.it/images/articoli/WhatsApp_Image_2026-05-19_at_11.38.48.jpeg"" style=""margin-right: 5px; float: left;"" width=""300"" />Presentato oggi il XXII Rapporto di Antigone sulle condizioni di detenzione in Italia, dal titolo “Tutto chiuso”, realizzato attraverso 102 visite di monitoraggio svolte negli istituti penitenziari di tutta Italia dall’Osservatorio sulle condizioni di detenzione di Antigone. Il quadro che emerge è quello di un sistema penitenziario sempre più lontano dal dettato costituzionale e sempre meno capace di garantire sicurezza.</p>
+860f66225b2929a0cfa2d269d50f12c8e4bde1c8494e0f817422860be1d3319c,ong,Antigone,Associazione,Italia,Associazione per i diritti e le garanzie nel sistema penitenziario,"Tue, 19 May 2026 07:40:23 +0000",2026-06-04T06:44:42.194412,"Rapporto Antigone: carceri sempre più affollate, più chiuse e lontane dal dettato costituzionale",https://www.antigone.it/news/3638-rapporto-antigone-carceri-sempre-piu-affollate-piu-chiuse-e-lontane-dal-dettato-costituzionale,comunicato,1,it,"Rapporto Antigone: carceri sempre più affollate, più chiuse e lontane dal dettato costituzionale <div class=""feed-description""><p style=""text-align: justify;""><img alt=""WhatsApp Image 2026-05-19 at 11.38.48"" height=""225"" src=""https://www.antigone.it/images/articoli/WhatsApp_Image_2026-05-19_at_11.38.48.jpeg"" style=""margin-right: 5px; float: left;"" width=""300"" />Presentato oggi il XXII Rapporto di Antigone sulle condizioni di detenzione in Italia, dal titolo “Tutto chiuso”, realizzato attraverso 102 visite di monitoraggio svolte negli istituti penitenziari di tutta Italia dall’Osservatorio sulle condizioni di detenzione di Antigone. Il quadro che emerge è quello di un sistema penitenziario sempre più lontano dal dettato costituzionale e sempre meno capace di garantire sicurezza.</p>
 <p style=""text-align: justify;"">Le carceri italiane sono oggi più affollate, più chiuse e il governo continua ad aggravare l’emergenza penitenziaria con nuovi reati, aumenti delle pene e nuovi annunci di edilizia penitenziaria, con i numeri che raccontano il fallimento di questo approccio. <br />Al 30 aprile 2026 nelle carceri italiane erano detenute 64.436 persone, a fronte di una capienza regolamentare di 51.265 posti che si riducono a soli 46.318 posti realmente disponibili. Il tasso reale di sovraffollamento ha così raggiunto il 139,1%. Sono ormai 73 gli istituti con un tasso di affollamento pari o superiore al 150%, mentre in 8 carceri si supera addirittura il 200%. Gli istituti non sovraffollati sono appena 22 in tutta Italia. Nonostante il governo abbia annunciato da tempo un piano carceri, i posti realmente disponibili sono addirittura diminuiti di 537 unità dall’avvio del piano stesso. Nel frattempo, dal 2018 al 2024, i tribunali di sorveglianza hanno accolto oltre 30 mila ricorsi per trattamenti inumani o degradanti subiti dalle persone detenute. Numeri superiori a quelli che portarono alla condanna nella sentenza Sentenza Torreggiani c. Italia, quando i ricorsi presentati furono circa 4.000.</p>
 </div>",860f66225b2929a0cfa2d269d50f12c8e4bde1c8494e0f817422860be1d3319c
-ff43e5733c8d2ff5fe337e028177d10292d57263aa6a273d42c8faf65792541b,ong,Antigone,Associazione,Italia,Associazione per i diritti e le garanzie nel sistema penitenziario,"Mon, 11 May 2026 10:48:29 +0000",2026-06-03T06:54:35.183244,Al via gli Stati Generali della Giustizia Minorile,https://www.antigone.it/news/3636-al-via-gli-stati-generali-della-giustizia-minorile,comunicato,1,it,"Al via gli Stati Generali della Giustizia Minorile <div class=""feed-description""><p><img alt=""logo stati generali"" height=""300"" src=""https://www.antigone.it/images/articoli/logo_stati_generali.png"" style=""margin-right: 5px; float: left;"" width=""300"" /></p>
+ff43e5733c8d2ff5fe337e028177d10292d57263aa6a273d42c8faf65792541b,ong,Antigone,Associazione,Italia,Associazione per i diritti e le garanzie nel sistema penitenziario,"Mon, 11 May 2026 10:48:29 +0000",2026-06-04T06:44:42.585162,Al via gli Stati Generali della Giustizia Minorile,https://www.antigone.it/news/3636-al-via-gli-stati-generali-della-giustizia-minorile,comunicato,1,it,"Al via gli Stati Generali della Giustizia Minorile <div class=""feed-description""><p><img alt=""logo stati generali"" height=""300"" src=""https://www.antigone.it/images/articoli/logo_stati_generali.png"" style=""margin-right: 5px; float: left;"" width=""300"" /></p>
 <p style=""text-align: justify;"">Nel giugno 2025 Antigone, Defence for Children Italia e Libera avevano lanciato un appello pubblico sulla giustizia minorile italiana.&nbsp;Un appello nato dalla consapevolezza che il sistema italiano, per anni considerato un modello avanzato in Europa, stesse attraversando una fase di profonda regressione.</p>
 <p style=""text-align: justify;"">Negli ultimi anni abbiamo assistito a un progressivo allontanamento dai principi che avevano reso la giustizia minorile italiana un riferimento: centralità della funzione educativa, attenzione alla crescita della persona, valorizzazione di percorsi alternativi alla detenzione e costruzione di opportunità di reinserimento sociale.&nbsp; Al loro posto si sta affermando una logica sempre più repressiva e securitaria, che guarda ai ragazzi e alle ragazze coinvolti nel circuito penale come soggetti da punire piuttosto che persone da accompagnare in percorsi di responsabilizzazione e cambiamento.&nbsp;</p>
 <p style=""text-align: justify;"">L’appello promosso da Antigone, Defence for Children Italia e Libera è stato sottoscritto da numerose organizzazioni della società civile, garanti dei diritti delle persone private della libertà e singole persone impegnate nel mondo della giustizia minorile.&nbsp;</p>
 <p style=""text-align: justify;"">Il 25 febbraio 2026, a Roma, le tre associazioni promotrici hanno organizzato un’assemblea pubblica dedicata proprio al futuro della giustizia minorile italiana. Da quell’incontro è emersa con forza una convinzione condivisa: oggi è urgente fermare questa deriva e riaffermare il ruolo della giustizia minorile come spazio di tutela, accompagnamento, inclusione e reinserimento.&nbsp; <br />Per questo motivo è nata la proposta di avviare gli Stati Generali della giustizia minorile: un percorso collettivo di confronto che coinvolgerà esperti, operatori, organizzazioni sociali, istituzioni e persone che quotidianamente lavorano su questi temi.&nbsp;</p>
 </div>",ff43e5733c8d2ff5fe337e028177d10292d57263aa6a273d42c8faf65792541b
-f6e13ae8c69ddab1063e41e5cd5712695c66a2753085ba19b268ce097c56d822,ong,Privacy International,Organizzazione di Ricerca,Internazionale,Monitora lo stato della privacy a livello globale,"Thu, 28 May 2026 08:30:00 +0000",2026-06-03T06:54:38.668773,How New EU Access to Documents Rules Can Reduce Transparency and Shield Big Tech,http://privacyinternational.org/long-read/5781/how-new-eu-access-documents-rules-can-reduce-transparency-and-shield-big-tech,comunicato,1,it,How New EU Access to Documents Rules Can Reduce Transparency and Shield Big Tech ,f6e13ae8c69ddab1063e41e5cd5712695c66a2753085ba19b268ce097c56d822
-11eb0aff86a515ccf6ce21876111a1e07cdafbfd430df588cf78e4f4cbf982a1,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Mon, 01 Jun 2026 11:09:24 +0000",2026-06-03T06:54:34.445835,Statement: End complicity with ISS World Europe,https://edri.org/our-work/statement-end-complicity-with-iss-world-europe/,comunicato,1,it,"Statement: End complicity with ISS World Europe <p>ISS World Europe is an annual surveillance industry trade fair where the most invasive technologies for mass surveillance, data harvesting and tracking of individuals are traded and promoted. Such a marketplace for digital repression tools, connected to companies directly involved in war crimes, human rights violations, and the genocide in Gaza, should have no place in the EU. Civil society is calling on the EU to immediately cut ties with ISS World Europe.</p>
+f6e13ae8c69ddab1063e41e5cd5712695c66a2753085ba19b268ce097c56d822,ong,Privacy International,Organizzazione di Ricerca,Internazionale,Monitora lo stato della privacy a livello globale,"Thu, 28 May 2026 08:30:00 +0000",2026-06-04T06:44:46.210774,How New EU Access to Documents Rules Can Reduce Transparency and Shield Big Tech,http://privacyinternational.org/long-read/5781/how-new-eu-access-documents-rules-can-reduce-transparency-and-shield-big-tech,comunicato,1,it,How New EU Access to Documents Rules Can Reduce Transparency and Shield Big Tech ,f6e13ae8c69ddab1063e41e5cd5712695c66a2753085ba19b268ce097c56d822
+11eb0aff86a515ccf6ce21876111a1e07cdafbfd430df588cf78e4f4cbf982a1,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Mon, 01 Jun 2026 11:09:24 +0000",2026-06-04T06:44:42.276268,Statement: End complicity with ISS World Europe,https://edri.org/our-work/statement-end-complicity-with-iss-world-europe/,comunicato,1,it,"Statement: End complicity with ISS World Europe <p>ISS World Europe is an annual surveillance industry trade fair where the most invasive technologies for mass surveillance, data harvesting and tracking of individuals are traded and promoted. Such a marketplace for digital repression tools, connected to companies directly involved in war crimes, human rights violations, and the genocide in Gaza, should have no place in the EU. Civil society is calling on the EU to immediately cut ties with ISS World Europe.</p>
 <p>The post <a href=""https://edri.org/our-work/statement-end-complicity-with-iss-world-europe/"">Statement: End complicity with ISS World Europe</a> appeared first on <a href=""https://edri.org"">European Digital Rights (EDRi)</a>.</p>",11eb0aff86a515ccf6ce21876111a1e07cdafbfd430df588cf78e4f4cbf982a1
-da6fc7ff79b2358b726c7fe332cf0e04ce6bd8cff446bbf4b0fb800a54d88b93,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Thu, 28 May 2026 07:30:48 +0000",2026-06-03T06:54:34.773959,"What’s behind the EU’s digitalisation push? Surveillance, control and exclusion",https://edri.org/our-work/whats-behind-the-eus-digitalisation-push-surveillance-control-and-exclusion/,comunicato,1,it,"What’s behind the EU’s digitalisation push? Surveillance, control and exclusion <p>The EU institutions have been engaged in a broad and wholesale digitalisation project but underneath the rhetoric of efficiency, modernisation, and citizen empowerment lies a more troubling reality. It is not a mere technical upgrade of public services, but a political choice, long in the making, to forego care and rights of individuals in favour of normalising surveillance, control and exclusion of the most marginalised. This blog explores the various facets of the EU’s digital welfare state push, and what it means for the relationship between people and the state.</p>
+da6fc7ff79b2358b726c7fe332cf0e04ce6bd8cff446bbf4b0fb800a54d88b93,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Thu, 28 May 2026 07:30:48 +0000",2026-06-04T06:44:42.697817,"What’s behind the EU’s digitalisation push? Surveillance, control and exclusion",https://edri.org/our-work/whats-behind-the-eus-digitalisation-push-surveillance-control-and-exclusion/,comunicato,1,it,"What’s behind the EU’s digitalisation push? Surveillance, control and exclusion <p>The EU institutions have been engaged in a broad and wholesale digitalisation project but underneath the rhetoric of efficiency, modernisation, and citizen empowerment lies a more troubling reality. It is not a mere technical upgrade of public services, but a political choice, long in the making, to forego care and rights of individuals in favour of normalising surveillance, control and exclusion of the most marginalised. This blog explores the various facets of the EU’s digital welfare state push, and what it means for the relationship between people and the state.</p>
 <p>The post <a href=""https://edri.org/our-work/whats-behind-the-eus-digitalisation-push-surveillance-control-and-exclusion/"">What’s behind the EU’s digitalisation push? Surveillance, control and exclusion</a> appeared first on <a href=""https://edri.org"">European Digital Rights (EDRi)</a>.</p>",da6fc7ff79b2358b726c7fe332cf0e04ce6bd8cff446bbf4b0fb800a54d88b93
-2c679972c3a3d2fc7650cde07abaef84d5c4eade628e515f8cead7c0b9b9a03e,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Thu, 28 May 2026 07:30:31 +0000",2026-06-03T06:54:35.067796,A push back to Czech football club‘s plan to install facial recognition CCTV system,https://edri.org/our-work/a-push-back-to-czech-football-clubs-plan-to-install-facial-recognition-cctv-system/,comunicato,1,it,"A push back to Czech football club‘s plan to install facial recognition CCTV system <p>There is a debate in the Czech Republic over the use of facial recognition cameras in stadiums. Both clubs and politicians are calling for biometric surveillance after hundreds of fans stormed the football pitch during a recent match. The debate has unfolded with pushbacks from the public opinion and digital rights groups, including IuRe, while government officials are still considering the implementation of  biometric system regardless of their illegality.</p>
+2c679972c3a3d2fc7650cde07abaef84d5c4eade628e515f8cead7c0b9b9a03e,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Thu, 28 May 2026 07:30:31 +0000",2026-06-04T06:44:43.041343,A push back to Czech football club‘s plan to install facial recognition CCTV system,https://edri.org/our-work/a-push-back-to-czech-football-clubs-plan-to-install-facial-recognition-cctv-system/,comunicato,1,it,"A push back to Czech football club‘s plan to install facial recognition CCTV system <p>There is a debate in the Czech Republic over the use of facial recognition cameras in stadiums. Both clubs and politicians are calling for biometric surveillance after hundreds of fans stormed the football pitch during a recent match. The debate has unfolded with pushbacks from the public opinion and digital rights groups, including IuRe, while government officials are still considering the implementation of  biometric system regardless of their illegality.</p>
 <p>The post <a href=""https://edri.org/our-work/a-push-back-to-czech-football-clubs-plan-to-install-facial-recognition-cctv-system/"">A push back to Czech football club‘s plan to install facial recognition CCTV system</a> appeared first on <a href=""https://edri.org"">European Digital Rights (EDRi)</a>.</p>",2c679972c3a3d2fc7650cde07abaef84d5c4eade628e515f8cead7c0b9b9a03e
-ebb0630e2cdcd249cc89fd8e74f8b1bcdfc4bc3090c9a790771330f48521d29a,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Thu, 28 May 2026 07:30:12 +0000",2026-06-03T06:54:35.419735,Inside Italy’s low-cost spyware economy,https://edri.org/our-work/inside-italys-low-cost-spyware-economy/,comunicato,1,it,"Inside Italy’s low-cost spyware economy <p>Commercial spyware in Europe has recently made headlines with the now notorious names of Pegasus and Graphite, the expensive, exploitation-driven products at the top end of the market. Much less known is the wide underworld ecosystem of low-cost spyware vendors, often targeting citizens via their smartphones. EDRi member Osservatorio Nessuno has investigated and analysed two separate products, Spyrtacus and Morpheus.</p>
+ebb0630e2cdcd249cc89fd8e74f8b1bcdfc4bc3090c9a790771330f48521d29a,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Thu, 28 May 2026 07:30:12 +0000",2026-06-04T06:44:43.360037,Inside Italy’s low-cost spyware economy,https://edri.org/our-work/inside-italys-low-cost-spyware-economy/,comunicato,1,it,"Inside Italy’s low-cost spyware economy <p>Commercial spyware in Europe has recently made headlines with the now notorious names of Pegasus and Graphite, the expensive, exploitation-driven products at the top end of the market. Much less known is the wide underworld ecosystem of low-cost spyware vendors, often targeting citizens via their smartphones. EDRi member Osservatorio Nessuno has investigated and analysed two separate products, Spyrtacus and Morpheus.</p>
 <p>The post <a href=""https://edri.org/our-work/inside-italys-low-cost-spyware-economy/"">Inside Italy’s low-cost spyware economy</a> appeared first on <a href=""https://edri.org"">European Digital Rights (EDRi)</a>.</p>",ebb0630e2cdcd249cc89fd8e74f8b1bcdfc4bc3090c9a790771330f48521d29a
-7b4f19aabab058d90b6d08d5ec85285b8c56f7d53500c4865704db6eaa998e54,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Wed, 27 May 2026 09:18:06 +0000",2026-06-03T06:54:36.016879,Digital Rights Monthly Socials,https://edri.org/take-action/events/digital-rights-monthly-socials/,comunicato,1,it,"Digital Rights Monthly Socials <p>Connect with the global digital rights community at the monthly Digital Rights Social, hosted by Team CommUNITY on their virtual Mattermost platform</p>
+7b4f19aabab058d90b6d08d5ec85285b8c56f7d53500c4865704db6eaa998e54,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Wed, 27 May 2026 09:18:06 +0000",2026-06-04T06:44:43.996566,Digital Rights Monthly Socials,https://edri.org/take-action/events/digital-rights-monthly-socials/,comunicato,1,it,"Digital Rights Monthly Socials <p>Connect with the global digital rights community at the monthly Digital Rights Social, hosted by Team CommUNITY on their virtual Mattermost platform</p>
 <p>The post <a href=""https://edri.org/take-action/events/digital-rights-monthly-socials/"">Digital Rights Monthly Socials</a> appeared first on <a href=""https://edri.org"">European Digital Rights (EDRi)</a>.</p>",7b4f19aabab058d90b6d08d5ec85285b8c56f7d53500c4865704db6eaa998e54
-bcb7c6f173685da931c6a3a146b16ca7edd6e22a6360d61d52605bbbb1932321,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Wed, 27 May 2026 09:13:13 +0000",2026-06-03T06:54:36.379119,DRAPAC26 – Digital Rights Asia-Pacific Assembly,https://edri.org/take-action/events/drapac26-digital-rights-asia-pacific-assembly/,comunicato,1,it,"DRAPAC26 – Digital Rights Asia-Pacific Assembly <p>The 2026 Digital Rights Asia-Pacific Assembly (DRAPAC26) brings together changemakers from across the region working at the intersection of digital rights, human rights, and technology. </p>
+bcb7c6f173685da931c6a3a146b16ca7edd6e22a6360d61d52605bbbb1932321,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Wed, 27 May 2026 09:13:13 +0000",2026-06-04T06:44:44.251370,DRAPAC26 – Digital Rights Asia-Pacific Assembly,https://edri.org/take-action/events/drapac26-digital-rights-asia-pacific-assembly/,comunicato,1,it,"DRAPAC26 – Digital Rights Asia-Pacific Assembly <p>The 2026 Digital Rights Asia-Pacific Assembly (DRAPAC26) brings together changemakers from across the region working at the intersection of digital rights, human rights, and technology. </p>
 <p>The post <a href=""https://edri.org/take-action/events/drapac26-digital-rights-asia-pacific-assembly/"">DRAPAC26 – Digital Rights Asia-Pacific Assembly</a> appeared first on <a href=""https://edri.org"">European Digital Rights (EDRi)</a>.</p>",bcb7c6f173685da931c6a3a146b16ca7edd6e22a6360d61d52605bbbb1932321
-08e71741e68966cebcb05b6d5c87086c441a24e43aa82663fad223b3bda1960b,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Wed, 27 May 2026 08:08:47 +0000",2026-06-03T06:54:36.693728,Resistance Lab: Making and distributing media under surveillance,https://edri.org/take-action/events/resistance-lab-making-and-distributing-media-under-surveillance/,comunicato,1,it,"Resistance Lab: Making and distributing media under surveillance <p>Join Interrupting Criminalization's Abolition Journalism Fellow Lewis Raven Wallace, digital security firm Safety Sync Group, and fellow journalists and media makers for a resistance lab.</p>
+08e71741e68966cebcb05b6d5c87086c441a24e43aa82663fad223b3bda1960b,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Wed, 27 May 2026 08:08:47 +0000",2026-06-04T06:44:44.552354,Resistance Lab: Making and distributing media under surveillance,https://edri.org/take-action/events/resistance-lab-making-and-distributing-media-under-surveillance/,comunicato,1,it,"Resistance Lab: Making and distributing media under surveillance <p>Join Interrupting Criminalization's Abolition Journalism Fellow Lewis Raven Wallace, digital security firm Safety Sync Group, and fellow journalists and media makers for a resistance lab.</p>
 <p>The post <a href=""https://edri.org/take-action/events/resistance-lab-making-and-distributing-media-under-surveillance/"">Resistance Lab: Making and distributing media under surveillance</a> appeared first on <a href=""https://edri.org"">European Digital Rights (EDRi)</a>.</p>",08e71741e68966cebcb05b6d5c87086c441a24e43aa82663fad223b3bda1960b
-b78e9c1e8d8d514bcbcc55f9dbb9fa4b6078a90581cb75d7bea1e9d86ea4f844,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Wed, 20 May 2026 08:49:23 +0000",2026-06-03T06:54:37.712127,Research study: Evaluation of EU’s Law Enforcement Directive shows implementation still fragmented and insufficient,https://edri.org/our-work/research-study-evaluation-of-eus-law-enforcement-directive-shows-implementation-still-fragmented-and-insufficient/,comunicato,1,it,"Research study: Evaluation of EU’s Law Enforcement Directive shows implementation still fragmented and insufficient <p>This study commissioned by EDRi analyses the implementation of the Law Enforcement Directive (LED) in five EU Member States. It shows that even eight years after the LED’s entry into application, the implementation of this crucial instrument for digital rights remains fragmented and insufficient. </p>
+b78e9c1e8d8d514bcbcc55f9dbb9fa4b6078a90581cb75d7bea1e9d86ea4f844,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Wed, 20 May 2026 08:49:23 +0000",2026-06-04T06:44:45.185261,Research study: Evaluation of EU’s Law Enforcement Directive shows implementation still fragmented and insufficient,https://edri.org/our-work/research-study-evaluation-of-eus-law-enforcement-directive-shows-implementation-still-fragmented-and-insufficient/,comunicato,1,it,"Research study: Evaluation of EU’s Law Enforcement Directive shows implementation still fragmented and insufficient <p>This study commissioned by EDRi analyses the implementation of the Law Enforcement Directive (LED) in five EU Member States. It shows that even eight years after the LED’s entry into application, the implementation of this crucial instrument for digital rights remains fragmented and insufficient. </p>
 <p>The post <a href=""https://edri.org/our-work/research-study-evaluation-of-eus-law-enforcement-directive-shows-implementation-still-fragmented-and-insufficient/"">Research study: Evaluation of EU’s Law Enforcement Directive shows implementation still fragmented and insufficient</a> appeared first on <a href=""https://edri.org"">European Digital Rights (EDRi)</a>.</p>",b78e9c1e8d8d514bcbcc55f9dbb9fa4b6078a90581cb75d7bea1e9d86ea4f844
-2185c8ac755f9f37c278975752797985ed885c206c79f67120c591eb1dafdb98,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Mon, 11 May 2026 12:15:44 +0000",2026-06-03T06:54:38.451862,Did the EU Parliament really vote not to protect children online?,https://edri.org/our-work/did-the-eu-parliament-really-vote-not-to-protect-children-online/,comunicato,1,it,"Did the EU Parliament really vote not to protect children online? <p>In April 2026, negotiations on the ‘interim ePrivacy derogation’ fell apart, with several stakeholders claiming that the European Parliament stopped the EU from protecting children. In reality, however, the Parliament’s position aimed to ensure the protection of all fundamental rights without leading to mass surveillance – whereas EU Member States and the Commission proved unwilling to move even an inch on safeguards.</p>
+2185c8ac755f9f37c278975752797985ed885c206c79f67120c591eb1dafdb98,ong,EDRi (Europa),Rete Europea,Europa,Rete di oltre 40 organizzazioni che difendono i diritti digitali in UE,"Mon, 11 May 2026 12:15:44 +0000",2026-06-04T06:44:46.164861,Did the EU Parliament really vote not to protect children online?,https://edri.org/our-work/did-the-eu-parliament-really-vote-not-to-protect-children-online/,comunicato,1,it,"Did the EU Parliament really vote not to protect children online? <p>In April 2026, negotiations on the ‘interim ePrivacy derogation’ fell apart, with several stakeholders claiming that the European Parliament stopped the EU from protecting children. In reality, however, the Parliament’s position aimed to ensure the protection of all fundamental rights without leading to mass surveillance – whereas EU Member States and the Commission proved unwilling to move even an inch on safeguards.</p>
 <p>The post <a href=""https://edri.org/our-work/did-the-eu-parliament-really-vote-not-to-protect-children-online/"">Did the EU Parliament really vote not to protect children online?</a> appeared first on <a href=""https://edri.org"">European Digital Rights (EDRi)</a>.</p>",2185c8ac755f9f37c278975752797985ed885c206c79f67120c591eb1dafdb98
-44d97346bb7f9f0a89b2d8c2ed2eabbc844ff7edd12354b224dfbffe3ca93dee,ong,Access Now,Organizzazione Internazionale,Internazionale,Difende i diritti digitali nel mondo intero,"Wed, 20 May 2026 10:15:24 +0000",2026-06-03T06:54:37.891779,Meta blocks human rights accounts from reaching audiences in Saudi Arabia and the UAE,https://www.accessnow.org/press-release/meta-blocks-human-rights-accounts-from-reaching-audiences-in-saudi-arabia-and-the-uae/,comunicato,1,it,"Meta blocks human rights accounts from reaching audiences in Saudi Arabia and the UAE <p><img alt="""" height=""0"" src=""https://stats.accessnow.org/piwik.php?idsite=2&amp;rec=1&amp;url=https%3A%2F%2Fwww.accessnow.org%2Fpress-release%2Fmeta-blocks-human-rights-accounts-from-reaching-audiences-in-saudi-arabia-and-the-uae%2F&amp;action_name=Meta%20blocks%20human%20rights%20accounts%20from%20reaching%20audiences%20in%20Saudi%20Arabia%20and%20the%20UAE&amp;urlref=https%3A%2F%2Fwww.accessnow.org%2Ffeed%2F"" style=""border: 0; width: 0; height: 0;"" width=""0"" /></p>
+44d97346bb7f9f0a89b2d8c2ed2eabbc844ff7edd12354b224dfbffe3ca93dee,ong,Access Now,Organizzazione Internazionale,Internazionale,Difende i diritti digitali nel mondo intero,"Wed, 20 May 2026 10:15:24 +0000",2026-06-04T06:44:46.103513,Meta blocks human rights accounts from reaching audiences in Saudi Arabia and the UAE,https://www.accessnow.org/press-release/meta-blocks-human-rights-accounts-from-reaching-audiences-in-saudi-arabia-and-the-uae/,comunicato,1,it,"Meta blocks human rights accounts from reaching audiences in Saudi Arabia and the UAE <p><img alt="""" height=""0"" src=""https://stats.accessnow.org/piwik.php?idsite=2&amp;rec=1&amp;url=https%3A%2F%2Fwww.accessnow.org%2Fpress-release%2Fmeta-blocks-human-rights-accounts-from-reaching-audiences-in-saudi-arabia-and-the-uae%2F&amp;action_name=Meta%20blocks%20human%20rights%20accounts%20from%20reaching%20audiences%20in%20Saudi%20Arabia%20and%20the%20UAE&amp;urlref=https%3A%2F%2Fwww.accessnow.org%2Ffeed%2F"" style=""border: 0; width: 0; height: 0;"" width=""0"" /></p>
 <p>The post <a href=""https://www.accessnow.org/press-release/meta-blocks-human-rights-accounts-from-reaching-audiences-in-saudi-arabia-and-the-uae/"">Meta blocks human rights accounts from reaching audiences in Saudi Arabia and the UAE</a> appeared first on <a href=""https://www.accessnow.org"">Access Now</a>.</p>",44d97346bb7f9f0a89b2d8c2ed2eabbc844ff7edd12354b224dfbffe3ca93dee
-25fb143db1dd61b86d399b67603d569c79c935256f481819122b75fb1222d4f5,ong,Access Now,Organizzazione Internazionale,Internazionale,Difende i diritti digitali nel mondo intero,"Wed, 20 May 2026 06:58:56 +0000",2026-06-03T06:54:38.230020,Criminalizing truth: Gulf governments must end the crackdown on information,https://www.accessnow.org/press-release/criminalizing-truth-gulf-governments-must-end-the-crackdown-on-information/,comunicato,1,it,"Criminalizing truth: Gulf governments must end the crackdown on information <p><img alt="""" height=""0"" src=""https://stats.accessnow.org/piwik.php?idsite=2&amp;rec=1&amp;url=https%3A%2F%2Fwww.accessnow.org%2Fpress-release%2Fcriminalizing-truth-gulf-governments-must-end-the-crackdown-on-information%2F&amp;action_name=Criminalizing%20truth%3A%20Gulf%20governments%20must%20end%20the%20crackdown%20on%20information&amp;urlref=https%3A%2F%2Fwww.accessnow.org%2Ffeed%2F"" style=""border: 0; width: 0; height: 0;"" width=""0"" /></p>
+25fb143db1dd61b86d399b67603d569c79c935256f481819122b75fb1222d4f5,ong,Access Now,Organizzazione Internazionale,Internazionale,Difende i diritti digitali nel mondo intero,"Wed, 20 May 2026 06:58:56 +0000",2026-06-04T06:44:46.503428,Criminalizing truth: Gulf governments must end the crackdown on information,https://www.accessnow.org/press-release/criminalizing-truth-gulf-governments-must-end-the-crackdown-on-information/,comunicato,1,it,"Criminalizing truth: Gulf governments must end the crackdown on information <p><img alt="""" height=""0"" src=""https://stats.accessnow.org/piwik.php?idsite=2&amp;rec=1&amp;url=https%3A%2F%2Fwww.accessnow.org%2Fpress-release%2Fcriminalizing-truth-gulf-governments-must-end-the-crackdown-on-information%2F&amp;action_name=Criminalizing%20truth%3A%20Gulf%20governments%20must%20end%20the%20crackdown%20on%20information&amp;urlref=https%3A%2F%2Fwww.accessnow.org%2Ffeed%2F"" style=""border: 0; width: 0; height: 0;"" width=""0"" /></p>
 <p>The post <a href=""https://www.accessnow.org/press-release/criminalizing-truth-gulf-governments-must-end-the-crackdown-on-information/"">Criminalizing truth: Gulf governments must end the crackdown on information</a> appeared first on <a href=""https://www.accessnow.org"">Access Now</a>.</p>",25fb143db1dd61b86d399b67603d569c79c935256f481819122b75fb1222d4f5
-f63891294a1c8b8043407a9caccb38879af2ddc5e611ffb4108b88b7451e6eaa,ong,Access Now,Organizzazione Internazionale,Internazionale,Difende i diritti digitali nel mondo intero,"Mon, 18 May 2026 08:37:50 +0000",2026-06-03T06:54:38.543705,Microsoft: it’s time to come clean about your ties to the Israeli military,https://www.accessnow.org/press-release/microsoft-come-clean-about-your-ties-to-the-israeli-military/,comunicato,1,it,"Microsoft: it’s time to come clean about your ties to the Israeli military <p>Through a new joint letter, we're calling on Microsoft to publish the findings of its review into the Israeli military’s use of the company services.<img alt="""" height=""0"" src=""https://stats.accessnow.org/piwik.php?idsite=2&amp;rec=1&amp;url=https%3A%2F%2Fwww.accessnow.org%2Fpress-release%2Fmicrosoft-come-clean-about-your-ties-to-the-israeli-military%2F&amp;action_name=Microsoft%3A%20it%E2%80%99s%20time%20to%20come%20clean%20about%20your%20ties%20to%20the%20Israeli%20military&amp;urlref=https%3A%2F%2Fwww.accessnow.org%2Ffeed%2F"" style=""border: 0; width: 0; height: 0;"" width=""0"" /></p>
+f63891294a1c8b8043407a9caccb38879af2ddc5e611ffb4108b88b7451e6eaa,ong,Access Now,Organizzazione Internazionale,Internazionale,Difende i diritti digitali nel mondo intero,"Mon, 18 May 2026 08:37:50 +0000",2026-06-04T06:44:46.837557,Microsoft: it’s time to come clean about your ties to the Israeli military,https://www.accessnow.org/press-release/microsoft-come-clean-about-your-ties-to-the-israeli-military/,comunicato,1,it,"Microsoft: it’s time to come clean about your ties to the Israeli military <p>Through a new joint letter, we're calling on Microsoft to publish the findings of its review into the Israeli military’s use of the company services.<img alt="""" height=""0"" src=""https://stats.accessnow.org/piwik.php?idsite=2&amp;rec=1&amp;url=https%3A%2F%2Fwww.accessnow.org%2Fpress-release%2Fmicrosoft-come-clean-about-your-ties-to-the-israeli-military%2F&amp;action_name=Microsoft%3A%20it%E2%80%99s%20time%20to%20come%20clean%20about%20your%20ties%20to%20the%20Israeli%20military&amp;urlref=https%3A%2F%2Fwww.accessnow.org%2Ffeed%2F"" style=""border: 0; width: 0; height: 0;"" width=""0"" /></p>
 <p>The post <a href=""https://www.accessnow.org/press-release/microsoft-come-clean-about-your-ties-to-the-israeli-military/"">Microsoft: it’s time to come clean about your ties to the Israeli military</a> appeared first on <a href=""https://www.accessnow.org"">Access Now</a>.</p>",f63891294a1c8b8043407a9caccb38879af2ddc5e611ffb4108b88b7451e6eaa
-d8e24dc2bf1644ce40080bdd2b4ad88966bee8fc8d907f5192c4857c716ffcf6,ong,Open Rights Group,Organizzazione Advocacy,Regno Unito,Organizzazione britannica per i diritti digitali,"Tue, 26 May 2026 13:30:29 +0000",2026-06-03T06:54:39.955275,Growing up in an online world: ORG Consultation Response,https://www.openrightsgroup.org/publications/growing-up-in-an-online-world-org-consultation-response/,comunicato,1,it,"Growing up in an online world: ORG Consultation Response Executive Summary Age-gating was implemented in 2025 as a limited mechanism aimed primarily at restricting children’s access to pornographic content online. Within a short period of time, its scope has rapidly expanded. We have seen age checks introduced across online gaming services, app stores, social media platforms, and other general online services. Proposals within this [&#8230;]",d8e24dc2bf1644ce40080bdd2b4ad88966bee8fc8d907f5192c4857c716ffcf6
-7f84b9e872ee5dfde95ab7a099d51bc8684d7ed062dbc51d28f42126e7292fc1,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Fri, 29 May 2026 08:00:00 +0000",2026-06-03T06:54:40.586757,Targeted consultation: draft guidelines on trusted flaggers under the Digital Services Act (DSA),https://digital-strategy.ec.europa.eu/en/consultations/targeted-consultation-draft-guidelines-trusted-flaggers-under-digital-services-act-dsa,comunicato,1,it,"Targeted consultation: draft guidelines on trusted flaggers under the Digital Services Act (DSA) <span>Targeted consultation: draft guidelines on trusted flaggers under the Digital Services Act (DSA)</span>
+d8e24dc2bf1644ce40080bdd2b4ad88966bee8fc8d907f5192c4857c716ffcf6,ong,Open Rights Group,Organizzazione Advocacy,Regno Unito,Organizzazione britannica per i diritti digitali,"Tue, 26 May 2026 13:30:29 +0000",2026-06-04T06:44:48.496645,Growing up in an online world: ORG Consultation Response,https://www.openrightsgroup.org/publications/growing-up-in-an-online-world-org-consultation-response/,comunicato,1,it,"Growing up in an online world: ORG Consultation Response Executive Summary Age-gating was implemented in 2025 as a limited mechanism aimed primarily at restricting children’s access to pornographic content online. Within a short period of time, its scope has rapidly expanded. We have seen age checks introduced across online gaming services, app stores, social media platforms, and other general online services. Proposals within this [&#8230;]",d8e24dc2bf1644ce40080bdd2b4ad88966bee8fc8d907f5192c4857c716ffcf6
+9b8cd22a3e2a7d12ef58717ffe2477b8f67d8831cba9a879d7108e425b161c79,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Wed, 03 Jun 2026 09:02:00 +0000",2026-06-04T06:44:48.534031,Proposal for the Cloud and AI Development Act (CADA),https://digital-strategy.ec.europa.eu/en/library/proposal-cloud-and-ai-development-act-cada,comunicato,1,it,"Proposal for the Cloud and AI Development Act (CADA) <span>Proposal for the Cloud and AI Development Act (CADA)</span>
+<span><span>dumimar</span></span>
+<span><time datetime=""2026-06-03T11:02:00+02:00"" title=""Wednesday, June 3, 2026 - 11:02"">Wed, 06/03/2026 - 11:02</time>
+</span>
+
+<div>
+  <div class=""cnt-thumbnail-media ecl-u-type-m cnt-content-wrapper"">
+        
+              <div class=""cnt-teaser ecl-u-type-m ecl-u-mb-xl"">
+                                    <p class=""ecl-page-header-standardised__description"">The Commission has adopted a proposal for the Cloud and AI Development Act (CADA) with the aim of strengthening the EU's cloud and AI ecosystem, investment and infrastructure.</p>
+
+  
+              </div>
+      <div class=""cnt-image cnt-media"">
+                     
+            <div>
+
+    
+
+  
+
+          
+    
+    
+      <div class=""ecl-media-container""><figure class=""ecl-media-container__figure""><source /><img alt=""Evocation of artificial intelligence and cloud"" class=""ecl-media-container__media"" src=""https://digital-strategy.ec.europa.eu/sites/default/files/styles/newsroom_large/public/newsroom/items/GettyImages2153368047Worawee_Meepian_360x240_1_Xt8t4rWF7FUESTouJduZO0sRc_236054.jpg?itok=UkEqEq-_"" /><figcaption class=""ecl-media-container__caption"">          © Worawee Meepian
+          </figcaption></figure></div>  </div>
+      
+  
+      </div>
+    
+    <div class=""cnt-main-body ecl-u-type-m"">
+                          <div class=""ecl""><p>The ongoing deployment of AI factories and AI gigafactories aims to provide broad access to high-capacity, next-generation computational resources for European businesses and researchers requiring AI capabilities. To complement this, the EU needs to expand its cloud and data centre capacity to support the wider deployment and diffusion of AI.</p>
+<p>The CADA will reinforce energy-efficient data centre capacity, while complementing the <a href=""https://digital-strategy.ec.europa.eu/en/policies/apply-ai"">Apply AI strategy</a> to boost the adoption of artificial intelligence and cloud across Europe.</p>
+<p>It will focus on three objectives:</p>
+<ol>
+<li><strong>Research, development and innovation</strong>: supporting efforts to deploy the next generation of cutting-edge and sustainable cloud and AI technologies</li>
+<li><strong>Capacity</strong>: accelerating the conditions for deploying data centres across the EU, focusing on facilities that enhance essential public sector functions</li>
+<li><strong>Autonomy</strong>: introducing a single EU-wide assessment framework for cloud and AI sovereignty, accompanied by a public sector adoption mechanism</li>
+</ol>
+<p>The CADA complements other new initiatives, including the <a href=""https://digital-strategy.ec.europa.eu/en/policies/chips-act-2"">Chips Act 2.0</a> and the <a href=""https://digital-strategy.ec.europa.eu/en/policies/open-source-strategy"">EU Open Source Strategy</a>, in contributing to a more competitive, secure and resilient European digital economy.</p>
+<p>You can download the full regulation proposal, the annexes, the impact assessment and a summary of this impact assessment below.</p>
+<p><strong>Read more information:</strong></p>
+<ul>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/policies/cloud-and-ai-development-act"">Cloud and AI Development Act (CADA)</a></li>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/policies/cloud-computing"">Cloud computing</a></li>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/factpages/ai-continent-action-plan"">AI Continent Action Plan</a></li>
+</ul>
+<p></p></div>
+
+              
+<h2>Downloads</h2>
+<div class=""ecl-u-mt-m ecl-u-mt-lg-xl ecl-file"">
+  <div class=""ecl-file__container"">
+    <span class=""wt-icon--file ecl-icon ecl-icon--2xl ecl-icon--file""></span>    <div class=""ecl-file__info"">
+      <div class=""ecl-file__title"">1. COM(2026) 502 - Proposal Regulation Cloud and AI Development Act (CADA)</div>
+    </div>
+    <a class=""ecl-u-mt-xl ecl-file__download ecl-link ecl-link--standalone ecl-link--icon ecl-link--icon-after"" href=""https://ec.europa.eu/newsroom/dae/redirection/document/129111"">
+      <span class=""ecl-link__label"">Download</span>&nbsp;
+      <span class=""wt-icon--download ecl-icon ecl-icon--fluid ecl-icon--download""></span>    </a>
+  </div>
+</div>
+<div class=""ecl-u-mt-m ecl-u-mt-lg-xl ecl-file"">
+  <div class=""ecl-file__container"">
+    <span class=""wt-icon--file ecl-icon ecl-icon--2xl ecl-icon--file""></span>    <div class=""ecl-file__info"">
+      <div class=""ecl-file__title"">2. COM(2026) 502 - Proposal Regulation Cloud and AI Development Act (CADA) Annexes</div>
+    </div>
+    <a class=""ecl-u-mt-xl ecl-file__download ecl-link ecl-link--standalone ecl-link--icon ecl-link--icon-after"" href=""https://ec.europa.eu/newsroom/dae/redirection/document/129112"">
+      <span class=""ecl-link__label"">Download</span>&nbsp;
+      <span class=""wt-icon--download ecl-icon ecl-icon--fluid ecl-icon--download""></span>    </a>
+  </div>
+</div>
+<div class=""ecl-u-mt-m ecl-u-mt-lg-xl ecl-file"">
+  <div class=""ecl-file__container"">
+    <span class=""wt-icon--file ecl-icon ecl-icon--2xl ecl-icon--file""></span>    <div class=""ecl-file__info"">
+      <div class=""ecl-file__title"">3. SWD(2026) 502 - Impact Assessment (Part 1)</div>
+    </div>
+    <a class=""ecl-u-mt-xl ecl-file__download ecl-link ecl-link--standalone ecl-link--icon ecl-link--icon-after"" href=""https://ec.europa.eu/newsroom/dae/redirection/document/129113"">
+      <span class=""ecl-link__label"">Download</span>&nbsp;
+      <span class=""wt-icon--download ecl-icon ecl-icon--fluid ecl-icon--download""></span>    </a>
+  </div>
+</div>
+<div class=""ecl-u-mt-m ecl-u-mt-lg-xl ecl-file"">
+  <div class=""ecl-file__container"">
+    <span class=""wt-icon--file ecl-icon ecl-icon--2xl ecl-icon--file""></span>    <div class=""ecl-file__info"">
+      <div class=""ecl-file__title"">4. SWD(2026) 502 - Impact Assessment (Part 2)</div>
+    </div>
+    <a class=""ecl-u-mt-xl ecl-file__download ecl-link ecl-link--standalone ecl-link--icon ecl-link--icon-after"" href=""https://ec.europa.eu/newsroom/dae/redirection/document/129114"">
+      <span class=""ecl-link__label"">Download</span>&nbsp;
+      <span class=""wt-icon--download ecl-icon ecl-icon--fluid ecl-icon--download""></span>    </a>
+  </div>
+</div>
+<div class=""ecl-u-mt-m ecl-u-mt-lg-xl ecl-file"">
+  <div class=""ecl-file__container"">
+    <span class=""wt-icon--file ecl-icon ecl-icon--2xl ecl-icon--file""></span>    <div class=""ecl-file__info"">
+      <div class=""ecl-file__title"">5. SWD(2026) 502 - Summary of the Impact Assessment</div>
+    </div>
+    <a class=""ecl-u-mt-xl ecl-file__download ecl-link ecl-link--standalone ecl-link--icon ecl-link--icon-after"" href=""https://ec.europa.eu/newsroom/dae/redirection/document/129115"">
+      <span class=""ecl-link__label"">Download</span>&nbsp;
+      <span class=""wt-icon--download ecl-icon ecl-icon--fluid ecl-icon--download""></span>    </a>
+  </div>
+</div>
+
+      
+          </div>
+    <div class=""cnt-aside ecl-u-type-m"">
+      <aside class=""ecl-u-height-100"">
+                              <h3>Related topics</h3>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=73"">Cloud Computing</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=50"">Advanced and Cloud Computing</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=49"">Boosting European digital Industry</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=119"">Artificial intelligence</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=252"">Tech sovereignty</a>
+
+  
+              </aside>
+    </div>
+
+        <div class=""cnt-bottom ecl-u-pv-xl"">
+      <div class=""ecl-u-mb-3xl"">
+                              <h2>Related content</h2>
+
+      
+  <article class=""ecl-content-item ecl-content-item--divider ecl-u-mb-xl""><div class=""ecl-content-block ecl-content-item__content-block""><ul class=""ecl-content-block__primary-meta-container""><li class=""ecl-content-block__primary-meta-item"">Policy and legislation</li><li class=""ecl-content-block__primary-meta-item"">03 June 2026</li></ul><div class=""ecl-content-block__title""><a class=""ecl-link ecl-link--standalone"" href=""https://digital-strategy.ec.europa.eu/en/library/communication-european-tech-sovereignty-accompanied-eu-open-source-strategy"">Communication on European Tech Sovereignty, accompanied by an EU Open Source Strategy</a></div><div class=""ecl-content-block__description"">The Commission is proposing the European Technological Sovereignty Package, marking a change in Europe's approach to its tech ecosystems.</div></div></article>  
+
+  
+                      </div>
+    </div>
+  </div>
+</div>
+  <div class=""layout layout--onecol"">
+    <div class=""layout__region layout__region--content"">
+          <div>
+  
+    
+        <div class=""ecl-u-type-m"">
+    <section class=""cnct-page-footer ecl-u-mv-2xl"">
+                    <div class=""ecl-social-media-share"">
+          
+        </div>
+            
+      
+          </section>
+  </div>
+
+  </div>
+
+    </div>
+  </div>
+<div class=""node_view""></div>",9b8cd22a3e2a7d12ef58717ffe2477b8f67d8831cba9a879d7108e425b161c79
+a9b8ba64d5ba01ba984f4ee8332e1094986ee9a6818579f8e51602fd05fcb89d,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Wed, 03 Jun 2026 09:01:00 +0000",2026-06-04T06:44:48.865218,Commission proposes tech sovereignty package to strengthen Europe's digital autonomy and resilience,https://digital-strategy.ec.europa.eu/en/news/commission-proposes-tech-sovereignty-package-strengthen-europes-digital-autonomy-and-resilience,comunicato,1,it,"Commission proposes tech sovereignty package to strengthen Europe's digital autonomy and resilience <span>Commission proposes tech sovereignty package to strengthen Europe's digital autonomy and resilience</span>
+<span><span>Anonymous (not verified)</span></span>
+<span><time datetime=""2026-06-03T11:01:00+02:00"" title=""Wednesday, June 3, 2026 - 11:01"">Wed, 06/03/2026 - 11:01</time>
+</span>
+
+<div>
+  <div class=""cnt-thumbnail-media ecl-u-type-m cnt-content-wrapper"">
+        
+              <div class=""cnt-teaser ecl-u-type-m ecl-u-mb-xl"">
+                                    <p class=""ecl-page-header-standardised__description"">The European Commission today presented the European Technological Sovereignty Package, a set of measures to strengthen Europe's capacity in semiconductors, artificial intelligence (AI), cloud and open source.</p>
+
+  
+              </div>
+      <div class=""cnt-image cnt-media"">
+                     
+            <div>
+
+    
+
+  
+
+          
+    
+    
+      <div class=""ecl-media-container""><figure class=""ecl-media-container__figure""><source /><img alt=""Illustration of the European Union flag against a background suggesting technology."" class=""ecl-media-container__media"" src=""https://digital-strategy.ec.europa.eu/sites/default/files/styles/newsroom_large/public/newsroom/items/AdobeStock_1334736964peera_360x240px_Lzat8YqWxI2DqEjUlPEfsFbVGA_236221.jpg?itok=bRDjc03P"" /><figcaption class=""ecl-media-container__caption"">          Adobe Stock © peera
+          </figcaption></figure></div>  </div>
+      
+  
+      </div>
+    
+    <div class=""cnt-main-body ecl-u-type-m"">
+                          <div class=""ecl""><p>The package includes two legislative proposals - the <a href=""https://digital-strategy.ec.europa.eu/en/policies/chips-act-2"">Chips Act 2.0</a> and the <a href=""https://digital-strategy.ec.europa.eu/en/policies/cloud-and-ai-development-act"">Cloud and AI Development Act</a> - as well as the <a href=""https://digital-strategy.ec.europa.eu/en/policies/open-source-strategy"">Open Source Strategy</a> and a <a href=""https://energy.ec.europa.eu/topics/eus-energy-system/digitalisation-energy-system_en#strategic-roadmap-for-digitalisation-and-ai-in-energy"">Strategic Roadmap for Digitalisation and AI in Energy</a>.</p>
+<p>Together, these measures support Europe's ambition to become an AI continent, strengthen its digital autonomy and help build a more sustainable digital future. They will help widen choice in core technologies for EU businesses, citizens and public administrations.</p>
+<p>The move comes as Europe remains heavily dependent on suppliers outside the European Union for core digital technologies and as demand for computing capacity rises sharply with the spread of AI. It is designed to reduce structural dependencies and make sure Europe can develop, deploy and secure the technologies Europeans rely on. It signals a major shift in the EU's approach to technology.</p>
+<p>Commission President, <strong>Ursula von der Leyen</strong> said:</p>
+<blockquote>
+<p>“We cannot afford to depend on others for the technologies that keep our hospitals running, our energy grids stable and our services secure. This is about protecting our citizens, defending our interests and making our own choices. Europe has the talent, the research excellence, the industrial base and the Single Market. Together, we must turn these strengths into technological sovereignty.”</p>
+</blockquote>
+<p>Read the <a href=""https://ec.europa.eu/commission/presscorner/detail/en/ip_26_1187"">full press release</a>.</p>
+<p><strong>Read more information</strong></p>
+<ul>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/policies/eu-tech-sovereignty"">Strengthening Europe’s Tech Sovereignty</a></li>
+<li><a href=""https://ec.europa.eu/commission/presscorner/detail/en/fs_26_1189"">Factsheet - Tech Sovereignty</a></li>
+<li><a href=""https://publications.jrc.ec.europa.eu/repository/handle/JRC147104"">Scientific brief: From dependency to resilience</a></li>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/policies/chips-act-2"">The Chips Act 2.0</a></li>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/policies/cloud-and-ai-development-act"">The Cloud and AI Development Act (CADA)</a></li>
+<li><a href=""https://digital-strategy.ec.europa.eu/en/factpages/eu-open-source-strategy"">Fact page - Open Source in the EU</a></li>
+<li><a href=""https://energy.ec.europa.eu/topics/eus-energy-system/digitalisation-energy-system_en#strategic-roadmap-for-digitalisation-and-ai-in-energy"">Strategic Roadmap for Digitalisation and AI in Energy</a></li>
+</ul></div>
+
+          
+          </div>
+    <div class=""cnt-aside ecl-u-type-m"">
+      <aside class=""ecl-u-height-100"">
+                              <h3>Related topics</h3>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=73"">Cloud Computing</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=117"">Advanced Digital Technologies</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=53"">Electronics</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=50"">Advanced and Cloud Computing</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=49"">Boosting European digital Industry</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=119"">Artificial intelligence</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=200"">Chips Act</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=243"">Semiconductors</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=252"">Tech sovereignty</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=253"">Open source</a>
+
+  
+              </aside>
+    </div>
+
+        <div class=""cnt-bottom ecl-u-pv-xl"">
+      <div class=""ecl-u-mb-3xl"">
+                      
+                      </div>
+    </div>
+  </div>
+</div>
+  <div class=""layout layout--onecol"">
+    <div class=""layout__region layout__region--content"">
+          <div>
+  
+    
+        <div class=""ecl-u-type-m"">
+    <section class=""cnct-page-footer ecl-u-mv-2xl"">
+                    <div class=""ecl-social-media-share"">
+          
+        </div>
+            
+      
+          </section>
+  </div>
+
+  </div>
+
+    </div>
+  </div>
+<div class=""node_view""></div>",a9b8ba64d5ba01ba984f4ee8332e1094986ee9a6818579f8e51602fd05fcb89d
+c890b9212686a4be5f7c63273617d3ea320eb0811b8bb9a150abc5d08dbd866c,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Wed, 03 Jun 2026 08:30:00 +0000",2026-06-04T06:44:49.157905,Proposal for the Chips Act 2.0,https://digital-strategy.ec.europa.eu/en/library/proposal-chips-act-20,comunicato,1,it,"Proposal for the Chips Act 2.0 <span>Proposal for the Chips Act 2.0</span>
+<span><span>dumimar</span></span>
+<span><time datetime=""2026-06-03T10:30:00+02:00"" title=""Wednesday, June 3, 2026 - 10:30"">Wed, 06/03/2026 - 10:30</time>
+</span>
+
+<div>
+  <div class=""cnt-thumbnail-media ecl-u-type-m cnt-content-wrapper"">
+        
+              <div class=""cnt-teaser ecl-u-type-m ecl-u-mb-xl"">
+                                    <p class=""ecl-page-header-standardised__description"">The Commission has adopted a proposal for the Chips Act 2.0, which introduces new measures to further boost the chips industry, reduce strategic dependencies and support advanced chip production in the EU.</p>
+
+  
+              </div>
+      <div class=""cnt-image cnt-media"">
+                     
+            <div>
+
+    
+
+  
+
+          
+    
+    
+      <div class=""ecl-media-container""><figure class=""ecl-media-container__figure""><source /><img alt=""Illustration of micro chips"" class=""ecl-media-container__media"" src=""https://digital-strategy.ec.europa.eu/sites/default/files/styles/newsroom_large/public/newsroom/items/GettyImages1206919144__Nikola_Ilic__E_via_Getty_Images_Plus_MEDIUM_cbbwiLOUyBn6bLjvsPqX9O7Zljk_236051.jpg?itok=lztAiT5r"" /><figcaption class=""ecl-media-container__caption"">          © Nikola Ilic - E+
+          </figcaption></figure></div>  </div>
+      
+  
+      </div>
+    
+    <div class=""cnt-main-body ecl-u-type-m"">
+                          <div class=""ecl""><p>The EU remains dependent on third countries in key areas such as advanced chip manufacturing or semiconductor design. Securing a stable chips supply is necessary to ensure that critical infrastructures and technologies remain secure, resilient and aligned with European values.</p>
+<p>The Chips Act 2.0 builds on the progress made by the <a href=""https://digital-strategy.ec.europa.eu/en/policies/european-chips-act"">original Chips Act</a> and will both reinforce current European strengths (including mainstream chips) and build capacity in cutting-edge semiconductor technologies. This will allow the EU to maintain its position as an indispensable player in the value chain, while strengthening its resilience, and reducing strategic dependencies and supply chain vulnerabilities.</p>
+<p>The Chips Act 2.0 complements other new initiatives, including the <a href=""https://digital-strategy.ec.europa.eu/en/policies/cloud-and-ai-development-act"">Cloud and AI Development Act (CADA)</a> and the <a href=""https://digital-strategy.ec.europa.eu/en/policies/open-source-strategy"">EU Open Source Strategy</a>, in contributing to a more competitive, secure and resilient European digital economy.</p>
+<p>You can download the full regulation proposal, the annexes, the impact assessment and a summary of this impact assessment below.</p>
+<p><a class=""ecl-link ecl-link--cta ecl-link--icon ecl-link--icon-after"" href=""https://digital-strategy.ec.europa.eu/en/policies/chips-act-2""><span class=""ecl-link__label"">Read more about the Chips Act 2.0</span></a></p></div>
+
+              
+<h2>Downloads</h2>
+<div class=""ecl-u-mt-m ecl-u-mt-lg-xl ecl-file"">
+  <div class=""ecl-file__container"">
+    <span class=""wt-icon--file ecl-icon ecl-icon--2xl ecl-icon--file""></span>    <div class=""ecl-file__info"">
+      <div class=""ecl-file__title"">1 - Proposal Chips Act 2.0</div>
+    </div>
+    <a class=""ecl-u-mt-xl ecl-file__download ecl-link ecl-link--standalone ecl-link--icon ecl-link--icon-after"" href=""https://ec.europa.eu/newsroom/dae/redirection/document/129104"">
+      <span class=""ecl-link__label"">Download</span>&nbsp;
+      <span class=""wt-icon--download ecl-icon ecl-icon--fluid ecl-icon--download""></span>    </a>
+  </div>
+</div>
+<div class=""ecl-u-mt-m ecl-u-mt-lg-xl ecl-file"">
+  <div class=""ecl-file__container"">
+    <span class=""wt-icon--file ecl-icon ecl-icon--2xl ecl-icon--file""></span>    <div class=""ecl-file__info"">
+      <div class=""ecl-file__title"">2 - Proposal Chips Act 2.0 Annexes</div>
+    </div>
+    <a class=""ecl-u-mt-xl ecl-file__download ecl-link ecl-link--standalone ecl-link--icon ecl-link--icon-after"" href=""https://ec.europa.eu/newsroom/dae/redirection/document/129105"">
+      <span class=""ecl-link__label"">Download</span>&nbsp;
+      <span class=""wt-icon--download ecl-icon ecl-icon--fluid ecl-icon--download""></span>    </a>
+  </div>
+</div>
+<div class=""ecl-u-mt-m ecl-u-mt-lg-xl ecl-file"">
+  <div class=""ecl-file__container"">
+    <span class=""wt-icon--file ecl-icon ecl-icon--2xl ecl-icon--file""></span>    <div class=""ecl-file__info"">
+      <div class=""ecl-file__title"">3 - Impact Assessment (Part 1)</div>
+    </div>
+    <a class=""ecl-u-mt-xl ecl-file__download ecl-link ecl-link--standalone ecl-link--icon ecl-link--icon-after"" href=""https://ec.europa.eu/newsroom/dae/redirection/document/129106"">
+      <span class=""ecl-link__label"">Download</span>&nbsp;
+      <span class=""wt-icon--download ecl-icon ecl-icon--fluid ecl-icon--download""></span>    </a>
+  </div>
+</div>
+<div class=""ecl-u-mt-m ecl-u-mt-lg-xl ecl-file"">
+  <div class=""ecl-file__container"">
+    <span class=""wt-icon--file ecl-icon ecl-icon--2xl ecl-icon--file""></span>    <div class=""ecl-file__info"">
+      <div class=""ecl-file__title"">4 - Impact Assessment (Part 2)</div>
+    </div>
+    <a class=""ecl-u-mt-xl ecl-file__download ecl-link ecl-link--standalone ecl-link--icon ecl-link--icon-after"" href=""https://ec.europa.eu/newsroom/dae/redirection/document/129107"">
+      <span class=""ecl-link__label"">Download</span>&nbsp;
+      <span class=""wt-icon--download ecl-icon ecl-icon--fluid ecl-icon--download""></span>    </a>
+  </div>
+</div>
+<div class=""ecl-u-mt-m ecl-u-mt-lg-xl ecl-file"">
+  <div class=""ecl-file__container"">
+    <span class=""wt-icon--file ecl-icon ecl-icon--2xl ecl-icon--file""></span>    <div class=""ecl-file__info"">
+      <div class=""ecl-file__title"">5 - Impact Assessment (Part 3)</div>
+    </div>
+    <a class=""ecl-u-mt-xl ecl-file__download ecl-link ecl-link--standalone ecl-link--icon ecl-link--icon-after"" href=""https://ec.europa.eu/newsroom/dae/redirection/document/129108"">
+      <span class=""ecl-link__label"">Download</span>&nbsp;
+      <span class=""wt-icon--download ecl-icon ecl-icon--fluid ecl-icon--download""></span>    </a>
+  </div>
+</div>
+<div class=""ecl-u-mt-m ecl-u-mt-lg-xl ecl-file"">
+  <div class=""ecl-file__container"">
+    <span class=""wt-icon--file ecl-icon ecl-icon--2xl ecl-icon--file""></span>    <div class=""ecl-file__info"">
+      <div class=""ecl-file__title"">6 - Summary of the Impact Assessment</div>
+    </div>
+    <a class=""ecl-u-mt-xl ecl-file__download ecl-link ecl-link--standalone ecl-link--icon ecl-link--icon-after"" href=""https://ec.europa.eu/newsroom/dae/redirection/document/129109"">
+      <span class=""ecl-link__label"">Download</span>&nbsp;
+      <span class=""wt-icon--download ecl-icon ecl-icon--fluid ecl-icon--download""></span>    </a>
+  </div>
+</div>
+
+      
+          </div>
+    <div class=""cnt-aside ecl-u-type-m"">
+      <aside class=""ecl-u-height-100"">
+                              <h3>Related topics</h3>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=117"">Advanced Digital Technologies</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=53"">Electronics</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=49"">Boosting European digital Industry</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=200"">Chips Act</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=243"">Semiconductors</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=252"">Tech sovereignty</a>
+
+  
+              </aside>
+    </div>
+
+        <div class=""cnt-bottom ecl-u-pv-xl"">
+      <div class=""ecl-u-mb-3xl"">
+                              <h2>Related content</h2>
+
+      
+  <article class=""ecl-content-item ecl-content-item--divider ecl-u-mb-xl""><div class=""ecl-content-block ecl-content-item__content-block""><ul class=""ecl-content-block__primary-meta-container""><li class=""ecl-content-block__primary-meta-item"">Policy and legislation</li><li class=""ecl-content-block__primary-meta-item"">03 June 2026</li></ul><div class=""ecl-content-block__title""><a class=""ecl-link ecl-link--standalone"" href=""https://digital-strategy.ec.europa.eu/en/library/communication-european-tech-sovereignty-accompanied-eu-open-source-strategy"">Communication on European Tech Sovereignty, accompanied by an EU Open Source Strategy</a></div><div class=""ecl-content-block__description"">The Commission is proposing the European Technological Sovereignty Package, marking a change in Europe's approach to its tech ecosystems.</div></div></article>  
+
+  
+                      </div>
+    </div>
+  </div>
+</div>
+  <div class=""layout layout--onecol"">
+    <div class=""layout__region layout__region--content"">
+          <div>
+  
+    
+        <div class=""ecl-u-type-m"">
+    <section class=""cnct-page-footer ecl-u-mv-2xl"">
+                    <div class=""ecl-social-media-share"">
+          
+        </div>
+            
+      
+          </section>
+  </div>
+
+  </div>
+
+    </div>
+  </div>
+<div class=""node_view""></div>",c890b9212686a4be5f7c63273617d3ea320eb0811b8bb9a150abc5d08dbd866c
+c55a5c44840c58e22cfc861795c59a4983421c03fba8dcd6741325e5207b7e48,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Wed, 03 Jun 2026 08:19:00 +0000",2026-06-04T06:44:49.417768,"Communication on European Tech Sovereignty, accompanied by an EU Open Source Strategy",https://digital-strategy.ec.europa.eu/en/library/communication-european-tech-sovereignty-accompanied-eu-open-source-strategy,comunicato,1,it,"Communication on European Tech Sovereignty, accompanied by an EU Open Source Strategy <span>Communication on European Tech Sovereignty, accompanied by an EU Open Source Strategy</span>
+<span><span>Anonymous (not verified)</span></span>
+<span><time datetime=""2026-06-03T10:19:00+02:00"" title=""Wednesday, June 3, 2026 - 10:19"">Wed, 06/03/2026 - 10:19</time>
+</span>
+
+<div>
+  <div class=""cnt-thumbnail-media ecl-u-type-m cnt-content-wrapper"">
+        
+              <div class=""cnt-teaser ecl-u-type-m ecl-u-mb-xl"">
+                                    <p class=""ecl-page-header-standardised__description"">The Commission is proposing the European Technological Sovereignty Package, marking a change in Europe's approach to its tech ecosystems.</p>
+
+  
+              </div>
+      <div class=""cnt-image cnt-media"">
+                     
+            <div>
+
+    
+
+  
+
+          
+    
+    
+      <div class=""ecl-media-container""><figure class=""ecl-media-container__figure""><source /><img alt=""A person holding out their hands, an abstract representation of technology's potential hovering above"" class=""ecl-media-container__media"" src=""https://digital-strategy.ec.europa.eu/sites/default/files/styles/newsroom_large/public/newsroom/items/AdobeStock_1129087362SP_Da_360x240px_kHXxPnqWIV0nzCu0qDFMv6gN4_236336.jpg?itok=gW1aPWqQ"" /><figcaption class=""ecl-media-container__caption"">          © SP Da
+          </figcaption></figure></div>  </div>
+      
+  
+      </div>
+    
+    <div class=""cnt-main-body ecl-u-type-m"">
+                          <div class=""ecl""><p>The Commission is putting forward a multi-pronged, comprehensive strategy to achieve <strong>technological sovereignty</strong>, with initiatives that are interconnected and mutually reinforcing across each stage of the value chain, from chips, to infrastructure, to software, cloud and AI, and in synergy with past and ongoing initiatives such as AI Factories and AI Gigafactories.</p>
+<p>This is reflected in <strong>four initiatives:</strong></p>
+<ol>
+<li>The <a href=""https://digital-strategy.ec.europa.eu/en/policies/chips-act-2"">Chips Act 2.0</a> to strengthen the semiconductor ecosystem and supply chain resilience, and boost domestic demand</li>
+<li>The <a href=""https://digital-strategy.ec.europa.eu/en/policies/cloud-and-ai-development-act"">Cloud and AI Development Act (CADA)</a> to unlock the potential AI and cloud, to transform our industrial ecosystems and improve societal outcomes</li>
+<li>The <a href=""https://digital-strategy.ec.europa.eu/en/policies/open-source-strategy"">EU Open Source Strategy</a> to reduce dependencies across the entire technology stack</li>
+<li>A <a href=""https://energy.ec.europa.eu/topics/eus-energy-system/digitalisation-energy-system_en#strategic-roadmap-for-digitalisation-and-ai-in-energy"">Strategic Roadmap for Digitalisation and AI in Energy</a></li>
+</ol>
+<p>You can download the full Communication and its annexes below.</p>
+<p><a class=""ecl-link ecl-link--cta ecl-link--icon ecl-link--icon-after"" href=""https://digital-strategy.ec.europa.eu/en/policies/eu-tech-sovereignty""><span class=""ecl-link__label"">Read more about Europe's Tech Sovereignty</span></a></p></div>
+
+              
+<h2>Downloads</h2>
+<div class=""ecl-u-mt-m ecl-u-mt-lg-xl ecl-file"">
+  <div class=""ecl-file__container"">
+    <span class=""wt-icon--file ecl-icon ecl-icon--2xl ecl-icon--file""></span>    <div class=""ecl-file__info"">
+      <div class=""ecl-file__title"">1. COM(2026) 503 - Communication on European Tech Sovereignty and EU Open Source Strategy</div>
+    </div>
+    <a class=""ecl-u-mt-xl ecl-file__download ecl-link ecl-link--standalone ecl-link--icon ecl-link--icon-after"" href=""https://ec.europa.eu/newsroom/dae/redirection/document/129100"">
+      <span class=""ecl-link__label"">Download</span>&nbsp;
+      <span class=""wt-icon--download ecl-icon ecl-icon--fluid ecl-icon--download""></span>    </a>
+  </div>
+</div>
+<div class=""ecl-u-mt-m ecl-u-mt-lg-xl ecl-file"">
+  <div class=""ecl-file__container"">
+    <span class=""wt-icon--file ecl-icon ecl-icon--2xl ecl-icon--file""></span>    <div class=""ecl-file__info"">
+      <div class=""ecl-file__title"">2. COM(2026) 503 - Communication on European Tech Sovereignty and EU Open Source Strategy - Annexes</div>
+    </div>
+    <a class=""ecl-u-mt-xl ecl-file__download ecl-link ecl-link--standalone ecl-link--icon ecl-link--icon-after"" href=""https://ec.europa.eu/newsroom/dae/redirection/document/129101"">
+      <span class=""ecl-link__label"">Download</span>&nbsp;
+      <span class=""wt-icon--download ecl-icon ecl-icon--fluid ecl-icon--download""></span>    </a>
+  </div>
+</div>
+
+      
+          </div>
+    <div class=""cnt-aside ecl-u-type-m"">
+      <aside class=""ecl-u-height-100"">
+                              <h3>Related topics</h3>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=73"">Cloud Computing</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=117"">Advanced Digital Technologies</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=53"">Electronics</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=50"">Advanced and Cloud Computing</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=49"">Boosting European digital Industry</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=119"">Artificial intelligence</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=200"">Chips Act</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=243"">Semiconductors</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=252"">Tech sovereignty</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=253"">Open source</a>
+
+  
+              </aside>
+    </div>
+
+        <div class=""cnt-bottom ecl-u-pv-xl"">
+      <div class=""ecl-u-mb-3xl"">
+                      
+                      </div>
+    </div>
+  </div>
+</div>
+  <div class=""layout layout--onecol"">
+    <div class=""layout__region layout__region--content"">
+          <div>
+  
+    
+        <div class=""ecl-u-type-m"">
+    <section class=""cnct-page-footer ecl-u-mv-2xl"">
+                    <div class=""ecl-social-media-share"">
+          
+        </div>
+            
+      
+          </section>
+  </div>
+
+  </div>
+
+    </div>
+  </div>
+<div class=""node_view""></div>",c55a5c44840c58e22cfc861795c59a4983421c03fba8dcd6741325e5207b7e48
+54d01896ba7e8314ba48cf2c1ceda4bb90dc9052858d512af7a609e1fcadb323,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Wed, 03 Jun 2026 07:24:18 +0000",2026-06-04T06:44:49.674039,European Commission survey: AI in healthcare and pharmaceuticals,https://digital-strategy.ec.europa.eu/en/consultations/european-commission-survey-ai-healthcare-and-pharmaceuticals,comunicato,1,it,"European Commission survey: AI in healthcare and pharmaceuticals <span>European Commission survey: AI in healthcare and pharmaceuticals</span>
+<span><span>Anonymous (not verified)</span></span>
+<span><time datetime=""2026-06-03T09:24:18+02:00"" title=""Wednesday, June 3, 2026 - 09:24"">Wed, 06/03/2026 - 09:24</time>
+</span>
+
+<div>
+  <div class=""cnt-thumbnail-media ecl-u-type-m cnt-content-wrapper"">
+        
+              <div class=""cnt-teaser ecl-u-type-m ecl-u-mb-xl"">
+                              <ul class=""ecl-unordered-list ecl-unordered-list--no-bullet ecl-u-mb-xl"">
+      <li class=""cnt-nr-item-metadata ecl-u-mt-l ecl-u-d-flex ecl-u-align-items-center ecl-unordered-list__item"">
+      <span class=""wt-icon--calendar ecl-icon ecl-icon--fluid ecl-icon--calendar""></span>&nbsp;
+      Opening: 02 June 2026
+    </li>
+    <li class=""cnt-nr-item-metadata ecl-u-mt-l ecl-u-d-flex ecl-u-align-items-center ecl-unordered-list__item"">
+      <span class=""wt-icon--calendar ecl-icon ecl-icon--fluid ecl-icon--calendar""></span>&nbsp;
+      Closing: 26 June 2026
+    </li>
+  
+  </ul>
+
+                <p class=""ecl-page-header-standardised__description"">This stakeholder survey will gather insights on the use of AI in healthcare and pharmaceuticals, focusing on the benefits, enabling factors and barriers to adoption.</p>
+
+  
+              </div>
+      <div class=""cnt-image cnt-media"">
+                     
+            <div>
+
+    
+
+  
+
+          
+    
+    
+      <div class=""ecl-media-container""><figure class=""ecl-media-container__figure""><source /><img alt=""A healthcare worker in blue scrubs using a laptop and checking off a digital overlay of checkboxes"" class=""ecl-media-container__media"" src=""printable:///var/www/html/web/sites/default/files/styles/newsroom_large/public/newsroom/items/GettyImages1548203309_2mjW2H2HN2nRdOMGJZ0t28sOIGo_236217.jpg?itok=hr4n4UkB"" /><figcaption class=""ecl-media-container__caption"">          © GettyImages
+          </figcaption></figure></div>  </div>
+      
+  
+      </div>
+    
+    <div class=""cnt-main-body ecl-u-type-m"">
+                          <div class=""ecl""><p>The survey follows the publication of the <a href=""https://digital-strategy.ec.europa.eu/en/policies/apply-ai""><strong>Apply AI Strategy</strong></a> (October 2025) and seeks feedback on healthcare - and pharmaceuticals - specific actions, as well as the <strong>real-world impact and scalability</strong> of solutions ready for broader implementation. The findings will feed into future policy actions aimed at accelerating AI adoption across both sectors.</p>
+<h2>Who should respond?</h2>
+<p>The survey is open to a wide range of stakeholders, including healthcare providers, industry representatives (including SMEs and AI solution providers), pharmaceutical companies, medical societies, patient organisations and industry associations.</p>
+<h2>How to participate?</h2>
+<p>The <a href=""https://ec.europa.eu/eusurvey/runner/3ec5d213-f097-184e-4c23-15a9797b5fdc"">survey</a> takes no more than 15 minutes to complete. Responses are confidential and will be analysed in aggregated form only. The deadline for responding is <strong>26 June 2026 at 17:00 CEST</strong>.</p>
+<p>For information on how the Commission processes personal data in the context of this survey, please check the Privacy Statement below.</p></div>
+
+          
+          </div>
+    <div class=""cnt-aside ecl-u-type-m"">
+      <aside class=""ecl-u-height-100"">
+                              <h3>Related topics</h3>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=75"">Creating a digital society</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=96"">eHealth, Wellbeing and Ageing</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=119"">Artificial intelligence</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=245"">AI in health</a>
+
+  
+              </aside>
+    </div>
+
+        <div class=""cnt-bottom ecl-u-pv-xl"">
+      <div class=""ecl-u-mb-3xl"">
+                      
+                      </div>
+    </div>
+  </div>
+</div>
+  <div class=""layout layout--onecol"">
+    <div class=""layout__region layout__region--content"">
+          <div>
+  
+    
+        <div class=""ecl-u-type-m"">
+    <section class=""cnct-page-footer ecl-u-mv-2xl"">
+                    <div class=""ecl-social-media-share"">
+          
+        </div>
+            
+      
+          </section>
+  </div>
+
+  </div>
+
+    </div>
+  </div>
+<div class=""node_view""></div>",54d01896ba7e8314ba48cf2c1ceda4bb90dc9052858d512af7a609e1fcadb323
+1a49d3208c23876283f0a96b29d14e4c2582a2a5509f6a3e8050521fa606d913,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Tue, 02 Jun 2026 10:29:48 +0000",2026-06-04T06:44:49.963089,"Apply AI Webinar on AI for Cultural, Creative and Media Sectors",https://digital-strategy.ec.europa.eu/en/events/apply-ai-webinar-ai-cultural-creative-and-media-sectors,comunicato,1,it,"Apply AI Webinar on AI for Cultural, Creative and Media Sectors <span>Apply AI Webinar on AI for Cultural, Creative and Media Sectors</span>
+<span><span>Anonymous (not verified)</span></span>
+<span><time datetime=""2026-06-02T12:29:48+02:00"" title=""Tuesday, June 2, 2026 - 12:29"">Tue, 06/02/2026 - 12:29</time>
+</span>
+
+<div>
+  <div class=""cnt-thumbnail-media ecl-u-type-m cnt-content-wrapper"">
+        
+              <div class=""cnt-teaser ecl-u-type-m ecl-u-mb-xl"">
+                              <ul class=""ecl-unordered-list ecl-unordered-list--no-bullet ecl-u-mb-xl"">
+      <li class=""cnt-nr-item-metadata ecl-u-mt-l ecl-u-d-flex ecl-u-align-items-center ecl-unordered-list__item"">
+      <span class=""wt-icon--calendar ecl-icon ecl-icon--fluid ecl-icon--calendar""></span>&nbsp;
+      24 June 2026
+  </li>
+  
+  </ul>
+
+                <p class=""ecl-page-header-standardised__description"">This webinar will focus on how AI can be leveraged to both safeguard and drive innovation across Europe’s cultural and creative sectors.</p>
+
+  
+              </div>
+      <div class=""cnt-image cnt-media"">
+                     
+            <div>
+
+
+
+
+
+          
+    
+    
+      <div class=""ecl-media-container""><figure class=""ecl-media-container__figure""><source /><img alt=""Event poster - June 24, 2026, at 10:30-11:30 CET, featuring speakers Giulia Carsaniga, Peter Friess, and Szymon Lewandowski."" class=""ecl-media-container__media"" src=""https://digital-strategy.ec.europa.eu/sites/default/files/styles/newsroom_large/public/newsroom/items/ai_web_oNLUB0lYsSw7oLQ5g4jsmz1N0g_236277.jpg?itok=J5ogxO4w"" /></figure></div>  </div>
+      
+  
+      </div>
+    
+    <div class=""cnt-main-body ecl-u-type-m"">
+                          <div class=""ecl""><p>Artificial Intelligence (AI) is increasingly transforming Europe’s cultural, creative and media sectors, offering new opportunities for creativity, production, accessibility and audience engagement. Building on ongoing policy discussionsand initiatives, this upcoming webinar will bring together EU experts to explore how AI can support innovation across these sectors while safeguarding Europe’s cultural and linguistic diversity, in line with the actions of the Apply AI Strategy.</p>
+<p>The webinar will focus on practical applications and future developments in areas such as:</p>
+<ul>
+<li>AI for news media</li>
+<li>AI-driven digitalisation of cultural heritage</li>
+<li>use of AI tools in creative sectors including music and literature</li>
+</ul>
+<p>Participants will also discuss broader developments in the audiovisual sector.</p>
+<p>This webinar is part of a series of Apply AI sectoral webinars, focusing on a cluster of strategic sectors to explore practical applications, use cases, and the specific needs of the industries.</p>
+<p>The event will be live streamed on our <a href=""https://www.youtube.com/watch?v=0ETV-zDnBmU&amp;list=PLyMUk47rPuqobfPZY6i9OJ7_kW2A9KFJM&amp;index=1"" rel=""noopener noreferrer"" target=""_blank"">YouTube channel</a>. Engage in the conversation by <a href=""https://app.sli.do/event/4JtSgKctNv2SPDRc39vAaR"" rel=""noopener noreferrer"" target=""_blank"">submitting questions in advance or during the session via Slido</a>. More details below.</p>
+<h2>Date and time</h2>
+<p>24 June, 10:30-11:30 CET</p>
+<h2>Speakers</h2>
+<ul>
+<li>Giulia Carsaniga (moderator), Policy Officer, AI Office</li>
+<li>Maria Iglesias, Team Leader - Culture and Digital, AI, DG EAC</li>
+<li>Peter Friess, Senior Programme Officer, DG CNECT</li>
+<li>Szymon Lewandowski, Team Leader, DG CNECT</li>
+</ul></div>
+
+          
+          </div>
+    <div class=""cnt-aside ecl-u-type-m"">
+      <aside class=""ecl-u-height-100"">
+                              <h3>Related topics</h3>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=159"">Media and democracy</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=160"">Audiovisual &amp; Media Services</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=165"">Digital Cultural heritage</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=167"">Digitisation and digital preservation</a>
+  <a class=""ecl-tag ecl-u-mb-xs"" href=""https://digital-strategy.ec.europa.eu/en/related-content?topic=119"">Artificial intelligence</a>
+
+  
+              </aside>
+    </div>
+
+        <div class=""cnt-bottom ecl-u-pv-xl"">
+      <div class=""ecl-u-mb-3xl"">
+                      
+                      </div>
+    </div>
+  </div>
+</div>
+  <div class=""layout layout--onecol"">
+    <div class=""layout__region layout__region--content"">
+          <div>
+  
+    
+        <div class=""ecl-u-type-m"">
+    <section class=""cnct-page-footer ecl-u-mv-2xl"">
+                    <div class=""ecl-social-media-share"">
+          
+        </div>
+            
+      
+          </section>
+  </div>
+
+  </div>
+
+    </div>
+  </div>
+<div class=""node_view""></div>",1a49d3208c23876283f0a96b29d14e4c2582a2a5509f6a3e8050521fa606d913
+7f84b9e872ee5dfde95ab7a099d51bc8684d7ed062dbc51d28f42126e7292fc1,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Fri, 29 May 2026 08:00:00 +0000",2026-06-04T06:44:50.243803,Targeted consultation: draft guidelines on trusted flaggers under the Digital Services Act (DSA),https://digital-strategy.ec.europa.eu/en/consultations/targeted-consultation-draft-guidelines-trusted-flaggers-under-digital-services-act-dsa,comunicato,1,it,"Targeted consultation: draft guidelines on trusted flaggers under the Digital Services Act (DSA) <span>Targeted consultation: draft guidelines on trusted flaggers under the Digital Services Act (DSA)</span>
 <span><span>Anonymous (not verified)</span></span>
 <span><time datetime=""2026-05-29T10:00:00+02:00"" title=""Friday, May 29, 2026 - 10:00"">Fri, 05/29/2026 - 10:00</time>
 </span>
@@ -1957,7 +2565,7 @@ d8e24dc2bf1644ce40080bdd2b4ad88966bee8fc8d907f5192c4857c716ffcf6,ong,Open Rights
     </div>
   </div>
 <div class=""node_view""></div>",7f84b9e872ee5dfde95ab7a099d51bc8684d7ed062dbc51d28f42126e7292fc1
-ca517ee79fe862db34a4b449fe309a5f34c5d8c5c4a6ce0a475bc20021dfd78a,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Thu, 28 May 2026 10:12:30 +0000",2026-06-03T06:54:40.825304,Commission fines Temu €200 million for breaching the Digital Services Act,https://digital-strategy.ec.europa.eu/en/news/commission-fines-temu-eu200-million-breaching-digital-services-act,comunicato,1,it,"Commission fines Temu €200 million for breaching the Digital Services Act <span>Commission fines Temu €200 million for breaching the Digital Services Act</span>
+ca517ee79fe862db34a4b449fe309a5f34c5d8c5c4a6ce0a475bc20021dfd78a,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Thu, 28 May 2026 10:12:30 +0000",2026-06-04T06:44:50.445569,Commission fines Temu €200 million for breaching the Digital Services Act,https://digital-strategy.ec.europa.eu/en/news/commission-fines-temu-eu200-million-breaching-digital-services-act,comunicato,1,it,"Commission fines Temu €200 million for breaching the Digital Services Act <span>Commission fines Temu €200 million for breaching the Digital Services Act</span>
 <span><span>Anonymous (not verified)</span></span>
 <span><time datetime=""2026-05-28T12:12:30+02:00"" title=""Thursday, May 28, 2026 - 12:12"">Thu, 05/28/2026 - 12:12</time>
 </span>
@@ -2041,7 +2649,7 @@ ca517ee79fe862db34a4b449fe309a5f34c5d8c5c4a6ce0a475bc20021dfd78a,ong,Commissione
     </div>
   </div>
 <div class=""node_view""></div>",ca517ee79fe862db34a4b449fe309a5f34c5d8c5c4a6ce0a475bc20021dfd78a
-d22f2d5cc4556851f96b356c08db45487dbeae9f92347e0ca1c85b31b45e97f0,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Wed, 27 May 2026 08:40:00 +0000",2026-06-03T06:54:41.052402,"Call for Tenders: Development, consultancy and support for a data altruism consent management system",https://digital-strategy.ec.europa.eu/en/funding/call-tenders-development-consultancy-and-support-data-altruism-consent-management-system,comunicato,1,it,"Call for Tenders: Development, consultancy and support for a data altruism consent management system <span>Call for Tenders: Development, consultancy and support for a data altruism consent management system</span>
+d22f2d5cc4556851f96b356c08db45487dbeae9f92347e0ca1c85b31b45e97f0,ong,Commissione Europea DG Connect,Istituzione Europea,Unione Europea,Direzione Generale Rete e Contenuti Digitali,"Wed, 27 May 2026 08:40:00 +0000",2026-06-04T06:44:50.637920,"Call for Tenders: Development, consultancy and support for a data altruism consent management system",https://digital-strategy.ec.europa.eu/en/funding/call-tenders-development-consultancy-and-support-data-altruism-consent-management-system,comunicato,1,it,"Call for Tenders: Development, consultancy and support for a data altruism consent management system <span>Call for Tenders: Development, consultancy and support for a data altruism consent management system</span>
 <span><span>Anonymous (not verified)</span></span>
 <span><time datetime=""2026-05-27T10:40:00+02:00"" title=""Wednesday, May 27, 2026 - 10:40"">Wed, 05/27/2026 - 10:40</time>
 </span>
@@ -2139,7 +2747,131 @@ d22f2d5cc4556851f96b356c08db45487dbeae9f92347e0ca1c85b31b45e97f0,ong,Commissione
     </div>
   </div>
 <div class=""node_view""></div>",d22f2d5cc4556851f96b356c08db45487dbeae9f92347e0ca1c85b31b45e97f0
-bf69de71a17b75f44167cce999034c24cdbad27c6375b7392dad3300f6b45ef0,ong,Noyb (Privacy UE),Organizzazione Legale,Unione Europea,Organizzazione europea che porta avanti casi legali e strategie per applicare il GDPR,"Wed, 03 Jun 2026 05:00:00 +0000",2026-06-03T06:54:34.881061,Nordic Media Giant Schibsted switches to “Pay or Okay” – complaint filed!,https://noyb.eu/en/nordic-media-giant-schibsted-switches-pay-or-okay-complaint-filed,comunicato,1,it,"Nordic Media Giant Schibsted switches to “Pay or Okay” – complaint filed! <p>Forced Consent &amp; Consent Bypass </p>
+6383eefc66f85b1c30a9529fd54e0d748fce3991e5523fde1f3b6605c09a14b0,ong,Electronic Frontier Foundation,Organizzazione Legale,Internazionale,Prima organizzazione mondiale per la difesa dei diritti digitali,"Tue, 02 Jun 2026 16:41:54 +0000",2026-06-04T06:44:45.973880,We're Fighting Mass Surveillance Tech—and Winning,https://www.eff.org/deeplinks/2026/06/get-flock-out-here,comunicato,1,it,"We're Fighting Mass Surveillance Tech—and Winning <div class=""field field--name-body field--type-text-with-summary field--label-hidden""><div class=""field__items""><div class=""field__item even""><p>EFF is on the front lines of the fight against tech-enabled tyranny, but we aren't alone. Our team depends on your help to fight back against the surveillance state.</p>
+<p class=""take-action""><a href=""https://supporters.eff.org/donate/spring--DL6"">JOIN EFF</a></p>
+<p>People around the world are pushing back against the mass surveillance that undermines privacy and free expression for everyone. <a href=""https://supporters.eff.org/donate/spring--DL6"">You can help during EFF's spring membership drive.</a></p>
+<p>One of the people who joined the fight for digital rights is EFF client Will Freeman. Will created the website DeFlock.me to reveal the dangers of automated license plate readers (<a href=""https://sls.eff.org/technologies/automated-license-plate-readers-alprs"">ALPRs</a>)—cameras that collect location data on every vehicle they see and upload that to a massive nationwide police database. Deflock.me turns the tables by enlisting ordinary people to track the locations of tens of thousands of ALPR cameras.</p>
+<p>But when the police spy-tech company <a href=""https://www.eff.org/deeplinks/2025/02/anti-surveillance-mapmaker-refuses-flock-safetys-cease-and-desist-demand"">Flock Safety went after Will's website</a> with legal threats citing trademark law, he saw it for what it was: an attempt to silence critics and dim the light on mass surveillance.</p>
+<p class=""pull-quote""><span>The company will try everything it can to downplay the criticism, but EFF will be right there demanding accountability.</span></p>
+<p>""I was totally unprepared to receive a cease &amp; desist letter. I can see how most people would be bullied into submission by a threat like that. That's when I remembered Dave Maass from the EFF introduced himself via email several weeks before, so I reached out for help,"" Freeman says.</p>
+<p><strong>And that's when EFF stepped in.</strong> Recognizing DeFlock.me as a quintessential expression of grassroots advocacy and a form of criticism protected by the U.S. First Amendment, EFF's lawyers helped Will fight back. And the Big Surveillance Tech flinched.</p>
+<p>But these battles against Flock's Spying tools rage on. In cities around the country, privacy advocates are pressuring officials to block or end contracts for ALPRs—and winning. The company will try everything it can to downplay the criticism, but EFF will be right there demanding accountability.</p>
+<p></p><div class=""caption caption-center""><div class=""caption-width-container""><div class=""caption-inner""><a href=""https://supporters.eff.org/donate/spring--DL6""><img alt=""Two people wear EFF Claw Back member t-shirts. The front shows a cat swatting at spy cameras and the back says “Mass Surveillance” with red claw marks through it"" height=""635"" src=""https://www.eff.org/files/2026/06/01/claw_fb_1200.png"" title=""Two people wear EFF Claw Back member t-shirts. The front shows a cat swatting at spy cameras and the back says “Mass Surveillance” with red claw marks through it"" width=""1200"" /></a><p class=""caption-text"">Get the new Claw Back member t-shirt featuring a fierce feline swatting at community surveillance. You might empathize with him, but there’s a better way. Let’s end the law enforcement contracts, harmful practices, and twisted logic that enable mass spying in the first place.</p></div></div></div>
+<p>""I'm really grateful the EFF was able to step in and help. Without them, free speech would be only for those wealthy enough to defend themselves against billion dollar companies. We've grown a lot since then and are expanding our efforts to expose and push back against mass surveillance on our streets,"" Freeman says.</p>
+<p class=""take-action""><a href=""https://supporters.eff.org/donate/spring--DL6"">Support the movement</a></p>
+<p class=""take-explainer"">stop mass surveillance tech today when you join EFF</p>
+<p>____________________</p>
+<p><em><span class=""TextRun SCXW4268908 BCX0"" lang=""EN-US"" xml:lang=""EN-US""><span class=""NormalTextRun SCXW4268908 BCX0"">EFF is a member-supported U.S. 501(c)(3) organization. </span><span class=""NormalTextRun CommentStart CommentHighlightPipeRest CommentHighlightRest SCXW4268908 BCX0"">We've</span><span class=""NormalTextRun CommentHighlightRest SCXW4268908 BCX0""> received top rati</span><span class=""NormalTextRun CommentHighlightRest SCXW4268908 BCX0"">ngs </span><span class=""NormalTextRun CommentHighlightRest SCXW4268908 BCX0"">from the nonprofit watchdog Charity Navigator since 2013!</span><span class=""NormalTextRun CommentHighlightPipeRest SCXW4268908 BCX0""> Your donation is tax-deductible as allowed by law.</span></span></em></p>
+
+</div></div></div>",6383eefc66f85b1c30a9529fd54e0d748fce3991e5523fde1f3b6605c09a14b0
+be473d0a75552ef26e57c9409f43a129140fbd738f74528c2d52bf96882891c6,ong,Electronic Frontier Foundation,Organizzazione Legale,Internazionale,Prima organizzazione mondiale per la difesa dei diritti digitali,"Mon, 01 Jun 2026 14:25:05 +0000",2026-06-04T06:44:46.401581,Welcome New EFF Executive Director Nicole Ozer,https://www.eff.org/deeplinks/2026/05/welcome-new-eff-executive-director-nicole-ozer,comunicato,1,it,"Welcome New EFF Executive Director Nicole Ozer <div class=""field field--name-body field--type-text-with-summary field--label-hidden""><div class=""field__items""><div class=""field__item even""><p><span>EFF welcomes our new Executive Director Nicole Ozer today!</span><span> </span></p>
+<p><span>Nicole is a legal expert on privacy and surveillance, artificial intelligence, and digital speech who previously served as the inaugural executive director of the </span><a href=""https://www.uclawsf.edu/center-for-constitutional-democracy/"" rel=""noopener noreferrer"" target=""_blank""><span>Center for Constitutional Democracy</span></a><span> at UC Law San Francisco. From 2004-2025, she was founding director of the Technology and Civil Liberties Program at the </span><a href=""https://www.aclunorcal.org/"" rel=""noopener noreferrer"" target=""_blank""><span>American Civil Liberties Union of Northern California</span></a><span>.</span><span> </span></p>
+<p><span>Nicole has long been a partner of EFF’s in the fight to defend civil liberties in the digital world. Many of us already know her, and she’s basically as close to EFF “family” as someone can be without actually having worked here.  </span><span> </span></p>
+<p><span>Over her more than two decades leading public interest technology work, Nicole has: </span><span> </span></p>
+<ul>
+<li><span>spearheaded passage of the </span><a href=""https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=201520160SB178"" rel=""noopener noreferrer"" target=""_blank""><span>California Electronic Communications Privacy Act</span></a><span> – working with EFF to enact the nation’s strongest electronic surveillance law, requiring a warrant for government access to electronic information;</span><span> </span></li>
+<li><span>modernized California law to protect reading records in the digital age by helping, </span><a href=""https://www.eff.org/cases/sb-602-californias-reader-privacy-act-2011"" rel=""noopener noreferrer"" target=""_blank""><span>along with EFF</span></a><span>, to craft the </span><a href=""https://leginfo.legislature.ca.gov/faces/billTextClient.xhtml?bill_id=201120120SB602"" rel=""noopener noreferrer"" target=""_blank""><span>Reader Privacy Act,</span></a><span> requiring a “super warrant” for government access;</span><span> </span></li>
+<li><span>created a groundbreaking model law for local democratic oversight of surveillance systems which inspired 25 laws across the country that help safeguard the rights and safety of more than 17 million people;</span><span> </span></li>
+<li><span>litigated civil liberties cases, including work with EFF on </span><a href=""https://www.eff.org/cases/jewel"" rel=""noopener noreferrer"" target=""_blank""><span>the NSA cases</span></a><span>, and drafted influential amicus briefs on technology issues at all levels of state and federal court, including the U.S. Supreme Court and California Supreme Court; and</span><span> </span></li>
+<li><span>developed multi-year campaigns to strengthen the anti-surveillance policies related to social media surveillance and face recognition of major technology companies and foster stronger privacy and free expression protection for billions of people worldwide.</span><span> </span></li>
+</ul>
+<p><span>And that's just the TL;DR! You can read more about her bona fides </span><a href=""https://www.eff.org/about/staff/nicole-ozer"" rel=""noopener noreferrer"" target=""_blank""><span>here</span></a><span>.</span><span> </span></p>
+<p><span>EFF’s work to ensure technology supports freedom, justice, and innovation is more urgent than ever. And with Nicole’s decades of leadership in public interest technology work, EFF is poised to be stronger than ever to meet this moment and build for the fights ahead.</span><span> </span></p>
+<p><span>Nicole succeeds </span><a href=""https://www.eff.org/about/staff/cindy-cohn"" rel=""noopener noreferrer"" target=""_blank""><span>Cindy Cohn</span></a><span>, who has been with EFF for more than 25 years and served as executive director since 2015. Cindy is </span><a href=""https://www.eff.org/press/releases/executive-director-cindy-cohn-will-step-down-after-25-years-eff"" rel=""noopener noreferrer"" target=""_blank""><span>leaving EFF later this month</span></a><span> – not to retire, but to find a role that puts her back in the courtroom doing what she does best: suing the government! She’ll still be part of the EFF community.</span><span> </span></p>
+<p><span>We are living digital lives, using technology to connect, communicate, and mobilize for change. And we need you in these critical fights to defend and advance rights in the digital world – so join EFF today, and </span><a href=""https://www.eff.org/effector"" rel=""noopener noreferrer"" target=""_blank""><span>sign up for our EFFector newsletter</span></a><span> to make sure you’re updated on the latest EFF news including upcoming events to help you get to know Nicole.</span><span> </span></p>
+<p><span>Welcome Nicole!</span><span> </span></p>
+
+</div></div></div>",be473d0a75552ef26e57c9409f43a129140fbd738f74528c2d52bf96882891c6
+83c255fc2b9708128a4c853d3ebab0dc7c9d044ca9115d5a3ead8065517675b0,ong,Electronic Frontier Foundation,Organizzazione Legale,Internazionale,Prima organizzazione mondiale per la difesa dei diritti digitali,"Fri, 29 May 2026 20:15:43 +0000",2026-06-04T06:44:46.705801,"One Step Forward, Two Steps Back: CA's AB 1856 Exempts Open Source But Expands Age-Gating",https://www.eff.org/deeplinks/2026/05/one-step-forward-two-steps-back-cas-ab-1856-exempts-open-source-expands-age-gating,comunicato,1,it,"One Step Forward, Two Steps Back: CA's AB 1856 Exempts Open Source But Expands Age-Gating <div class=""field field--name-body field--type-text-with-summary field--label-hidden""><div class=""field__items""><div class=""field__item even""><p><span>After public outrage, California lawmakers are moving closer to exempting open-source operating systems from the sweeping age-bracketing regime mandated by last year’s Digital Age Assurance Act (AB 1043). Nonetheless, the current bill still jeopardizes internet users’ speech, privacy, and security.</span></p>
+<p>While the open source exemption, if passed, would improve the law, the remaining amendments proposed by AB 1856 would require all web browsers and websites to request and collect users’ ages. This is an expansion of last year's AB 1043's age-bracketing system that compounds its constitutional harms to users’ speech, privacy, and security. As AB 1856 moves on to the Senate, EFF will continue fighting for amendments that reduce those harms.</p>
+<h3>AB 1856 Extends AB 1043’s Age-Gating Regime</h3>
+<p><span>Last year, California passed </span><a href=""https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202520260AB1043""><span>AB 1043</span></a><span>, which requires all operating systems and app stores to create age-bracketing systems that segment users based on their ages. </span><a href=""https://www.eff.org/deeplinks/2026/03/ab-1043s-internet-age-gates-hurt-everyone""><span>As we’ve written</span></a><span>, that regime is a recipe for censorship: it creates unnecessary and unconstitutional barriers to accessing lawful online speech, threatens our right to anonymity, and pressures online services to collect troves of valuable and sensitive user data. On top of that, A.B. 1043’s wide-sweeping compliance burdens impose disproportionate harms on the open-source ecosystem that underpins much of the modern web. </span></p>
+<p><span>Given these flaws, lawmakers introduced </span><a href=""https://leginfo.legislature.ca.gov/faces/billTextClient.xhtml?bill_id=202520260AB1856""><span>AB 1856</span></a><span> this year as a supposed “clean-up” bill for AB 1043. But instead of sticking to fixing AB 1043’s unique and serious harms (like its impact on open-source operating systems), AB 1856 also expanded the regime even further—extending its age-bracketing requirements beyond operating systems and app stores to browsers and websites. </span></p>
+<p><span>EFF opposed AB 1856 on two grounds, which we explained in </span><a href=""https://www.eff.org/document/eff-letter-opposition-californias-ab-1856""><span>our opposition letter</span></a><span> to the Assembly: </span></p>
+<ol>
+<li><span>The harms that age-gating regimes pose to users’ speech, privacy, and anonymity; and</span></li>
+<li><span>The disproportionate harms that this particular regime imposes on open-source developers. </span></li>
+</ol>
+<h3>Open Source Concerns Somewhat Alleviated By Amendment</h3>
+<p><span>On May 28th, AB 1856 passed the Assembly in a nearly unanimous vote (68-1). </span></p>
+<p><span>Before that vote, however, AB 1856 was amended to relieve the compliance burden on open-source operating systems. This is a meaningful improvement and a welcome relief for open-source developers, who have been </span><a href=""https://www.linuxteck.com/california-age-verification-law-linux/""><span>loud</span></a><a href=""https://www.pcgamer.com/software/operating-systems/a-new-california-law-says-all-operating-systems-including-linux-need-to-have-some-form-of-age-verification-at-account-setup/""> <span>and</span></a><a href=""https://www.tomshardware.com/software/operating-systems/california-introduces-age-verification-law""> <span>clear</span></a><span> about </span><a href=""https://boingboing.net/2026/03/02/californias-age-verification-law-could-regulate-every-linux-command.html""><span>how much</span></a><span> of an </span><a href=""https://www.opensourceforu.com/2026/03/california-age-law-puts-open-source-operating-systems-in-a-compliance-dilemma/""><span>existential threat</span></a><span> A.B. 1043’s age-gating mandate would pose.</span></p>
+<p><span>The new exception reads: </span></p>
+<blockquote><p><span>“</span><span>Operating system provider” does not mean a person or entity that distributes an operating system or application under license terms that permit a recipient to copy, redistribute, and modify the software.</span><span>”</span></p>
+</blockquote>
+<p><span>EFF understands this amendment to exempt open-source operating systems from the requirement to collect and transmit users’ age-bracket data. That is a definite win for open-source developers. The bill is narrower now than it was before, and lawmakers clearly responded to concerns raised by EFF and the broader open-source community. </span></p>
+<p><span>Some important questions still remain—for example, it is unclear how the law would apply when an open-source operating system is incorporated into a commercial product or service. And, given the structure of where the exemption is placed under the “operating system provider” definition, lawmakers could stand to clarify that the exemption applies to open-source operating systems </span><i><span>and</span></i><span> applications.</span></p>
+<p><span>Nonetheless, that ambiguity aside, this amendment does substantially reduce the threat that AB 1043 could have on many open-source developers. </span></p>
+<h3>AB 1856 Still Expands the Problematic Age-Bracketing Regime</h3>
+<p><span>Don’t get us wrong—if this bill passes, we will be very happy that AB 1043 does not pose nearly the amount of harm to our friends behind open-source operating systems. But even after these amendments, EFF remains opposed to AB 1856 because it ultimately expands California’s sweeping age-bracketing framework far beyond the original scope of AB 1043. <br /></span><span></span></p>
+<p><span>In AB 1856 and its amendments, the Assembly failed to address the core problem with AB 1043’s age-bracketing regime: mandated age-gating systems threaten users’ speech, privacy, anonymity, and security. </span></p>
+<p class=""pull-quote""><span>Even after these amendments, EFF remains opposed to AB 1856 because it ultimately expands California’s sweeping age-bracketing framework far beyond the original scope of AB 1043. </span></p>
+<p><span>Even though AB 1043 does not explicitly require companies to perform age verification, it nonetheless imposes a liability structure that </span><a href=""https://www.eff.org/deeplinks/2026/03/ab-1043s-internet-age-gates-hurt-everyone""><span>strongly pressures companies to verify users’ ages anyway</span></a><span>. In practice, that could lead to more ID checks, more biometric scanning, more invasive data collection and risk of breach, and more barriers to adults’ and young people’s lawful speech.</span></p>
+<p><span>In fact, instead of narrowing AB 1043’s wide net, AB 1856 </span><i><span>expanded</span></i><span> it to add browser providers and website operators to the list of entities that must comply with its age-bracketing requirements. This dramatically broadens the scope of AB 1043 and pulls more services, developers, and users into an anonymity- and privacy-destroying data collection framework that has not yet been implemented or evaluated. The result would make it nearly impossible for regular internet users to avoid AB 1043’s age gates.</span></p>
+<h3>The Fight Moves to the Senate</h3>
+<p><span>On those grounds, EFF will continue to oppose AB 1856. Though it has passed the Assembly, the fight is not over. As the bill moves through the Senate, we’ll continue to push for amendments that actually “clean up” and narrow the scope of AB 1043, and offer more protection to users from the harms of age-gating systems. </span></p>
+
+</div></div></div>",83c255fc2b9708128a4c853d3ebab0dc7c9d044ca9115d5a3ead8065517675b0
+cca6e4f12ca4a18243e003c573af3dbdfa72daca8bf40863f26f651890503d1b,ong,Electronic Frontier Foundation,Organizzazione Legale,Internazionale,Prima organizzazione mondiale per la difesa dei diritti digitali,"Thu, 28 May 2026 16:37:42 +0000",2026-06-04T06:44:47.050371,Age Verification is a Privacy Nightmare,https://www.eff.org/deeplinks/2026/05/age-verification-privacy-nightmare,comunicato,1,it,"Age Verification is a Privacy Nightmare <div class=""field field--name-body field--type-text-with-summary field--label-hidden""><div class=""field__items""><div class=""field__item even""><p>In the rush to block young people from certain parts of the internet, lawmakers are creating a privacy and security nightmare for everyone. This scenario is already playing out globally. <a href=""https://supporters.eff.org/donate/spring--DL5"">Help us stop it and keep the web open and accessible for all.</a></p>
+<p class=""take-action""><a href=""https://supporters.eff.org/donate/spring--DL5"">JOIN EFF</a></p>
+<p class=""take-action take-explainer"">Protect the web for everyone</p>
+<p>Even with the best intentions, every online age verification scheme has the same result: <em>users are forced to reveal sensitive personal information to third parties simply to access the web.</em> Once that valuable data is centralized, it becomes an immediate target for leaks, hacks, and misuse. This isn’t hypothetical: <a href=""https://www.eff.org/deeplinks/2024/06/hack-age-verification-company-shows-privacy-danger-social-media-laws"">it has</a> <a href=""https://www.eff.org/deeplinks/2024/06/hack-age-verification-company-shows-privacy-danger-social-media-laws"">already</a> <a href=""https://www.eff.org/deeplinks/2024/06/hack-age-verification-company-shows-privacy-danger-social-media-laws"">happened</a> <a href=""https://www.malwarebytes.com/blog/news/2026/02/age-verification-vendor-persona-left-frontend-exposed"">several</a> <a href=""https://techcrunch.com/2025/08/13/how-we-found-teaonher-spilling-users-drivers-licenses-in-less-than-10-minutes"">times</a>.</p>
+<p><a href=""https://supporters.eff.org/donate/spring--DL5"">By age gating the web, we serve up a honeypot of private info ripe for bad actors. But you can help us stop this when you join EFF.</a></p>
+<p></p><div class=""caption caption-center""><div class=""caption-width-container""><div class=""caption-inner""><a href=""https://supporters.eff.org/donate/spring--DL5""><img alt=""A person wears an EFF Claw Back member t-shirt on the left. A person on the right wears a black sweatshirt with the Privacy Badger mascot on the chest."" height=""1200"" src=""https://www.eff.org/files/2026/05/18/claw_f_crewb.jpg"" title=""A person wears an EFF Claw Back member t-shirt on the left. A person on the right wears a black sweatshirt with the Privacy Badger mascot on the chest."" width=""1667"" /></a><p class=""caption-text"">Support digital rights in EFF's new Claw Back member t-shirt and Privacy Badger Crewneck.</p></div></div></div>
+
+<p>Thanks to our members, EFF is on the front lines fighting against online age gating and identity verification online. We’re working with lawmakers to pass better policies, educating the public, and fighting the wildfire of age verification proposals around the world. <a href=""https://supporters.eff.org/donate/spring--DL5"">Now all we need is you.</a></p>
+<h2>🐝 No, It’s Not a Bug</h2>
+<p>We all want young people to be safe online, but we don’t need to trade everyone's digital rights to achieve it. These new restrictive mandates are used to justify government-led censorship and expanded surveillance. That's no accident.</p>
+<p>Whether you trust today’s lawmakers or not, handing anyone keys to new forms of censorship and surveillance is a serious risk. Because history shows us that these powers are always abused. It’s time to demand better.</p>
+<p class=""take-action""><a href=""https://supporters.eff.org/donate/spring--DL5"">Join EFF today</a></p>
+<p class=""take-explainer"">Help us claw back your privacy</p>
+<p>____________________</p>
+<p><em><span class=""TextRun SCXW4268908 BCX0"" lang=""EN-US"" xml:lang=""EN-US""><span class=""NormalTextRun SCXW4268908 BCX0"">EFF is a member-supported U.S. 501(c)(3) organization. </span><span class=""NormalTextRun CommentStart CommentHighlightPipeRest CommentHighlightRest SCXW4268908 BCX0"">We've</span><span class=""NormalTextRun CommentHighlightRest SCXW4268908 BCX0""> received top rati</span><span class=""NormalTextRun CommentHighlightRest SCXW4268908 BCX0"">ngs </span><span class=""NormalTextRun CommentHighlightRest SCXW4268908 BCX0"">from the nonprofit watchdog Charity Navigator since 2013!</span><span class=""NormalTextRun CommentHighlightPipeRest SCXW4268908 BCX0""> Your donation is tax-deductible as allowed by law.</span></span></em></p>
+
+</div></div></div>",cca6e4f12ca4a18243e003c573af3dbdfa72daca8bf40863f26f651890503d1b
+3083b001c44562e6a81b816de476caddaaad4b01f0292e32d5b7b16d68c34613,ong,Electronic Frontier Foundation,Organizzazione Legale,Internazionale,Prima organizzazione mondiale per la difesa dei diritti digitali,"Tue, 26 May 2026 21:23:43 +0000",2026-06-04T06:44:47.358383,"More License Plate Reader Mission Creep: School Residency Verification, Background Checks, and Noise Complaints",https://www.eff.org/deeplinks/2026/05/more-license-plate-reader-mission-creep-school-residency-verification-background,comunicato,1,it,"More License Plate Reader Mission Creep: School Residency Verification, Background Checks, and Noise Complaints <div class=""field field--name-body field--type-text-with-summary field--label-hidden""><div class=""field__items""><div class=""field__item even""><p><strong></strong><span>An EFF analysis of millions of searches of Flock Safety <a href=""https://sls.eff.org/technologies/automated-license-plate-readers-alprs"">automated license plate reader</a> (ALPR) data by police has uncovered a troubling pattern: in the absence of a warrant requirement to search ALPR databases, law enforcement agencies have moved beyond specific investigations to use these surveillance networks for virtually any whim.</span></p>
+<p><span>Our findings suggest that the absence of a warrant requirement has fostered a culture of unrestricted access to sensitive location data, allowing agencies to leverage that data beyond the scope of specific criminal investigations.</span></p>
+<p><span>As a refresher: Law enforcement agencies lease or purchase camera systems from Flock Safety and then mount them by the side of the road and at intersections to document every vehicle that passes, including the plate, make, model, color and distinguishing characteristics, along with the date, time and location of where it was seen. </span></p>
+<p><span>Law enforcement's talking points—</span><a href=""https://www.documentcloud.org/documents/28163832-wpd-flock-emails-janjul2025-text-1/?mode=document#document/p24/a2818282""><span>often scripted by the company itself</span></a><span>—trumpet their role in solving high-stakes crimes. But the data reveals a different story. What they're not saying is that ALPRs are also frequently used for extremely low-level investigations, such as verifying whether a student lives within a particular school zone. In some cases, police have even used this tech to conduct employment background checks and investigations into loud music complaints. Recently, </span><a href=""https://www.eff.org/deeplinks/2026/03/traffic-violation-license-plate-reader-mission-creep-already-here""><span>a motorcyclist was even targeted</span></a><span> for simply holding a cell phone while riding.</span></p>
+<p><span>The reach of this ALPR surveillance is amplified by the nature of the indiscriminate sharing these technologies encourage. Most agencies choose to share broadly, often as part of a nationwide pool, making it common for a single city's system to be searched hundreds of thousands of times each month. By analyzing these ""network audit logs,"" privacy advocates and journalists have uncovered evidence of the technology being used to surveil </span><a href=""http://www.eff.org/deeplinks/2025/11/how-cops-are-using-flock-safetys-alpr-network-surveil-protesters-and-activists""><span>protesters</span></a><span>, </span><a href=""https://www.eff.org/deeplinks/2025/05/she-got-abortion-so-texas-cop-used-83000-cameras-track-her-down""><span>abortion-seekers</span></a><span>, </span><a href=""https://www.404media.co/ice-taps-into-nationwide-ai-enabled-camera-network-data-shows/""><span>immigrants</span></a><span>, and even </span><a href=""https://www.eff.org/deeplinks/2025/11/license-plate-surveillance-logs-reveal-racist-policing-against-romani-people""><span>ethnic Roma populations</span></a><span>. </span></p>
+<p><span>While these high-profile abuses are shocking, the more mundane uses are also problematic, signaling a massive, unchecked mission creep that has turned an alleged “crime-fighting” tool into a universal tracker of everyone’s movements. </span></p>
+<h3><span>Residency Checks</span></h3>
+<p><span>School systems in the U.S. conduct ""</span><a href=""https://legal.thomsonreuters.com/blog/residency-verification-in-public-schools-an-overview/""><span>residency verification</span></a><span>"" investigations of their parents or guardians to ensure enrolled children live in the district. To carry out these checks, some school districts have enlisted law enforcement officers for help, leveraging ALPR databases to track the comings and goings of families across the region. </span></p>
+<p><span>Buford City Schools in Georgia, which serves only about 6,000 students, illustrates the scale of this prying. Between January 2025 and March 2026, school police ran more than 375 searches where officers listed school residency verification, or simply ""RV,"" as the reason for the search. That accounts for more than half of all ALPR searches in that period, and in those three months of 2026, three-quarters of all searches were related to residency verification. </span></p>
+<p><span>School officials stand by the searches. ""[B]ecause Buford City Schools is a highly sought-after district, we experience ongoing challenges with residency fraud,"" a spokesperson told Appen Media, which shared the email with EFF. ""Flock Safety is one of the tools we use to verify residency and protect the integrity of the Buford City School System for families who live within the district.""</span></p>
+<p><span>A search of ALPR data will show a lot more than whether a family lives within the right zone. In these Buford cases, officers ran some searches across more than 5,800 different networks nationwide. Every time a plate is searched, it can reveal personal information about a family: when they go to the doctor, when they go to worship, when they go out at night, and where they travel on vacation. None of that is the school district's business, and these searches are a huge invasion of privacy. </span></p>
+<p><span>While Buford was by the far the most prolific, it wasn't the only agency to run school residency checks. For example, Delhi Township Police Department (DTPD) in Ohio ran 35 searches related to students in five schools in a three-month period during spring 2025, and similarly stood by the practice, citing a warning given to parents that submitting a false statement of residency may be a felony. </span></p>
+<p><span>After EFF sent an inquiry to DTPD, the agency conducted a brief investigation and found that ""these searches were not done to verify residency upon submission, but to investigate cases where it was believed the form was filled out with false information."" DTPD did not say what kind of evidence was required to establish suspicion before an ALPR query, nor did it offer information on how many of these investigations turned out to be justified. </span></p>
+<p><span>However, the official told EFF: ""in response to your inquiry, the department will be implementing a change to how these queries are documented in the Flock system and internally, to increase accountability and help avoid any confusion moving forward.""</span></p>
+<p><span>Other agencies that ran school residency searches include Cortland Police Department in Ohio and Lincoln Police Department in Alabama. Several agencies also ran searches with ""residency,"" ""residency investigation"" or ""residency verification"" as the reason, but that could refer to a number of public services. These agencies include Ridgeland Police Department in Mississippi, Fairfield County Sheriff's Office in South Carolina, Manteno Police Department in Illinois, Illinois Department of Natural Resources, and Mora County Sheriff's Office in New Mexico. </span></p>
+<h3><span>Background Checks</span></h3>
+<p><span>Few people would imagine that applying for a government job would open you up to an ALPR search. Yet, several law enforcement agencies ran searches through the Flock network related to employment. </span></p>
+<p><span>For example:</span></p>
+<ul>
+<li><span>Jefferson County Sheriff's Office in Missouri ran six searches across 2,853 networks, documenting ""employment"" in the reason field.</span></li>
+<li><span>Little Elm Police Department in Texas ran 10 searches across 6,306 networks, documenting ""EMPLOYMENT"" in the reason field.</span></li>
+<li><span>Ridgeland Police Department in Mississippi ran two searches across more than 6,000 networks documenting ""employment background inv"" in the reason field.</span></li>
+<li><span>Texas City Police Department, Texas ran three searches across 728 networks, documenting ""pre employment background"" in the reason field. </span></li>
+<li><span>Zion Police Department in Illinois ran a research across 585 networks documenting ""Employee Background"" in the reason field. </span></li>
+</ul>
+<p><span>Davidson Police Department in North Carolina logged a search listed as ""Employment Background,"" but in response to an inquiry from EFF, the chief described this as ""poor choice of words by our investigator."" He further stated that the agency does not use ALPRs as part of employment background checks, but in this case, the agency shared that a potential violation of a protective order came to light during a background check, hence the reference to it in the search log.</span></p>
+<p><span>In addition to the agencies mentioned, several agencies ran searches that simply referred to ""background check"" or ""background checks,"" which could be related to employment or perhaps some other issue, such as a </span><a href=""https://www.eff.org/deeplinks/2025/01/california-police-misused-state-databases-more-7000-times-2023""><span>concealed weapons permit</span></a><span>, for example. These include Avon Police Department in Indiana, Rockford Police Department in Illinois, San Bernardino County Sheriff's Office in California, and Seaford Police Department in Delaware.</span></p>
+<h3><span>Noise Complaints</span></h3>
+<p><span>Many people have probably been irritated at some point or another by a car blasting a deep bassline or even the infamous ""</span><a href=""https://www.youtube.com/watch?v=Wy4ZK4qBUrI""><span>whistle tip</span></a><span>."" Some may have even called the cops to complain about a neighbor’s house party. But that's a far cry from the types of serious crimes that Flock and its customers have claimed that the ALPR systems would be used to solve. </span></p>
+<p><span>Yet, EFF identified 26 agencies where officers felt it was appropriate to pry into a driver's life because of a noise complaint, ranging from house parties to loud exhausts to just ""music"": </span></p>
+<p><img alt=""A table of agencies and their searches that relate to noise complaints."" height=""576"" src=""https://www.eff.org/files/2026/05/26/noise2.png"" title=""A table of agencies and their searches that relate to noise complaints."" width=""641"" /></p>
+<p><span>Some of these agencies searched upwards of 6,500 networks’ cameras—the equivalent of launching a nationwide goose chase over a booming subwoofer or a busted muffler. </span></p>
+<h3><span>When Mission Creep Is Just Plain Creepy</span></h3>
+<p><span>An observant reader of this report may have noticed that Ridgeland Police Department in Mississippi ran searches in all three of the categories we reported above.</span></p>
+<p><span>However, after the city first installed the Flock Safety cameras, the then-police chief </span><a href=""https://www.wjtv.com/news/local/ridgeland-adds-12-license-plate-reader-cameras/""><span>told</span></a><span> the press that the technology helps solve cases that range from ""theft to crimes of violence""—without disclosing that the range would extend much further.</span></p>
+<p><span>When police and salespeople trot out cherry-picked cases to argue that a mass surveillance technology is an ""important"" tool,  they obfuscate that it's a convenient shortcut around due process. For serious crimes, police can already go through the standard legal process: making the case to a judge on why they should get a search warrant for location data, whether it's from cell phones or service providers. But police treat ALPR databases as if no such threshold exists, giving them free rein to track a person’s movements without a sliver of judicial oversight.</span></p>
+<p class=""pull-quote""><span>When police and salespeople trot out cherry-picked cases to argue that a mass surveillance technology is an ""important"" tool,  they obfuscate that it's a convenient shortcut around due process. </span></p>
+<p><span>""This is the same as if I put a police officer on the side of the road with a pen and a notepad and he writes down every license plate number that drives by,” the former chief </span><a href=""https://www.wlbt.com/2020/04/24/license-plate-readers-coming-ridgeland-help-solve-crimes/""><span>said</span></a><span>, repeating a commonly circulated talking point. </span></p>
+<p><span>That rhetoric may sound reasonable if we were just talking about a single camera on a street corner, but Ridgeland now operates more than 50 cameras—the equivalent of one for every 500 residents—and maintains access to tens of thousands more. </span></p>
+<p><span>If the chief had stood in front of the city’s aldermen and asked for permission to search more than 20,000 cameras so his officers could investigate the high crime of ""music,"" it’s quite unlikely that they would have been nodding their heads along. </span></p>
+<p><span>Ridgeland Police Department did not respond to EFF’s requests for comment.</span></p>
+
+</div></div></div>",3083b001c44562e6a81b816de476caddaaad4b01f0292e32d5b7b16d68c34613
+bf69de71a17b75f44167cce999034c24cdbad27c6375b7392dad3300f6b45ef0,ong,Noyb (Privacy UE),Organizzazione Legale,Unione Europea,Organizzazione europea che porta avanti casi legali e strategie per applicare il GDPR,"Wed, 03 Jun 2026 05:00:00 +0000",2026-06-04T06:44:41.812662,Nordic Media Giant Schibsted switches to “Pay or Okay” – complaint filed!,https://noyb.eu/en/nordic-media-giant-schibsted-switches-pay-or-okay-complaint-filed,comunicato,1,it,"Nordic Media Giant Schibsted switches to “Pay or Okay” – complaint filed! <p>Forced Consent &amp; Consent Bypass </p>
 <strong><p><span lang=""EN-GB""><strong>Today, the Norwegian Consumer Council (</strong></span><a href=""https://www.forbrukerradet.no/""><span lang=""EN-GB"">Forbrukerrådet</span></a><span lang=""EN-GB""><strong>) and </strong></span><em><span lang=""EN-GB""><strong>noyb</strong></span></em><span lang=""EN-GB""><strong> have filed a complaint against the Norwegian news publisher Schibsted for implementing a “Pay or Okay” system across its products. Schibsted is one of the largest news publishers in the Nordics and owns well-known brands such as TV4, Aftenposten E24 and VG. The company’s introduction of “Pay or Okay” sets a dangerous precedent for free consent across the Nordic countries, which follows the wide-spread trend of websites to charge a “fee” to reject being tracked online.</strong></span></p></strong>
 
 
@@ -2155,7 +2887,7 @@ bf69de71a17b75f44167cce999034c24cdbad27c6375b7392dad3300f6b45ef0,ong,Noyb (Priva
 
 
             <div class=""field--field-p-text-text field""><ul><li><a href=""https://noyb.eu/sites/default/files/2026-06/Complaint_Schibsted_redacted.pdf"">Complaint against Schibsted (EN)</a></li><li><a href=""https://www.forbrukerradet.no/siste-nytt/forbrukerradet-klager-inn-schibsteds-krav-om-betaling-for-personvern/"">Press release by the Norwegian Consumer Council (NO)</a></li></ul><p><span lang=""EN-GB""><strong>Background.</strong> In recent years, more and more websites have introduced “Pay or Okay” systems in an attempt to forcibly increase their consent rates for personalised ad tracking far beyond the actual “freely given” consent foreseen by law. This trend was originally started by news media companies in German speaking countries, but in the meantime even Meta adopted it for Instagram and Facebook in 2023. Essentially, the practice forces consumers to choose between accepting being tracked for personalised advertising and paying a hefty premium to reject it.&nbsp;</span></p><p><span lang=""EN-GB"">Except for a few websites in Denmark, “Pay or Okay” had been rare in the Nordics until this year. Then, in March, the Swedish subsidiary of the Norwegian media publisher Schibsted introduced it on all of their websites, including major newspapers such as </span><a href=""https://www.aftonbladet.se/""><span lang=""EN-GB"">Aftonbladet</span></a><span lang=""EN-GB""> and even </span><a href=""https://www.tv.nu/""><span lang=""EN-GB"">the TV guide</span></a><span lang=""EN-GB"">. Now they’ve launched the same business practice in Norway, where Schibsted owns some of the biggest news outlets.</span></p><p>Finn Myrstad, Director of digital policy at the Norwegian Consumer Council:<em> “Privacy is a fundamental right — not a premium option. This is about more than ads for shoes or football gear. This type of tracking makes it possible to build highly detailed profiles of us: how we think, behave, and can be influenced when we are at our most vulnerable.”</em></p><p><span lang=""EN-GB""><strong>North Korean Consent Rates.&nbsp;</strong>It is well known that so-called “consent rates” skyrocket when websites start using “Pay or Okay”. Industry papers show that such systems consistently lead to consent rates of about 99% – while, according to various studies, only between 0.16% and 7% of people want to be tracked or have their data used for personalised advertising. If more than 90% of users get the opposite of what they genuinely want, we have everything but genuine consent as required by the GDPR. Schibsted even confirmed this themselves: </span><em><span lang=""EN-GB"">“Studies show that if you allow this [to reject consent; Ed. Note] without demanding any form of payment in return, a great many users will decline”,&nbsp;</span></em><span lang=""EN-GB"">Fredric Karén</span><em><span lang=""EN-GB"">,&nbsp;</span></em><span lang=""EN-GB"">Schibsted Sweden’s Executive Vice President, said </span><a href=""https://www.svt.se/kultur/aftonbladets-lasare-maste-betala-for-att-slippa-datainsamling""><span lang=""EN-GB"">in an interview with SVT</span></a><span lang=""EN-GB"">.</span></p><p><span lang=""EN-GB"">Max Schrems: “The use of </span><em><span lang=""EN-GB"">‘Pay or Okay’ leads to a consent rate beyond 99%, despite the fact that only a small number of people wants to be tracked online. In reality, ‘Pay or Okay’ leads to nothing but a North Korean consent rate.</span></em><span lang=""EN-GB"">”</span></p><p><span lang=""EN-GB""><strong>Complaint filed in Norway.</strong> The Swedish IMY has already received at least 56 complaints against Schibsted since they introduced “Pay or Okay” in Sweden. So, it’s clear that this is an issue that people in the Nordics deeply care about. </span><em><span lang=""EN-GB"">noyb&nbsp;</span></em><span lang=""EN-GB"">has now partnered with the Norwegian Consumer Council (NCC) to file a joint complaint with the Norwegian Data Protection Authority. We request the DPA to assess the legality of “Pay or Okay” and to declare the business practice illegal. Since this clearly is a systemic practice employed by Schibsted, we also suggest that the DPA issue a fine.</span></p><p><span lang=""EN-GB"">Joakim Söderberg, data protection lawyer at </span><em><span lang=""EN-GB"">noyb: “Profiteering from fundamental rights is not a legitimate business model in Europe</span></em><span lang=""EN-GB"">.&nbsp;</span><em><span lang=""EN-GB"">We're hoping that the Norwegian DPA sees things our way, and that Schibsted abandons this unpopular and unlawful scheme.”</span></em><span lang=""EN-GB""></span><span lang=""EN-GB""></span></p></div>",bf69de71a17b75f44167cce999034c24cdbad27c6375b7392dad3300f6b45ef0
-0e0e3dae6b2fd38884a750400872899b7f09368076e066e5df0b4f2c942d6c1b,ong,Noyb (Privacy UE),Organizzazione Legale,Unione Europea,Organizzazione europea che porta avanti casi legali e strategie per applicare il GDPR,"Tue, 05 May 2026 05:00:00 +0000",2026-06-03T06:54:35.505280,LinkedIn locks your GDPR rights behind a paywall,https://noyb.eu/en/linkedin-locks-your-gdpr-rights-behind-paywall,comunicato,1,it,"LinkedIn locks your GDPR rights behind a paywall <p>Data Subject Rights </p>
+0e0e3dae6b2fd38884a750400872899b7f09368076e066e5df0b4f2c942d6c1b,ong,Noyb (Privacy UE),Organizzazione Legale,Unione Europea,Organizzazione europea che porta avanti casi legali e strategie per applicare il GDPR,"Tue, 05 May 2026 05:00:00 +0000",2026-06-04T06:44:42.690540,LinkedIn locks your GDPR rights behind a paywall,https://noyb.eu/en/linkedin-locks-your-gdpr-rights-behind-paywall,comunicato,1,it,"LinkedIn locks your GDPR rights behind a paywall <p>Data Subject Rights </p>
 <strong><p><span lang=""EN-GB""><strong>LinkedIn tracks the visits to profile pages. However, if you want to see who has visited your own profile, you have to pay. The Microsoft subsidiary uses these and other ‘insights’ as an incentive for people to sign up for its paid Premium membership. It is unclear whether this tracking of visitors is legal. What is clear, however, is that if this data is displayed as part of a premium membership, it should also be accessible in response to an access request under Article 15 GDPR. But LinkedIn refuses to comply – and suddenly cites alleged data protection concerns that supposedly only arise in the case of an access request.</strong></span></p></strong>
 
 
