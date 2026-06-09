@@ -20,6 +20,15 @@ from transformers import (
     EarlyStoppingCallback
 )
 import torch
+import sys
+
+# Aggiungi root progetto al path (necessario per import cross-package quando
+# lo script viene eseguito direttamente con `python nlp/train_classifier.py`).
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
+from utils.feedback_schema import load_feedback
 
 # Configurazione
 MODEL_NAME = "xlm-roberta-base"
@@ -40,15 +49,19 @@ os.makedirs(cartella_logs, exist_ok=True)
 
 def carica_dati_training():
     """Carica i dati di correzione manuale"""
-    if not os.path.exists(percorso_training_data):
+    # Lettura robusta tramite schema canonico (tollera file legacy/misti)
+    df = load_feedback(percorso_training_data)
+    if df.empty:
         print("⚠️ Nessun dato di training trovato.")
         return None, None, None
-    
-    df = pd.read_csv(percorso_training_data)
-    
-    # Prendi solamente i record che sono stati corretti
-    df_correzioni = df[df['errore_segnalato'] == True].copy()
-    
+
+    # Solo le righe segnalate con una categoria realmente corretta
+    # ("Non modificato" è il valore di default, non una correzione).
+    segnalate = df['errore_segnalato'].astype(str).str.strip().str.lower().isin(['true', '1'])
+    categoria_valida = df['categoria_corretta'].astype(str).str.strip().ne('') & \
+        df['categoria_corretta'].astype(str).str.strip().ne('Non modificato')
+    df_correzioni = df[segnalate & categoria_valida].copy()
+
     if len(df_correzioni) < 10:
         print(f"⚠️ Dati insufficienti per il training. Necessari almeno 10 correzioni, presenti: {len(df_correzioni)}")
         return None, None, None

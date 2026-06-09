@@ -13,6 +13,7 @@ cartella_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, cartella_root)
 
 from utils.logger_config import setup_logger
+from utils.feedback_schema import load_feedback
 
 logger = setup_logger(__name__)
 
@@ -32,50 +33,51 @@ def train_impact_classifier():
     # Crea cartella models se non esiste
     os.makedirs(os.path.dirname(percorso_modello), exist_ok=True)
     
-    # 1. Controllo se esistono abbastanza dati di training
-    if not os.path.exists(percorso_feedback):
+    # 1. Carica il feedback in modo robusto e allineato allo schema canonico.
+    #    load_feedback tollera file legacy/misti e restituisce sempre le colonne attese.
+    df_feedback = load_feedback(percorso_feedback)
+    if df_feedback.empty:
         logger.info("⚠️ Nessun dato di feedback trovato. Training non eseguibile.")
         return False
-    
-    # Gestione CSV corrotto / righe malformate: salta le righe sbagliate invece di crashare
-    try:
-        df_feedback = pd.read_csv(percorso_feedback, on_bad_lines='skip', engine='python')
-    except Exception as e:
-        logger.warning(f"⚠️ Errore nella lettura del file feedback: {str(e)}")
-        logger.info("Provo a leggere il file con modalità permissiva...")
-        try:
-            # Modalità emergenza: leggi ogni riga e ignora errori
-            df_feedback = pd.read_csv(percorso_feedback, 
-                                     sep=None, 
-                                     engine='python',
-                                     on_bad_lines='skip',
-                                     quoting=3)
-        except Exception as e2:
-            logger.error(f"❌ Impossibile leggere il file feedback: {str(e2)}")
-            return False
-    
+
+    # 2. Tieni solo le correzioni di urgenza valide: riga segnalata dall'operatore
+    #    e livello_allarme_corretto interpretabile come intero nell'intervallo 1-5.
+    segnalate = df_feedback['errore_segnalato'].astype(str).str.strip().str.lower().isin(['true', '1'])
+    urgenza = pd.to_numeric(df_feedback['livello_allarme_corretto'], errors='coerce')
+    titolo_valido = df_feedback['titolo'].astype(str).str.strip().ne('')
+    validi = df_feedback[segnalate & urgenza.between(1, 5) & titolo_valido].copy()
+    validi['livello_allarme_corretto'] = urgenza[validi.index].round().astype(int)
+
     MINIMO_RIGHE_TRAINING = 10
-    if len(df_feedback) < MINIMO_RIGHE_TRAINING:
-        logger.info(f"⚠️ Dati insufficienti per il training. Necessari almeno {MINIMO_RIGHE_TRAINING} correzioni, presenti: {len(df_feedback)}")
+    if len(validi) < MINIMO_RIGHE_TRAINING:
+        logger.info(
+            "⚠️ Correzioni di urgenza valide insufficienti: %d/%d necessarie. "
+            "Modello non addestrato: i documenti useranno il punteggio neutro di default.",
+            len(validi), MINIMO_RIGHE_TRAINING,
+        )
         return False
-    
-    logger.info(f"🚀 Avvio training modello impatto su {len(df_feedback)} record annotati manualmente")
-    
-    # 2. Carica modello per embeddings multilingua
+
+    logger.info("🚀 Avvio training modello impatto su %d correzioni di urgenza valide", len(validi))
+
+    # 3. Carica modello per embeddings multilingua
     logger.info("📥 Caricamento modello Sentence Transformers...")
     model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-    
-    # 3. Prepara dati
-    # Combina titolo e fonte come testo di input
-    testi = df_feedback.apply(lambda row: f"{row['titolo']} {row['fonte']}", axis=1).tolist()
-    labels = df_feedback['livello_allarme_corretto'].astype(int).values
+
+    # 4. Prepara dati: combina titolo e fonte come testo di input
+    testi = validi.apply(lambda row: f"{row['titolo']} {row['fonte']}", axis=1).tolist()
+    labels = validi['livello_allarme_corretto'].to_numpy()
     
     # 4. Genera embeddings
     logger.info("🔢 Generazione vettori embedding...")
     embeddings = model.encode(testi, show_progress_bar=True, batch_size=32)
     
-    # 5. Split train / test
-    X_train, X_test, y_train, y_test = train_test_split(embeddings, labels, test_size=0.2, random_state=42, stratify=labels)
+    # 5. Split train / test — stratifica solo se ogni classe ha almeno 2 campioni
+    from collections import Counter
+    puo_stratificare = min(Counter(labels.tolist()).values()) >= 2
+    X_train, X_test, y_train, y_test = train_test_split(
+        embeddings, labels, test_size=0.2, random_state=42,
+        stratify=labels if puo_stratificare else None,
+    )
     
     # 6. Addestramento classificatore
     logger.info("🤖 Addestramento Random Forest Classifier...")

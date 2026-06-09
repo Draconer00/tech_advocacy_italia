@@ -17,6 +17,7 @@ cartella_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, cartella_root)
 
 from scrapers.scraper_ong import PROFILI_ONG
+from utils.feedback_schema import append_correzioni
 
 # --- CONFIGURAZIONE DELLA PAGINA ---
 st.set_page_config(page_title="Radar Diritti Digitali", page_icon="⚖️", layout="wide")
@@ -441,11 +442,9 @@ with tab_home:
                 cartella_script = os.path.dirname(os.path.abspath(__file__))
                 percorso_feedback = os.path.join(cartella_script, '..', 'data', 'processed', 'training_data_feedback.csv')
                 
-                # Append al file (o crea se non esiste)
-                if os.path.exists(percorso_feedback):
-                    modifiche.to_csv(percorso_feedback, mode='a', header=False, index=False)
-                else:
-                    modifiche.to_csv(percorso_feedback, mode='w', header=True, index=False)
+                # Append allineato allo schema canonico (writer e reader non
+                # possono più divergere — vedi utils/feedback_schema.py)
+                append_correzioni(modifiche, percorso_feedback)
                 
                 st.success(f"✅ Salvataggi {len(modifiche)} correzioni. Saranno usate per il prossimo fine-tuning del modello.")
                 st.balloons()
