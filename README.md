@@ -8,7 +8,7 @@ An open-source civic intelligence platform for monitoring digital rights, privac
 
 Tech Advocacy Radar aggregates and semantically analyses public-interest documents from institutional regulators, civil society organisations, and news sources. It transforms heterogeneous raw text into a structured, queryable knowledge base and presents the results through an interactive dashboard designed for journalists, researchers, policy professionals, and activists.
 
-The system monitors over 35 sources continuously, processes documents in Italian and English, and provides seven analytical views including network visualisation, geographic classification, temporal trend analysis, and a two-dimensional positioning map.
+The system monitors over 35 sources continuously, processes documents in Italian and English, and provides six analytical views including network visualisation, geographic classification, temporal trend analysis, and a two-dimensional positioning map.
 
 ---
 
@@ -17,15 +17,15 @@ The system monitors over 35 sources continuously, processes documents in Italian
 ```
 tech_advocacy_italia/
 │
-├── scrapers/                  ← Data ingestion layer (8 independent scrapers)
+├── scrapers/                  ← Data ingestion layer (7 independent scrapers)
 │   ├── scraper_gpdp.py        ← Italian Data Protection Authority (web scraper)
 │   ├── scraper_ong.py         ← 23 civil society organisations (RSS feeds)
 │   ├── scraper_gnews.py       ← GNews API (requires GNEWS_API_KEY)
 │   ├── scraper_rss_eu.py      ← European regulators: EDPB, CNIL, AEPD, ICO
 │   ├── scraper_agcom.py       ← AGCOM communications authority (RSS)
 │   ├── scraper_tech_news.py   ← 8 Italian tech media outlets (relevance-filtered)
-│   ├── scraper_eu_parl.py     ← European Parliament (RSS + Open Data API)
-│   └── scraper_gdpr_fines.py  ← GDPR enforcement database (GDPRhub)
+│   └── scraper_eu_parl.py     ← European Parliament (RSS + Open Data API)
+│   # planned: scraper_gdpr_fines.py — structured GDPR sanctions layer (GDPRhub / enforcementtracker)
 │
 ├── nlp/                       ← NLP processing layer
 │   └── text_analysis.py       ← spaCy NER, TF-IDF, sentiment, active learning
@@ -53,8 +53,9 @@ GNews API         →  gnews_sample.csv       │
 EU regulators     →  rss_eu_sample.csv      ├─→ text_analysis.py → *_analyzed.csv → SQLite
 AGCOM RSS         →  agcom_sample.csv       │         ↑
 8 Tech outlets    →  tech_news_sample.csv   │  human-in-the-loop corrections
-EU Parliament     →  eu_parl_sample.csv     │  (dashboard feedback interface)
-GDPRhub           →  gdpr_fines_sample.csv ─┘
+EU Parliament     →  eu_parl_sample.csv    ─┘  (dashboard feedback interface)
+
+# planned: GDPRhub → gdpr_fines_sample.csv (structured sanctions layer, under development)
 ```
 
 All sources share a unified schema. Raw files are append-only — records are never deleted, deduplication is performed by SHA-256 hash at ingestion time.
@@ -77,17 +78,18 @@ Each document is processed through the following stages:
 
 ## Dashboard
 
-The Streamlit dashboard provides seven analytical views:
+The Streamlit dashboard provides six analytical views:
 
 | Tab | Description |
 |-----|-------------|
-| Home Radar | Rolling 14-day overview with urgency-coded document feed |
-| ONG Campaigns | Aggregated feed from all monitored civil society organisations |
-| Network Themes | Force-directed graph: NGOs → focus topics → recent documents |
-| Geographic Analysis | Cross-source view filterable by geography, source, and alert level |
-| Time Analysis | Monthly document volume, keyword trends, GDPR fine amounts over time |
-| Position Map | 2D Cartesian map: Italy↔Global (X) × Technical↔Legal (Y) |
-| Database Manager | Direct SQL access, schema inspection, data retention tools |
+| Home Radar | Rolling 14-day overview with urgency-coded document feed and correction interface |
+| Campagne ONG | Aggregated feed from all monitored civil society organisations |
+| Provvedimenti Garante | Italian Data Protection Authority decisions, filterable by geography and alert level |
+| Network Temi | Force-directed graph: NGOs → focus topics → recent documents |
+| Mappa Posizionamento | 2D Cartesian map: Italy↔Global (X) × Technical↔Legal (Y) |
+| Analisi Temporale | Monthly document volume, keyword trends, GDPR fine amounts over time |
+
+A standalone SQL utility (`app/db_manager.py`) provides direct database access and schema inspection; it is run separately and is not yet wired into the dashboard as a tab.
 
 ---
 
@@ -117,7 +119,7 @@ python -m streamlit run app/dashboard.py
 
 ## Automated Scheduling
 
-The pipeline is compatible with GitHub Actions and cron scheduling. The workflow in `.github/workflows/` runs daily at 02:00 UTC: scrapers execute, the NLP pipeline processes new documents, and results are committed back to the repository. Add `GNEWS_API_KEY` as a GitHub repository secret to enable the news scraper in CI.
+The pipeline is compatible with GitHub Actions and cron scheduling. The workflow in `.github/workflows/` runs daily at 02:00 UTC: scrapers execute, the NLP pipeline processes new documents, and the results are published as downloadable workflow **artifacts** (raw data, processed data, and SQLite database). Collected data is not versioned in the repository — each run is self-contained, and long-term persistence (if needed) is the operator's responsibility. Add `GNEWS_API_KEY` as a GitHub repository secret to enable the news scraper in CI.
 
 ---
 
