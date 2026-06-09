@@ -462,7 +462,20 @@ def processa_dataframe(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
         return pd.Series([etichetta, confidenza])
 
     df[['topic_label', 'confidence']] = df.apply(classifica_riga, axis=1)
+
+    # Deduplica semantica APPLICATA (non solo annotata): tiene un solo
+    # rappresentante per cluster (is_primary), così i near-duplicate non entrano
+    # nel processed layer. Il layer raw resta append-only e intatto.
     df = deduplica_dataframe(df)
+    n_prima = len(df)
+    df = (
+        df[df['is_primary']]
+        .drop(columns=['is_primary', 'cluster_id'])
+        .reset_index(drop=True)
+    )
+    rimossi = n_prima - len(df)
+    if rimossi:
+        logger.info("Deduplica semantica %s: rimossi %d near-duplicate", fonte_nome, rimossi)
     logger.info("Completata analisi %s", fonte_nome)
     return df
 
@@ -483,6 +496,8 @@ def main() -> None:
         {'nome': 'Parlamento Europeo',   'file_raw': 'eu_parl_sample.csv',     'file_processed': 'eu_parl_analyzed.csv'},
     ]
 
+    all_entities: list[str] = []  # raccolta per il report di qualità NLP finale
+
     for fonte in fonti:
         percorso_raw = os.path.join(cartella_raw, fonte['file_raw'])
         percorso_processed = os.path.join(cartella_processed, fonte['file_processed'])
@@ -497,6 +512,10 @@ def main() -> None:
             continue
 
         df_processato = processa_dataframe(df, fonte['nome'])
+
+        for ents in df_processato['Entita_Coinvolte']:
+            if isinstance(ents, list):
+                all_entities.extend(ents)
 
         if os.path.exists(percorso_processed):
             df_esistente = pd.read_csv(percorso_processed)
@@ -522,6 +541,10 @@ def main() -> None:
         df_unificato = pd.concat(tutti_dati, ignore_index=True)
         salva_in_sqlite(df_unificato, percorso_db)
         logger.info("Database SQLite aggiornato con %d documenti totali", len(df_unificato))
+
+    # Report finale di performance e qualità NLP (le metriche del paper:
+    # rumore, entropia, coverage, tempo/doc). Prima venivano raccolte ma mai emesse.
+    metrics.print_report(all_entities)
 
 
 if __name__ == "__main__":
