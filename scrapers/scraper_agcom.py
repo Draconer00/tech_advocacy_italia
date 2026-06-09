@@ -16,25 +16,17 @@ from utils.logger_config import setup_logger
 
 logger = setup_logger(__name__)
 
-# Feed RSS pubblici AGCOM (Autorità per le Garanzie nelle Comunicazioni).
+# Feed RSS pubblico AGCOM (Autorità per le Garanzie nelle Comunicazioni).
 # AGCOM regola telecomunicazioni, media, piattaforme digitali e servizi postali.
+# NOTA (2026-06): AGCOM ha migrato il sito su Drupal; i vecchi feed in stile
+# Joomla (?format=feed&type=rss, uno per sezione) restituiscono 404. Il feed
+# aggregato valido è rss.xml, che raccoglie i documenti più recenti di tutte le
+# sezioni (delibere, determinazioni, comunicati, consultazioni, indagini).
 # Tutti i testi sono già in italiano — nessuna traduzione necessaria.
 FONTI_AGCOM: dict[str, dict] = {
-    "AGCOM Comunicati Stampa": {
-        "url": "https://www.agcom.it/comunicati-stampa?format=feed&type=rss",
-        "tipo_contenuto": "comunicato_stampa",
-    },
-    "AGCOM Delibere": {
-        "url": "https://www.agcom.it/delibere-agcom?format=feed&type=rss",
-        "tipo_contenuto": "delibera",
-    },
-    "AGCOM Consultazioni Pubbliche": {
-        "url": "https://www.agcom.it/consultazioni-pubbliche?format=feed&type=rss",
-        "tipo_contenuto": "consultazione",
-    },
-    "AGCOM News": {
-        "url": "https://www.agcom.it/news?format=feed&type=rss",
-        "tipo_contenuto": "news",
+    "AGCOM": {
+        "url": "https://www.agcom.it/rss.xml",
+        "tipo_contenuto": "documento",
     },
 }
 
@@ -48,6 +40,22 @@ def pulisci_html(testo: str) -> str:
     return BeautifulSoup(testo, "html.parser").get_text(separator=" ").strip()
 
 
+def _classifica_tipo(titolo: str, default: str) -> str:
+    """Inferisce il tipo di documento AGCOM dal titolo (feed aggregato senza categorie)."""
+    t = titolo.lower()
+    if "delibera" in t:
+        return "delibera"
+    if "determinazione" in t:
+        return "determinazione"
+    if "comunicato" in t:
+        return "comunicato_stampa"
+    if "consultazione" in t:
+        return "consultazione"
+    if "sondaggio" in t or "osservatorio" in t or "indagine" in t:
+        return "indagine"
+    return default
+
+
 def scarica_feed_agcom() -> pd.DataFrame:
     """Scarica e normalizza tutti i feed RSS AGCOM."""
     logger.info("Avvio scraper AGCOM (%d fonti)", len(FONTI_AGCOM))
@@ -55,7 +63,7 @@ def scarica_feed_agcom() -> pd.DataFrame:
 
     for nome_fonte, config in FONTI_AGCOM.items():
         url = config["url"]
-        tipo = config["tipo_contenuto"]
+        tipo_default = config["tipo_contenuto"]
         logger.info("Connessione a: %s", nome_fonte)
         try:
             feed = feedparser.parse(url, request_headers={"User-Agent": "Mozilla/5.0"})
@@ -77,6 +85,7 @@ def scarica_feed_agcom() -> pd.DataFrame:
                 if not titolo:
                     continue
 
+                tipo = _classifica_tipo(titolo, tipo_default)
                 testo_completo = f"{titolo} {sommario}".strip()
                 hash_contenuto = hashlib.sha256(
                     testo_completo.encode("utf-8")
