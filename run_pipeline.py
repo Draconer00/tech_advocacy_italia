@@ -59,14 +59,11 @@ def main():
     print("\n--- Training Impact Prediction Model ---")
     if os.path.exists("nlp/train_impact_model.py"):
         run_command([sys.executable, "nlp/train_impact_model.py"])
-    
-    # 4. Git Push
-    print("\n--- Committing and Pushing Updates ---")
-    run_command(["git", "add", "."])
-    # Ignore error if nothing to commit
-    subprocess.run(["git", "commit", "-m", "chore: automated pipeline update"], capture_output=True)
-    run_command(["git", "push"])
-    
+
+    # I dati non vengono versionati nel repo (design del paper: data not in repo).
+    # La persistenza è responsabilità dell'operatore; la pipeline non fa più
+    # git add/commit/push automatici, che rischiavano di committare codice WIP.
+
     # 5. Avvia Dashboard
     print("\n--- Avvio Dashboard ---")
     print("✅ Pipeline completata. Apertura dashboard in corso...")

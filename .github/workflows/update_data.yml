@@ -222,13 +222,9 @@ jobs:
             scraper-agcom, scraper-tech-news, scraper-eu-parl]
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      contents: write
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -297,7 +293,14 @@ jobs:
       - name: Analisi NLP
         run: python nlp/text_analysis.py
 
-      - name: Commit finale (raw + processed)
-        uses: stefanzweifel/git-auto-commit-action@v5
+      # I dati non vengono versionati nel repo (design del paper: data not in repo).
+      # Il run produce output scaricabile come artifact invece di committarlo.
+      - name: Upload dati processati (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          commit_message: "chore: automated pipeline update"
+          name: processed-data
+          path: |
+            data/processed/*.csv
+            data/*.db
+          retention-days: 7
