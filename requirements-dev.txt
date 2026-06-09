@@ -1,0 +1,11 @@
+# Development-only tooling. Install with: pip install -r requirements-dev.txt
+# (runtime deps are in requirements.txt)
+-r requirements.txt
+
+# Notebook / experimentation (notebooks/sandbox_experiments.ipynb)
+jupyter
+ipykernel
+matplotlib
+
+# Testing
+pytest
