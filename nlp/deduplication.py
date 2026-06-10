@@ -34,6 +34,15 @@ def _get_model() -> SentenceTransformer:
     return _model
 
 
+def get_embedding_model() -> SentenceTransformer:
+    """
+    Istanza condivisa (lazy, cache singola) del sentence-transformer multilingue.
+    Riusata anche dal classificatore d'urgenza: stesso modello pubblico immutabile,
+    una sola copia in memoria invece di due.
+    """
+    return _get_model()
+
+
 def deduplica_dataframe(
     df: pd.DataFrame,
     colonna_testo: str = 'testo_completo',

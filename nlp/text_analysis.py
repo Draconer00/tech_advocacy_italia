@@ -387,12 +387,18 @@ def classifica_geografia(testo: str) -> str:
 
 
 def carica_modello_impatto() -> tuple:
+    """
+    Carica il classificatore d'urgenza addestrato (Random Forest sulle correzioni).
+    Il modello di embedding NON viene deserializzato da un .pkl da ~480MB: è
+    pubblico e immutabile, quindi si riusa l'istanza condivisa della deduplica
+    (stesso paraphrase-multilingual-MiniLM-L12-v2, una sola copia in memoria).
+    """
     cartella = os.path.dirname(os.path.abspath(__file__))
     percorso_modello = os.path.join(cartella, '..', 'models', 'impact_classifier.pkl')
-    percorso_embedding = os.path.join(cartella, '..', 'models', 'sentence_transformer.pkl')
-    if os.path.exists(percorso_modello) and os.path.exists(percorso_embedding):
+    if os.path.exists(percorso_modello):
         try:
-            return joblib.load(percorso_modello), joblib.load(percorso_embedding)
+            from nlp.deduplication import get_embedding_model
+            return joblib.load(percorso_modello), get_embedding_model()
         except Exception as e:
             logger.warning("Errore caricamento modello impatto: %s", e)
     return None, None

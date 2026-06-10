@@ -28,8 +28,7 @@ def train_impact_classifier():
     cartella_script = os.path.dirname(os.path.abspath(__file__))
     percorso_feedback = os.path.join(cartella_script, '..', 'data', 'processed', 'training_data_feedback.csv')
     percorso_modello = os.path.join(cartella_script, '..', 'models', 'impact_classifier.pkl')
-    percorso_embedding_model = os.path.join(cartella_script, '..', 'models', 'sentence_transformer.pkl')
-    
+
     # Crea cartella models se non esiste
     os.makedirs(os.path.dirname(percorso_modello), exist_ok=True)
     
@@ -100,10 +99,11 @@ def train_impact_classifier():
     logger.info(f"    Accuracy modello: {accuracy:.2f}")
     logger.info("\n" + classification_report(y_test, y_pred, zero_division=0))
     
-    # 8. Salva modello
+    # 8. Salva il classificatore. Il sentence-transformer NON viene serializzato:
+    # è pubblico e immutabile, in inferenza si ri-istanzia per nome (vedi
+    # text_analysis.carica_modello_impatto), evitando un .pkl da ~480MB.
     joblib.dump(clf, percorso_modello)
-    joblib.dump(model, percorso_embedding_model)
-    
+
     logger.info(f"💾 Modello salvato correttamente in: {percorso_modello}")
     logger.info("✅ Training completato con successo!")
     
