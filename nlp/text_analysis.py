@@ -25,6 +25,7 @@ from utils.logger_config import setup_logger
 from scrapers.scraper_ong import PROFILI_ONG  # dict {nome_ong: {tipo, area, ...}}
 from nlp.train_classifier import classifica_testo
 from nlp.deduplication import deduplica_dataframe
+from nlp.entity_linking import link_ong
 
 logger = setup_logger(__name__)
 
@@ -353,17 +354,12 @@ def calcola_score_posizionamento(testo: str) -> tuple[float, float]:
 
 
 def associa_ong(testo: str) -> str:
-    """Entity linking: associa il testo a una ONG se menzionata."""
-    testo_lower = str(testo).lower()
-    for ong_nome in PROFILI_ONG:  # iterare su dict restituisce le chiavi (nomi)
-        if ong_nome.lower() in testo_lower:
-            return ong_nome
-        parole = ong_nome.lower().split()
-        if len(parole) >= 2:
-            acronimo = "".join(p[0] for p in parole if p)
-            if len(acronimo) >= 2 and acronimo in testo_lower:
-                return ong_nome
-    return ""
+    """
+    Entity linking: associa il testo alla ONG più pertinente via keyword-overlap.
+    Delega a nlp.entity_linking.link_ong, unico punto di definizione dell'algoritmo
+    (lo stesso usato dalla dashboard), così pipeline e UI restano allineate al paper.
+    """
+    return link_ong(testo, PROFILI_ONG)
 
 
 def classifica_geografia(testo: str) -> str:
@@ -440,7 +436,10 @@ def processa_dataframe(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
     logger.info("Inizio analisi NLP per %s: %d documenti", fonte_nome, len(df))
     clf, embedding_model = carica_modello_impatto()
 
-    df['ong_collegata'] = df['testo_completo'].apply(associa_ong)
+    # Entity linking keyword-overlap + punteggio di confidenza (score basso = stima incerta)
+    _link = df['testo_completo'].apply(lambda t: link_ong(t, PROFILI_ONG, return_score=True))
+    df['ong_collegata'] = _link.apply(lambda r: r[0])
+    df['ong_link_score'] = _link.apply(lambda r: r[1])
     df['Ambito_Geografico'] = df['testo_completo'].apply(classifica_geografia)
     df['livello_allarme'] = df['testo_completo'].apply(
         lambda t: calcola_livello_allarme(t, clf, embedding_model)

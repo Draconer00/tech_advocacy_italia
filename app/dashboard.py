@@ -893,6 +893,7 @@ with tab_network:
         import os
         sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
         from scrapers.scraper_ong import PROFILI_ONG
+        from nlp.entity_linking import link_ong
 
         G = nx.Graph()
 
@@ -943,25 +944,12 @@ with tab_network:
             testo_notizia = (notizia['titolo'] + " " + notizia.get('testo_completo', '')).lower()
             ong_nome = notizia['nome_organizzazione']
 
-            punteggi_ong = {}
-            for nome_ong, dati_ong in PROFILI_ONG.items():
-                conteggio_match = 0
-                for tema in dati_ong.get('focus', []):
-                    if tema.lower() in testo_notizia:
-                        conteggio_match += 1
-                if conteggio_match > 0:
-                    punteggi_ong[nome_ong] = conteggio_match
+            # Stesso entity linking della pipeline NLP (keyword-overlap condiviso).
+            ong_migliore, punteggio_massimo = link_ong(testo_notizia, PROFILI_ONG, return_score=True)
 
-            ong_migliore = None
-            punteggio_massimo = 0
-            for nome_ong, punteggio in punteggi_ong.items():
-                if punteggio > punteggio_massimo:
-                    punteggio_massimo = punteggio
-                    ong_migliore = nome_ong
-
-            if ong_migliore is not None and ong_migliore in G:
+            if ong_migliore and ong_migliore in G:
                 G.add_node(titolo, color='#4bff8b', size=8, group='Notizia', shape='diamond')
-                G.add_edge(ong_migliore, titolo, value=0.5, title=f"Corrispondenza: {punteggio_massimo} temi")
+                G.add_edge(ong_migliore, titolo, value=0.5, title=f"Corrispondenza: {punteggio_massimo}")
                 G.add_edge(ong_nome, titolo, value=0.5, title="Notizia della ONG")
 
         col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
