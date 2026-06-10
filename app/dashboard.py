@@ -588,7 +588,6 @@ with tab_mappa_posizionamento:
     # Importa funzione calcolo score
     import sys
     sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-    from nlp.text_analysis import calcola_score_posizionamento
     from scrapers.scraper_ong import PROFILI_ONG
 
     # Mapping Ambito_Geografico → score X già calcolato dal NLP pipeline
@@ -672,8 +671,8 @@ with tab_mappa_posizionamento:
                 score_geo = round((score_geo + v) / 2, 3)
                 break
 
-        # --- Asse Y: tech/legale ---
-        # 40% baseline da profilo ONG (cosa fa l'org), 60% da testo (di cosa parla l'articolo)
+        # --- Asse Y: tech/legale (negativo = tecnico, positivo = legale) ---
+        # 60% baseline da profilo ONG (cosa fa l'org), 40% da testo (di cosa parla l'articolo)
         nome_ong = str(row.get('nome_organizzazione', ''))
         baseline_y = _BASELINE_Y_ONG.get(nome_ong, 0.0)
 
@@ -849,7 +848,7 @@ with tab_mappa_posizionamento:
         # ✅ Stile Y2K BRUTALIST
         fig.update_layout(
             xaxis_title="🌍 Geografia: Italia ↔ Mondo",
-            yaxis_title="⚙️ Tipo: Legale ↔ Tecnico",
+            yaxis_title="⚙️ Tipo: Tecnico ↔ Legale",
             showlegend=True,
             height=750,
             paper_bgcolor="#000000",
@@ -942,15 +941,21 @@ with tab_network:
         for _, notizia in df_ong_filtrato.iterrows():
             titolo = notizia['titolo'][:50] + "..."
             testo_notizia = (notizia['titolo'] + " " + notizia.get('testo_completo', '')).lower()
-            ong_nome = notizia['nome_organizzazione']
+            # Ground truth: la notizia appartiene a chi l'ha PUBBLICATA. Per il feed
+            # ONG il publisher è noto, quindi la si attacca sempre alla sua ONG —
+            # così ogni ONG attiva mostra i propri articoli e non resta vuota.
+            ong_nome = str(notizia.get('nome_organizzazione', '')).strip()
+            ancora = ong_nome if ong_nome in G else None
 
-            # Stesso entity linking della pipeline NLP (keyword-overlap condiviso).
-            ong_migliore, punteggio_massimo = link_ong(testo_notizia, PROFILI_ONG, return_score=True)
+            # Solo se il publisher non è una ONG nota (es. fonti non-ONG) si ricade
+            # sul keyword-overlap del paper per inferire la ONG più pertinente.
+            if ancora is None:
+                candidata, _score = link_ong(testo_notizia, PROFILI_ONG, return_score=True)
+                ancora = candidata if candidata in G else None
 
-            if ong_migliore and ong_migliore in G:
+            if ancora is not None:
                 G.add_node(titolo, color='#4bff8b', size=8, group='Notizia', shape='diamond')
-                G.add_edge(ong_migliore, titolo, value=0.5, title=f"Corrispondenza: {punteggio_massimo}")
-                G.add_edge(ong_nome, titolo, value=0.5, title="Notizia della ONG")
+                G.add_edge(ancora, titolo, value=0.5, title=f"Pubblicato da {ancora}")
 
         col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
         numero_ong = len([n for n, d in G.nodes(data=True) if d.get('group') == 'ONG'])

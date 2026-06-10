@@ -334,8 +334,9 @@ def estrai_entita(testo: str) -> list[str]:
 def calcola_score_posizionamento(testo: str) -> tuple[float, float]:
     """
     Restituisce (score_tech_legale, score_geografia).
-    score_geografia:   -1.0 = Italia  ...  +1.0 = Mondo
-    score_tech_legale: -1.0 = Legale  ...  +1.0 = Tecnico
+    score_geografia:   -1.0 = Italia   ...  +1.0 = Mondo
+    score_tech_legale: -1.0 = Tecnico  ...  +1.0 = Legale
+    Convenzione allineata al paper e alla Mappa di Posizionamento della dashboard.
     """
     testo_lower = str(testo).lower()
 
@@ -351,10 +352,10 @@ def calcola_score_posizionamento(testo: str) -> tuple[float, float]:
     punti_tl = 0.0
     for p in ("legge", "normativa", "provvedimento", "multa", "sentenza", "regolamento", "tribunale", "avvocato"):
         if p in testo_lower:
-            punti_tl -= 0.25
+            punti_tl += 0.25  # termini legali -> +1 (Legale)
     for p in ("algoritmo", "codice", "crittografia", "software", "hardware", "ai", "intelligenza artificiale", "sicurezza informatica"):
         if p in testo_lower:
-            punti_tl += 0.25
+            punti_tl -= 0.25  # termini tecnici -> -1 (Tecnico)
     score_tech_legale = max(-1.0, min(1.0, punti_tl))
 
     return (score_tech_legale, score_geografia)
