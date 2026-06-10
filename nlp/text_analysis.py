@@ -23,7 +23,6 @@ if _ROOT not in sys.path:
 
 from utils.logger_config import setup_logger
 from scrapers.scraper_ong import PROFILI_ONG  # dict {nome_ong: {tipo, area, ...}}
-from nlp.train_classifier import classifica_testo
 from nlp.deduplication import deduplica_dataframe
 from nlp.entity_linking import link_ong
 
@@ -234,7 +233,15 @@ def estrai_keywords_corpus(testi: list[str], num_keywords: int = 5) -> list[list
 
 # ===== PRIORITY 3.1: Topic Modeling BERTopic =====
 def topic_modeling(testi_lista: list[str]) -> tuple[list[int], list[str]]:
-    """Topic modeling non supervisionato via BERTopic + HDBSCAN."""
+    """
+    Topic modeling non supervisionato via BERTopic + HDBSCAN.
+
+    NOTA (roadmap, Fase 2): funzione NON ancora agganciata alla pipeline. È lo
+    stub del topic modeling indicato tra le Future Directions del paper, da
+    integrare come step corpus-level per produrre cluster tematici stabili nel
+    tempo (in sostituzione del classificatore topic ad-hoc, rimosso perché non
+    descritto nel paper e ridondante con la classificazione geografica).
+    """
     try:
         from bertopic import BERTopic
         topic_model = BERTopic(
@@ -453,14 +460,6 @@ def processa_dataframe(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
 
     # TF-IDF fittato sull'intero batch, non documento per documento
     df['Parole_Chiave'] = estrai_keywords_corpus(df['testo_completo'].tolist())
-
-    def classifica_riga(riga):
-        etichetta, confidenza = classifica_testo(
-            str(riga['titolo']) + " " + str(riga['testo_completo'])[:300]
-        )
-        return pd.Series([etichetta, confidenza])
-
-    df[['topic_label', 'confidence']] = df.apply(classifica_riga, axis=1)
 
     # Deduplica semantica APPLICATA (non solo annotata): tiene un solo
     # rappresentante per cluster (is_primary), così i near-duplicate non entrano
