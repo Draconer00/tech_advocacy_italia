@@ -5,6 +5,12 @@ on:
     - cron: '0 2 * * *'
   workflow_dispatch:
 
+# Le action JS (checkout, setup-python, upload/download-artifact, cache) girano
+# ancora su Node 20, deprecato: GitHub forza Node 24 di default dal 16/06/2026.
+# Anticipiamo qui la migrazione — è l'opt-in documentato e silenzia gli avvisi.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
 
   # ==============================================
@@ -30,6 +36,7 @@ jobs:
         continue-on-error: true
 
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: raw-gpdp-data
           path: data/raw/gpdp*.csv
@@ -58,6 +65,7 @@ jobs:
         continue-on-error: true
 
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: raw-ong-data
           path: data/raw/ong*.csv
@@ -245,12 +253,14 @@ jobs:
 
       - name: Scarica dati GPDP
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: raw-gpdp-data
           path: data/raw/
 
       - name: Scarica dati ONG
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: raw-ong-data
           path: data/raw/

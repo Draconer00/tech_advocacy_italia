@@ -1,9 +1,17 @@
 ﻿import os
+import sys
 import hashlib
 from datetime import datetime
 
 import pandas as pd
 import requests
+
+# Bootstrap della root di progetto su sys.path: eseguito come script
+# (`python scrapers/scraper_gnews.py`) altrimenti `utils`/`scrapers` non sono
+# importabili. Stesso pattern degli altri scraper (vedi scraper_agcom.py).
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
 
 from utils.logger_config import setup_logger
 
@@ -104,8 +112,15 @@ def _make_gnews_request(params: dict, timeout: int) -> dict:
 if __name__ == "__main__":
     api_key = os.getenv("GNEWS_API_KEY")
     if not api_key:
-        logger.error("Variabile d'ambiente GNEWS_API_KEY non impostata. Imposta la chiave API prima di eseguire.")
-        raise SystemExit(1)
+        # GNews è l'unica fonte che richiede un secret: senza chiave la sorgente
+        # è semplicemente non configurata, non è un errore. Si salta in modo
+        # pulito (exit 0) così la pipeline prosegue con le altre fonti, coerente
+        # con la filosofia continue-on-failure del progetto.
+        logger.warning(
+            "GNEWS_API_KEY non impostata: sorgente GNews saltata. "
+            "Configura il secret GNEWS_API_KEY per abilitarla."
+        )
+        raise SystemExit(0)
 
     df_stampa = fetch_gnews(api_key=api_key)
 

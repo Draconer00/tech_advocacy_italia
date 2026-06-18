@@ -1,81 +1,115 @@
-import pandas as pd
 import os
 import sys
+
+import pandas as pd
+
 sys.path.append('.')
-from nlp.text_analysis import calcola_score_posizionamento
+
+# La console Windows usa cp1252 e non sa codificare le emoji dell'output: forza
+# UTF-8 sullo stdout così lo script gira identico su Windows, Linux e macOS.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+from nlp.text_analysis import carica_modello_impatto, calcola_livello_allarme
+from utils.feedback_schema import load_feedback
 
 
 def calcola_metriche():
     """
-    Calcola le metriche di errore reale del modello di classificazione
-    usando il Gold Standard delle correzioni fatte manualmente sulla dashboard.
-    
-    Questa è l'unica metrica onesta che ti dice quanto sbaglia veramente il modello.
+    Misura l'errore del modello di urgenza confrontando le sue predizioni con il
+    Gold Standard delle correzioni manuali (`livello_allarme_corretto`).
+
+    Questa è l'unica colonna del file di feedback che contiene una *label* reale:
+    il livello di allarme (1-5) assegnato a mano dall'operatore sulla dashboard.
+    Si rifà predire al modello corrente lo stesso testo su cui è stato addestrato
+    (`"titolo fonte"`, identico a nlp/train_impact_model.py) e si confronta la
+    predizione con la label.
+
+    NOTA DI METODO (onestà sull'incertezza): con poche correzioni il set di
+    valutazione coincide quasi del tutto con quello di addestramento. Il numero
+    qui sotto è quindi un *fit in-sample* (controllo di sanità), non una stima di
+    generalizzazione su dati mai visti. Va letto come tale finché le correzioni
+    non bastano per un hold-out separato.
     """
-    
+
     percorso_feedback = os.path.join('data', 'processed', 'training_data_feedback.csv')
-    
-    if not os.path.exists(percorso_feedback):
+
+    df_gold = load_feedback(percorso_feedback)
+    if df_gold.empty:
         print("❌ Nessuna correzione salvata ancora.")
         print("💡 Usa il sistema di correzione sulla scheda Home della dashboard per aggiungere almeno 10 correzioni.")
         return
 
-    df_gold = pd.read_csv(percorso_feedback)
-    
-    if len(df_gold) < 10:
-        print(f"⚠️ Hai solo {len(df_gold)} correzioni.")
+    # Tieni solo le correzioni di urgenza valide, con gli stessi criteri del
+    # trainer: riga segnalata + livello_allarme_corretto interpretabile come
+    # intero 1-5 + titolo non vuoto. Così valutiamo esattamente ciò su cui il
+    # modello è (o sarebbe) addestrato.
+    segnalate = df_gold['errore_segnalato'].astype(str).str.strip().str.lower().isin(['true', '1'])
+    urgenza = pd.to_numeric(df_gold['livello_allarme_corretto'], errors='coerce')
+    titolo_valido = df_gold['titolo'].astype(str).str.strip().ne('')
+    validi = df_gold[segnalate & urgenza.between(1, 5) & titolo_valido].copy()
+    validi['gold'] = urgenza[validi.index].round().astype(int)
+
+    if len(validi) < 10:
+        print(f"⚠️ Hai solo {len(validi)} correzioni di urgenza valide.")
         print("   Per una misurazione significativa servono almeno 10 correzioni.")
-        print("   Continua ad etichettare :)")
+        print("   Continua ad etichettare il livello di allarme nella dashboard :)")
         return
 
-    errori = []
-    classificazione_corretta = 0
+    clf, embedding_model = carica_modello_impatto()
+    if clf is None or embedding_model is None:
+        print("❌ Modello di urgenza non addestrato (models/impact_classifier.pkl assente).")
+        print("   Senza modello le predizioni sarebbero un valore neutro costante: misura non significativa.")
+        print("💡 Esegui prima:  python -m nlp.train_impact_model")
+        return
 
-    print(f"\n📊 CALCOLO ERRORE REALE MODELLO")
-    print(f"=================================")
-    print(f"Numero esempi nel Gold Standard: {len(df_gold)}")
+    print(f"\n📊 ERRORE REALE MODELLO DI URGENZA (vs Gold Standard)")
+    print(f"=====================================================")
+    print(f"Esempi etichettati nel Gold Standard: {len(validi)}")
+    print("⚠️ Fit in-sample: con così poche correzioni il set valutato coincide")
+    print("   con quello di training. Leggilo come sanity check, non generalizzazione.")
     print(f"\n")
 
-    for idx, row in df_gold.iterrows():
-        # Fai predire al modello lo stesso testo
-        pred_tech, pred_geo = calcola_score_posizionamento(row['titolo'])
-        
-        errore_geo = abs(pred_geo - float(row.get('score_geografia', 0)))
-        errore_tech = abs(pred_tech - float(row.get('score_tech_legale', 0)))
-        
-        # Contiamo come corretto se errore < 0.2
-        if errore_geo < 0.2 and errore_tech < 0.2:
-            classificazione_corretta += 1
-        
+    errori = []
+    corrette = 0
+    for idx, row in validi.iterrows():
+        # Stesso input del trainer: titolo + fonte.
+        testo = f"{row['titolo']} {row['fonte']}".strip()
+        pred = calcola_livello_allarme(testo, clf, embedding_model)
+        gold = int(row['gold'])
+        scarto = abs(pred - gold)
+        if pred == gold:
+            corrette += 1
         errori.append({
             'indice': idx,
-            'titolo': row['titolo'][:60] + "...",
-            'errore_geografia': errore_geo,
-            'errore_tecnico': errore_tech
+            'titolo': str(row['titolo'])[:60] + "...",
+            'predetto': pred,
+            'reale': gold,
+            'scarto': scarto,
         })
 
     df_errori = pd.DataFrame(errori)
 
-    print(f"✅ ACCURATEZZA GENERALE: {classificazione_corretta / len(df_gold) * 100:.1f} %")
+    accuratezza = corrette / len(validi) * 100
+    mae = df_errori['scarto'].mean()
+
+    print(f"✅ ACCURATEZZA ESATTA (predizione == label): {accuratezza:.1f} %")
+    print(f"📏 Errore assoluto medio (MAE) sulla scala 1-5: {mae:.3f}")
     print(f"\n")
-    print(f"📏 Errore medio Asse Geografia (Italia ↔ Mondo):  {df_errori['errore_geografia'].mean():.3f}")
-    print(f"📏 Errore medio Asse Tipologico (Legale ↔ Tecnico): {df_errori['errore_tecnico'].mean():.3f}")
-    print(f"\n")
-    print(f"💡 Valori eccellenti: < 0.10")
-    print(f"💡 Valori buoni:      < 0.15")
-    print(f"💡 Valori da migliorare: > 0.25")
+    print(f"💡 MAE eccellente: < 0.30")
+    print(f"💡 MAE buono:      < 0.60")
+    print(f"💡 MAE da migliorare: > 1.00")
     print(f"\n")
     print(f"🔝 5 errori PEGGIORI:")
     print(f"----------------------")
-    
-    peggiori = df_errori.sort_values('errore_geografia', ascending=False).head(5)
-    
+
+    peggiori = df_errori.sort_values('scarto', ascending=False).head(5)
     for _, r in peggiori.iterrows():
-        print(f"❌ {r['errore_geografia']:.2f} | {r['titolo']}")
-    
+        print(f"❌ scarto {r['scarto']} (predetto {r['predetto']} ≠ reale {r['reale']}) | {r['titolo']}")
+
     print(f"\n")
-    print("💡 Queste sono le notizie su cui il modello sbaglia di più.")
-    print("   Correggile nella dashboard e il modello migliorerà automaticamente.")
+    print("💡 Queste sono le notizie su cui il modello di urgenza sbaglia di più.")
+    print("   Correggile nella dashboard e ri-addestra: il modello migliorerà.")
 
 
 if __name__ == "__main__":
