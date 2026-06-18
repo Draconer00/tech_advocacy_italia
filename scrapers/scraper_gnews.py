@@ -1,15 +1,22 @@
 ﻿import os
+import sys
 import hashlib
 from datetime import datetime
 
 import pandas as pd
 import requests
 
+# Aggiungi la root del progetto al path: necessario quando lo script viene
+# eseguito come `python scrapers/scraper_gnews.py` dalla root (es. in CI),
+# dove sys.path[0] è la cartella scrapers/ e non la root del progetto.
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
 from utils.logger_config import setup_logger
+from scrapers.gnews_config import DEFAULT_QUERY, GNEWS_URL
 
 logger = setup_logger(__name__)
-
-from scrapers.gnews_config import DEFAULT_QUERY, GNEWS_URL
 
 def _format_published_at(published_at: str) -> str:
     if not published_at:
@@ -104,8 +111,13 @@ def _make_gnews_request(params: dict, timeout: int) -> dict:
 if __name__ == "__main__":
     api_key = os.getenv("GNEWS_API_KEY")
     if not api_key:
-        logger.error("Variabile d'ambiente GNEWS_API_KEY non impostata. Imposta la chiave API prima di eseguire.")
-        raise SystemExit(1)
+        # Chiave assente: non è un errore fatale. Usciamo con codice 0 per non
+        # rompere la catena della pipeline notturna; le altre fonti proseguono.
+        logger.warning(
+            "GNEWS_API_KEY non impostata: scraper GNews saltato (la pipeline "
+            "continua con le altre fonti)."
+        )
+        raise SystemExit(0)
 
     df_stampa = fetch_gnews(api_key=api_key)
 
