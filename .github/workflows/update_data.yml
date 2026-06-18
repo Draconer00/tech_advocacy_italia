@@ -102,6 +102,7 @@ jobs:
           name: raw-gnews-data
           path: data/raw/gnews*.csv
           retention-days: 1
+          if-no-files-found: ignore
 
   # ==============================================
   # SCRAPER RSS EUROPEO (solo raccolta, no commit)
@@ -131,6 +132,7 @@ jobs:
           name: raw-rss-eu-data
           path: data/raw/rss_eu*.csv
           retention-days: 1
+          if-no-files-found: ignore
 
   # ==============================================
   # SCRAPER AGCOM (solo raccolta, no commit)
@@ -160,6 +162,7 @@ jobs:
           name: raw-agcom-data
           path: data/raw/agcom*.csv
           retention-days: 1
+          if-no-files-found: ignore
 
   # ==============================================
   # SCRAPER TECH NEWS ITALIANE (solo raccolta, no commit)
@@ -189,6 +192,7 @@ jobs:
           name: raw-tech-news-data
           path: data/raw/tech_news*.csv
           retention-days: 1
+          if-no-files-found: ignore
 
   # ==============================================
   # SCRAPER PARLAMENTO EUROPEO (solo raccolta, no commit)
@@ -218,6 +222,7 @@ jobs:
           name: raw-eu-parl-data
           path: data/raw/eu_parl*.csv
           retention-days: 1
+          if-no-files-found: ignore
 
   # ==============================================
   # ANALISI NLP & SALVATAGGIO FINALE
@@ -251,6 +256,9 @@ jobs:
           pip install -r requirements.txt
           python -m spacy download it_core_news_md
 
+      # Tutti i download sono tolleranti ai fallimenti: se uno scraper non ha
+      # prodotto il proprio artifact, l'analisi NLP procede comunque sulle
+      # fonti disponibili (text_analysis.py salta le sorgenti mancanti).
       - name: Scarica dati GPDP
         uses: actions/download-artifact@v4
         continue-on-error: true
@@ -314,3 +322,4 @@ jobs:
             data/processed/*.csv
             data/*.db
           retention-days: 7
+          if-no-files-found: ignore

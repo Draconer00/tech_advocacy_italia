@@ -14,10 +14,9 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from utils.logger_config import setup_logger
+from scrapers.gnews_config import DEFAULT_QUERY, GNEWS_URL
 
 logger = setup_logger(__name__)
-
-from scrapers.gnews_config import DEFAULT_QUERY, GNEWS_URL
 
 def _format_published_at(published_at: str) -> str:
     if not published_at:
