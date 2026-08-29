@@ -27,6 +27,15 @@ logger = setup_logger(__name__)
 # gli endpoint provati (news-and-blogs, decision-notices, enforcement, rss.xml)
 # restituiscono HTML o 404 al posto di XML. Riprovare periodicamente, o valutare
 # scraping HTML della pagina notizie se questi enti diventano prioritari.
+#
+# EDPS (European Data Protection Supervisor) valutato e NON aggiunto il
+# 2026-08-29: nessun feed RSS raggiungibile via richiesta diretta. Ogni
+# percorso provato (/rss.xml, /rss_en.xml, /node/feed, i percorsi sotto
+# press-publications/press-news) restituisce 404 pulito oppure 202 con body
+# vuoto — il dominio edps.europa.eu è dietro un bot-challenge che non
+# risponde a richieste non browser. Da riverificare con un browser reale
+# (o headless) se questa fonte diventa prioritaria; per ora nessun URL
+# aggiunto per evitare di fare affidamento su un endpoint mai confermato.
 FONTI_RSS: dict[str, str] = {
     "EDPB (Unione Europea)": "https://www.edpb.europa.eu/rss.xml",
     "CNIL (Francia)":        "https://www.cnil.fr/fr/rss.xml",

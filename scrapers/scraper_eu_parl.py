@@ -26,6 +26,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from utils.logger_config import setup_logger
+from scrapers.scraper_open_data_utils import KEYWORD_DIGITALE, is_rilevante
 
 logger = setup_logger(__name__)
 
@@ -59,14 +60,6 @@ EP_API_QUERIES: list[dict] = [
     },
 ]
 
-# Keyword per filtrare i risultati API per rilevanza tematica
-KEYWORD_DIGITALE: frozenset[str] = frozenset({
-    "privacy", "dati", "intelligenza artificiale", "ai act", "dsa", "dma",
-    "digitale", "cybersecurity", "algoritmo", "sorveglianza", "biometrico",
-    "gdpr", "protezione dati", "piattaforme", "libertà", "diritti digitali",
-    "nis2", "dora", "eidas", "sicurezza informatica",
-})
-
 _HEADERS = {
     "User-Agent": "TechAdvocacyItaly/1.0 (research project; github.com/Draconer00)",
     "Accept":     "application/ld+json, application/json",
@@ -77,11 +70,6 @@ def pulisci_html(testo: str) -> str:
     if not testo:
         return ""
     return BeautifulSoup(testo, "html.parser").get_text(separator=" ").strip()
-
-
-def is_rilevante(testo: str) -> bool:
-    tl = testo.lower()
-    return any(kw in tl for kw in KEYWORD_DIGITALE)
 
 
 def _hash(testo: str) -> str:

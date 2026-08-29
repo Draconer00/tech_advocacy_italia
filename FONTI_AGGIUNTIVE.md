@@ -34,17 +34,23 @@ Included in `scraper_ong.py`: EDRi, Noyb, Access Now, Electronic Frontier Founda
 ### Italian Tech Media (8 outlets)
 Wired Italia, Punto Informatico, Agenda Digitale, Corriere Comunicazioni, Data Manager Online, Cybersecurity360, Innovation Post, StartupItalia. Source: `scraper_tech_news.py`.
 
+### Italian Legislation
+Gazzetta Ufficiale — Serie Generale (filtered to digital/privacy/AI relevance via `KEYWORD_DIGITALE_STRETTO`), Corte Costituzionale, and EU-related acts published in GU (both unfiltered — already narrow scope). RSS URLs verified live 2026-08-29 at `gazzettaufficiale.it/rss/{SG,S1,S2}`. Source: `scraper_gazzetta_ufficiale.py`.
+
+### EU Case Law
+Court of Justice of the European Union (CJEU) — single aggregated press-release feed (all subject areas, no topic-specific feed exists), filtered to digital/privacy/AI relevance via `KEYWORD_DIGITALE_STRETTO`. Feed verified live 2026-08-29 but intermittently returns HTTP 503 (~1 in 3 requests in testing; stabilizes on retry — no automatic retry implemented, next pipeline run picks it up). Source: `scraper_curia.py`.
+
 ---
 
 ## Candidate Sources for Future Integration
 
 ### Italian Institutions
-- AGCM (Autorità Garante della Concorrenza e del Mercato) — antitrust and consumer protection
-- Italian Parliament — legislative monitoring via parlamento.it
+- AGCM (Autorità Garante della Concorrenza e del Mercato) — antitrust and consumer protection. No open data/API found (2026-08-29 check); would require HTML scraping like `scraper_gpdp.py`, not RSS.
+- Italian Parliament — `dati.camera.it` has downloadable datasets and a daily-updated SPARQL endpoint (verified to exist 2026-08-29, not load-tested); more complex than the RSS/CSV pattern used elsewhere in this project.
 - Corte dei Conti — public spending oversight
 
 ### European Institutions
-- EDPS (European Data Protection Supervisor)
+- EDPS (European Data Protection Supervisor) — evaluated and **not implemented** 2026-08-29: no RSS feed reachable via direct request (every path tried returns clean 404 or 202 with empty body; the domain sits behind a bot-challenge that doesn't respond to non-browser requests). See the note in `scraper_rss_eu.py`. Re-check with a real/headless browser if this becomes a priority.
 - Council of Europe — Human Rights Commissioner
 - European Commission DG Connect — digital strategy publications
 

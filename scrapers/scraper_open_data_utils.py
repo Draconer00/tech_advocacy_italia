@@ -20,6 +20,47 @@ except ImportError:
     logger = logging.getLogger(__name__)
 
 
+# Keyword per filtrare per rilevanza tematica digitale/privacy/AI.
+# Tarato originariamente su scraper_eu_parl.py per il feed comunicati stampa
+# delle commissioni EP, già di per sé a perimetro legislativo/digitale.
+KEYWORD_DIGITALE: frozenset[str] = frozenset({
+    "privacy", "dati", "intelligenza artificiale", "ai act", "dsa", "dma",
+    "digitale", "cybersecurity", "algoritmo", "sorveglianza", "biometrico",
+    "gdpr", "protezione dati", "piattaforme", "libertà", "diritti digitali",
+    "nis2", "dora", "eidas", "sicurezza informatica",
+})
+
+# Versione più restrittiva per corpora eterogenei (giurisprudenza CJEU su
+# tutte le materie, legislazione italiana generale in Gazzetta Ufficiale).
+# KEYWORD_DIGITALE usa parole singole generiche ("libertà", "sicurezza",
+# "digitale") che su un corpus generalista producono falsi positivi
+# verificati: sul feed CJEU, "libertà" ha intercettato cause di estradizione
+# solo perché rientrano nell'area "Spazio di libertà, sicurezza e
+# giustizia" (verificato live il 2026-08-29). Qui si richiedono termini
+# specifici del dominio privacy/AI/digitale, non parole isolate.
+KEYWORD_DIGITALE_STRETTO: frozenset[str] = frozenset({
+    "protezione dei dati", "protezione dati", "dati personali",
+    "intelligenza artificiale", "ai act", "servizi digitali",
+    "mercati digitali", "gdpr", "cybersicurezza", "sicurezza informatica",
+    "dati biometrici", "dato biometrico", "sorveglianza digitale",
+    "sorveglianza di massa", "piattaforme digitali", "piattaforma online",
+    "diritti digitali", "algoritmo decisionale", "algoritmi decisionali",
+    "nis2", "eidas", "dora",
+})
+
+
+def is_rilevante(testo: str, keywords: frozenset[str] = KEYWORD_DIGITALE) -> bool:
+    """
+    Filtro di rilevanza tematica su un blob di testo.
+    Default KEYWORD_DIGITALE (feed già a perimetro legislativo/digitale,
+    es. commissioni EP). Passare keywords=KEYWORD_DIGITALE_STRETTO per
+    corpora generalisti dove le parole singole generano falsi positivi
+    (es. CJEU, Gazzetta Ufficiale Serie Generale).
+    """
+    tl = testo.lower()
+    return any(kw in tl for kw in keywords)
+
+
 def normalizza_df(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
     """
     Normalizza qualsiasi DataFrame allo standard del progetto
