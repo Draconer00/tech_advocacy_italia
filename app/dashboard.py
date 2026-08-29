@@ -112,7 +112,7 @@ def carica_dati_unificati():
 
     df = pd.DataFrame(dati_unificati)
 
-    df['data'] = pd.to_datetime(df['data'], errors='coerce').dt.date
+    df['data'] = pd.to_datetime(df['data'], errors='coerce', format='mixed').dt.date
     return df.sort_values('data', ascending=False).reset_index(drop=True)
 
 
@@ -154,7 +154,7 @@ df_master = pd.concat([df_unificato, df_gnews_normalizzato], ignore_index=True)
 df_master = df_master.drop_duplicates(subset=['titolo', 'fonte'], keep='first')
 
 # Conversione data finale e ordinamento
-df_master['data'] = pd.to_datetime(df_master['data'], errors='coerce').dt.date
+df_master['data'] = pd.to_datetime(df_master['data'], errors='coerce', format='mixed').dt.date
 df_master = df_master.sort_values('data', ascending=False).reset_index(drop=True)
 
 # --- CARICAMENTO DATI AGGIUNTIVI PER ANALISI TEMPORALE ---
@@ -194,7 +194,7 @@ def _estrai_data_pubblicazione(df: pd.DataFrame) -> pd.Series:
     """Tenta di leggere la data da colonne note, restituisce una Series datetime con NaT per date malformate."""
     for col in ['data_pubblicazione', 'Data', 'publishedAt']:
         if col in df.columns:
-            return pd.to_datetime(df[col], errors='coerce')
+            return pd.to_datetime(df[col], errors='coerce', format='mixed')
     return pd.Series(pd.NaT, index=df.index)
 
 @st.cache_data
@@ -250,7 +250,7 @@ def carica_dati_per_analisi_temporale():
         return pd.DataFrame(columns=['data', 'fonte', 'parole_chiave_raw', 'topic_label', 'importo_eur'])
 
     df_unione = pd.concat(blocchi, ignore_index=True)
-    df_unione['data'] = pd.to_datetime(df_unione['data'], errors='coerce')
+    df_unione['data'] = pd.to_datetime(df_unione['data'], errors='coerce', format='mixed')
     df_unione = df_unione.dropna(subset=['data'])
     df_unione['mese'] = df_unione['data'].dt.to_period('M')
     return df_unione
@@ -933,7 +933,7 @@ with tab_network:
         from datetime import datetime, timedelta
         soglia_data = datetime.now().date() - timedelta(days=30)
 
-        df_ong['data_pubblicazione'] = pd.to_datetime(df_ong['data_pubblicazione'], errors='coerce').dt.date
+        df_ong['data_pubblicazione'] = pd.to_datetime(df_ong['data_pubblicazione'], errors='coerce', format='mixed').dt.date
 
         mask = (df_ong['data_pubblicazione'] >= soglia_data) | (df_ong['livello_allarme'] >= 3)
         df_ong_filtrato = df_ong[mask].copy()
