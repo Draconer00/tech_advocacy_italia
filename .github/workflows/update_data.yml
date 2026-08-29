@@ -308,6 +308,14 @@ jobs:
           name: raw-eu-parl-data
           path: data/raw/
 
+      # Riaddestra il modello di urgenza (Active Learning) dalle correzioni umane
+      # versionate in data/processed/training_data_feedback.csv. Non fallisce il
+      # job se le correzioni sono insufficienti: train_impact_classifier() logga
+      # e ritorna False, i documenti useranno il punteggio neutro di default.
+      - name: Allena modello urgenza (Active Learning)
+        run: python nlp/train_impact_model.py
+        continue-on-error: true
+
       - name: Analisi NLP
         run: python nlp/text_analysis.py
 

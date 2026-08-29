@@ -8,9 +8,14 @@ agents.md
 
 # Dati raccolti dagli scraper (raw e processati)
 data/raw/
-data/processed/
+data/processed/*
 data/*.db
 data/snapshots/
+
+# Eccezione: le correzioni umane della dashboard (Gold Standard per l'active
+# learning) sono poche righe di label curate, non dati grezzi scraped — le
+# versioniamo così la pipeline CI può riaddestrare il modello di urgenza.
+!data/processed/training_data_feedback.csv
 
 # Cache e modelli
 *.pkl
