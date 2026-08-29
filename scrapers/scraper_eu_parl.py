@@ -29,11 +29,14 @@ from utils.logger_config import setup_logger
 
 logger = setup_logger(__name__)
 
-# RSS feed ufficiali del Parlamento Europeo (lingua italiana)
+# RSS feed ufficiali del Parlamento Europeo (lingua italiana).
+# Aggiornati il 2026-08-29: i 3 URL precedenti erano rotti (2 a 404, il terzo
+# "top-stories" valido ma fermo a novembre 2023) o abbandonati. Trovati e
+# verificati live i feed comunicati-stampa correnti, sostituiti qui.
 FONTI_RSS_EP: dict[str, str] = {
-    "EP Notizie IT":           "https://www.europarl.europa.eu/rss/doc/top-stories/it.xml",
-    "EP Comunicati Stampa IT": "https://www.europarl.europa.eu/news/it/press-room/rss/",
-    "EP Agenda Plenaria":      "https://www.europarl.europa.eu/plenary/it/agenda-overview.html.rss",
+    "EP Comunicati Stampa (Tutti)":     "https://www.europarl.europa.eu/rss/doc/press-releases/it.xml",
+    "EP Comunicati Stampa Plenaria":    "https://www.europarl.europa.eu/rss/doc/press-releases-plenary/it.xml",
+    "EP Comunicati Stampa Commissioni": "https://www.europarl.europa.eu/rss/doc/press-releases-committees/it.xml",
 }
 
 # Endpoint Open Data API EP
@@ -96,7 +99,10 @@ def _scarica_rss() -> list[dict]:
                 logger.warning("Nessuna entry RSS: %s", nome)
                 continue
 
-            for entry in feed.entries[:10]:
+            # 30 non 10: "Comunicati Stampa Commissioni" copre tutte le commissioni
+            # del PE (non solo LIBE/IMCO/ITRE), serve un pool più ampio prima del
+            # filtro di rilevanza tematica qui sotto.
+            for entry in feed.entries[:30]:
                 titolo = pulisci_html(entry.get("title", ""))
                 sommario = pulisci_html(
                     entry.get("summary", entry.get("description", ""))
@@ -105,6 +111,9 @@ def _scarica_rss() -> list[dict]:
                     continue
 
                 testo_completo = f"{titolo} {sommario}".strip()
+                if not is_rilevante(testo_completo):
+                    continue
+
                 documenti.append({
                     "id_univoco":         _hash(testo_completo),
                     "fonte":              "eu_parl",
@@ -202,7 +211,15 @@ def scarica_eu_parlamento() -> pd.DataFrame:
     logger.info("Avvio scraper Parlamento Europeo")
 
     documenti_rss = _scarica_rss()
-    documenti_api = _scarica_open_data_api()
+    # Open Data API disattivata (2026-08-29): l'endpoint v1 sotto EP_API_BASE
+    # ora reindirizza a /api/v2 con uno schema di risposta diverso (ELI/JSON-LD
+    # annidato invece dei campi piatti label/date/description usati qui sotto),
+    # quindi ogni chiamata fallisce (404 su legislative-acts, timeout su LIBE
+    # documents). Richiede una riscrittura del parsing per il nuovo schema, non
+    # solo un cambio di URL — vedi endpoint v2 funzionanti confermati:
+    # /adopted-texts, /committee-documents, /procedures (data.europarl.europa.eu/api/v2).
+    # documenti_api = _scarica_open_data_api()
+    documenti_api = []
 
     tutti = documenti_rss + documenti_api
     if not tutti:

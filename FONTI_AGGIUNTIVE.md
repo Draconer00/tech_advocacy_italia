@@ -22,11 +22,11 @@ Includes: Privacy Network, Hermes Center, The Good Lobby Italia, AlgorithmWatch 
 |--------|---------|---------|
 | EDPB | European Union | `scraper_rss_eu.py` |
 | CNIL | France | `scraper_rss_eu.py` |
-| AEPD | Spain | `scraper_rss_eu.py` |
-| ICO | United Kingdom | `scraper_rss_eu.py` |
+
+AEPD (Spain) and ICO (United Kingdom) are **not currently monitored**: as of 2026-08-29 neither publishes a working general-news RSS feed (AEPD's only live feed is abandoned since 2020; ICO's official RSS page states the news feed is "currently unavailable" after a site redesign). Re-check periodically, or scrape their news pages directly if these become priority sources.
 
 ### European Parliament
-Committees monitored: LIBE (civil liberties), IMCO (internal market), ITRE (industry/AI). Source: `scraper_eu_parl.py`.
+RSS: all press releases, plenary press releases, and committee press releases (all committees, filtered to privacy/AI/digital-rights relevance — not restricted to LIBE/IMCO/ITRE by the feed itself). Open Data API: currently disabled — the EP migrated the API from v1 to v2 with a different response schema (ELI/JSON-LD), so the old integration 404s. Needs a schema rewrite, not just a URL fix — tracked as follow-up work, not yet done. Source: `scraper_eu_parl.py`.
 
 ### International Organisations
 Included in `scraper_ong.py`: EDRi, Noyb, Access Now, Electronic Frontier Foundation, Privacy International, Open Rights Group, AlgorithmWatch, SOMO.

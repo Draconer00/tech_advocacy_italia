@@ -17,12 +17,19 @@ from utils.logger_config import setup_logger
 
 logger = setup_logger(__name__)
 
-# Feed RSS degli enti regolatori europei sulla privacy
+# Feed RSS degli enti regolatori europei sulla privacy.
+#
+# AEPD (Spagna) e ICO (Regno Unito) sono stati rimossi il 2026-08-29: nessun
+# feed RSS attivo trovato dopo verifica diretta. AEPD ha un solo feed live
+# (https://www.aepd.es/press-releases/feed.xml) ma è abbandonato, fermo al
+# 2020. ICO dichiara sulla propria pagina ufficiale (ico.org.uk/global/rss-feeds/)
+# che il feed news è "currently unavailable" dopo un redesign del sito; tutti
+# gli endpoint provati (news-and-blogs, decision-notices, enforcement, rss.xml)
+# restituiscono HTML o 404 al posto di XML. Riprovare periodicamente, o valutare
+# scraping HTML della pagina notizie se questi enti diventano prioritari.
 FONTI_RSS: dict[str, str] = {
-    "EDPB (Unione Europea)": "https://edpb.europa.eu/news/news/feed_en",
+    "EDPB (Unione Europea)": "https://www.edpb.europa.eu/rss.xml",
     "CNIL (Francia)":        "https://www.cnil.fr/fr/rss.xml",
-    "AEPD (Spagna)":         "https://www.aepd.es/es/rss.xml",
-    "ICO (Regno Unito)":     "https://ico.org.uk/rss/news/",
 }
 
 
