@@ -190,6 +190,41 @@ def carica_dati_agcom():
         return pd.read_csv(percorso_csv)
     return pd.DataFrame()
 
+# Etichetta visualizzata -> nome file data/raw/{nome}_sample.csv, uno per scraper.
+FONTI_RAW_CSV: dict[str, str] = {
+    "Garante Privacy (GPDP)":       "gpdp",
+    "AGCOM":                        "agcom",
+    "ONG e Società Civile":         "ong",
+    "GNews":                        "gnews",
+    "RSS Regolatori Europei":       "rss_eu",
+    "Tech News Italiane":           "tech_news",
+    "Parlamento Europeo":           "eu_parl",
+    "Gazzetta Ufficiale":           "gazzetta_ufficiale",
+    "CJEU (Corte di Giustizia UE)": "cjeu",
+}
+
+
+@st.cache_data
+def carica_dati_raw_per_fonte() -> dict:
+    """Carica titolo + data di raccolta dal CSV grezzo di ogni scraper (data/raw/*_sample.csv).
+    A differenza dei loader *_analyzed, non richiede che la pipeline NLP sia già stata eseguita."""
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    fonti_raw = {}
+    for etichetta, nome_file in FONTI_RAW_CSV.items():
+        percorso = os.path.join(cartella_script, '..', 'data', 'raw', f'{nome_file}_sample.csv')
+        if not os.path.exists(percorso):
+            continue
+        df = pd.read_csv(percorso)
+        if df.empty or 'titolo' not in df.columns or 'data_scraping' not in df.columns:
+            continue
+        df = df[['titolo', 'data_scraping']].copy()
+        df['data_scraping'] = pd.to_datetime(df['data_scraping'], errors='coerce', format='mixed', utc=True)
+        df = df.dropna(subset=['data_scraping']).sort_values('data_scraping', ascending=False)
+        if not df.empty:
+            fonti_raw[etichetta] = df.reset_index(drop=True)
+    return fonti_raw
+
+
 def _estrai_data_pubblicazione(df: pd.DataFrame) -> pd.Series:
     """Tenta di leggere la data da colonne note, restituisce una Series datetime con NaT per date malformate."""
     for col in ['data_pubblicazione', 'Data', 'publishedAt']:
@@ -269,6 +304,32 @@ def _parse_parole_chiave(valore) -> list:
     except Exception:
         return []
 
+STOPWORDS_MATCHING = {
+    "del", "della", "dei", "delle", "dello", "degli", "per", "con", "che", "una", "uno",
+    "gli", "nella", "nel", "nello", "sul", "sulla", "sui", "come", "loro", "questo",
+    "questa", "sono", "essere", "anche", "alla", "alle", "agli", "and", "the", "of", "for",
+}
+
+def _parole_significative(testo) -> set:
+    """Estrae parole >3 caratteri, minuscole, senza stopword — usato per il matching
+    deterministico keyword-overlap (Notizia<->Tema), stesso principio di link_ong."""
+    if not testo:
+        return set()
+    parole = set()
+    for token in str(testo).lower().replace(',', ' ').replace(';', ' ').split():
+        token = token.strip('.,;:()[]"\'')
+        if len(token) > 3 and token not in STOPWORDS_MATCHING:
+            parole.add(token)
+    return parole
+
+def _termini_da_lista_serializzata(valore) -> set:
+    """Come _parole_significative ma partendo da una colonna lista-serializzata
+    (es. Parole_Chiave, Entita_Coinvolte)."""
+    termini = set()
+    for frase in _parse_parole_chiave(valore):
+        termini |= _parole_significative(frase)
+    return termini
+
 # --- CREAZIONE DELLE SCHEDE (TABS) ---
 tab_home, tab_ong, tab_garante, tab_network, tab_mappa_posizionamento, tab_analisi_temporale = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante", "🕸️ Network Temi", "📍 Mappa Posizionamento", "📈 Analisi Temporale"])
 
@@ -347,17 +408,39 @@ with tab_home:
         xaxis=dict(
             type='date',
             tickformat='%d/%m/%Y',
-            dtick='D1', # Un tick al giorno
+            dtick=2 * 24 * 60 * 60 * 1000, # Un tick ogni 2 giorni (in millisecondi, richiesto da Plotly per assi date)
             tickmode='linear',
             showgrid=True
         ),
         hovermode='x unified'
     )
-    
+
     st.plotly_chart(fig_timeline, width='stretch')
-    
+
     st.divider()
-    
+
+    # --- ULTIME NOTIZIE PER FONTE (una tabella per scraper) ---
+    st.subheader("🗂️ Ultime Notizie per Fonte")
+    st.caption("Titolo e data di raccolta dal CSV grezzo di ciascuno scraper, indipendentemente dalla classificazione NLP.")
+
+    dati_per_fonte = carica_dati_raw_per_fonte()
+    if not dati_per_fonte:
+        st.info("Nessun dato grezzo trovato in data/raw/. Esegui gli scraper per popolare questa sezione.")
+    else:
+        for etichetta, df_fonte in dati_per_fonte.items():
+            with st.expander(f"{etichetta} — {len(df_fonte)} notizie"):
+                st.dataframe(
+                    df_fonte,
+                    column_config={
+                        "titolo": st.column_config.TextColumn("Titolo", width="large"),
+                        "data_scraping": st.column_config.DatetimeColumn("Data raccolta", format="DD/MM/YYYY HH:mm"),
+                    },
+                    hide_index=True,
+                    width='stretch',
+                )
+
+    st.divider()
+
     # === SISTEMA HUMAN-IN-THE-LOOP ===
     st.subheader("🔧 Correggi Classificazione (Active Learning)")
     
@@ -879,9 +962,11 @@ with tab_mappa_posizionamento:
 with tab_network:
     st.header("🕸️ Mappa Network Relazioni ONG - Notizie")
     st.markdown("""
-    Questa visualizzazione mostra il grafo di relazioni tra le Organizzazioni e i temi delle notizie.
+    Questa visualizzazione mostra il grafo di relazioni tra le Organizzazioni, i temi e le notizie raccolte.
     ✅ **Nodi rossi**: ONG
     ✅ **Nodi blu**: Temi / Argomenti
+    ✅ **Archi verdi**: ONG → Tema (focus) e ONG → Notizia (comunicati pubblicati dall'ONG)
+    ✅ **Archi blu scuro**: Notizia (raccolta dagli scraper) → Tema, per keyword-overlap sulle parole chiave estratte
     ✅ **Distanza**: Indica quanto vicino è il tema agli argomenti di cui si occupa l'ONG
     """)
 
@@ -912,6 +997,8 @@ with tab_network:
                     return standard
             return tema.strip().title()
 
+        tema_keywords: dict = {}
+
         for nome_ong, dati_ong in PROFILI_ONG.items():
             G.add_node(nome_ong,
                       color='#ff4b4b',
@@ -924,6 +1011,9 @@ with tab_network:
                 if tema_norm not in G:
                     G.add_node(tema_norm, color='#4b8bff', size=15, group='Tema')
                 G.add_edge(nome_ong, tema_norm, value=1, title=f"Focus principale")
+                tema_keywords.setdefault(tema_norm, set())
+                tema_keywords[tema_norm] |= _parole_significative(tema)
+                tema_keywords[tema_norm] |= _parole_significative(tema_norm)
 
         parole_tema = []
         for _, dati_ong in PROFILI_ONG.items():
@@ -957,15 +1047,69 @@ with tab_network:
                 G.add_node(titolo, color='#4bff8b', size=8, group='Notizia', shape='diamond')
                 G.add_edge(ancora, titolo, value=0.5, title=f"Pubblicato da {ancora}")
 
-        col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
+        # --- Notizie generaliste (scraper non-ONG) -> Temi ---
+        # Aggancio deterministico per keyword-overlap (stesso principio di link_ong,
+        # ma contro il vocabolario dei Temi invece che contro i profili ONG).
+        # Se non c'è overlap sufficiente la notizia resta fuori dal grafo: niente
+        # aggancio forzato, per non inventare associazioni deboli (vedi CLAUDE.md).
+        COLORE_NOTIZIA_GENERALE = '#00008b'  # blu scuro
+        SOGLIA_MIN_OVERLAP_TEMA = 1
+
+        fonti_scraper_generaliste = {
+            "GNews": carica_dati_gnews(),
+            "Tech News Italiane": carica_dati_tech_news(),
+            "RSS Regolatori Europei": carica_dati_rss_eu(),
+            "Parlamento Europeo": carica_dati_eu_parl(),
+            "AGCOM": carica_dati_agcom(),
+        }
+
+        for fonte_label, df_fonte in fonti_scraper_generaliste.items():
+            if df_fonte.empty or 'titolo' not in df_fonte.columns:
+                continue
+            df_fonte = df_fonte.copy()
+            df_fonte['data_pubblicazione'] = pd.to_datetime(
+                df_fonte.get('data_pubblicazione'), errors='coerce', format='mixed', utc=True
+            ).dt.date
+            df_fonte['livello_allarme'] = pd.to_numeric(df_fonte.get('livello_allarme', 1), errors='coerce').fillna(1)
+            mask_fonte = (df_fonte['data_pubblicazione'] >= soglia_data) | (df_fonte['livello_allarme'] >= 3)
+
+            for _, notizia in df_fonte[mask_fonte].iterrows():
+                titolo_raw = str(notizia.get('titolo', '')).strip()
+                if not titolo_raw:
+                    continue
+
+                termini_notizia = _parole_significative(notizia.get('titolo', ''))
+                termini_notizia |= _termini_da_lista_serializzata(notizia.get('Parole_Chiave'))
+                termini_notizia |= _termini_da_lista_serializzata(notizia.get('Entita_Coinvolte'))
+
+                migliore_tema, migliore_score = None, 0
+                for tema_norm, parole_tema_set in tema_keywords.items():
+                    score = len(termini_notizia & parole_tema_set)
+                    if score > migliore_score:
+                        migliore_tema, migliore_score = tema_norm, score
+
+                if migliore_tema is None or migliore_score < SOGLIA_MIN_OVERLAP_TEMA:
+                    continue
+
+                titolo_nodo = titolo_raw[:50] + "..."
+                if titolo_nodo not in G:
+                    G.add_node(titolo_nodo, color=COLORE_NOTIZIA_GENERALE, size=8,
+                              group='NotiziaGenerale', shape='diamond',
+                              title=f"{fonte_label}\n{titolo_raw}")
+                G.add_edge(migliore_tema, titolo_nodo, value=0.5, color=COLORE_NOTIZIA_GENERALE,
+                          title=f"{fonte_label} · overlap={migliore_score} parole")
+
+        col_stat1, col_stat2, col_stat3, col_stat4, col_stat5 = st.columns(5)
         numero_ong = len([n for n, d in G.nodes(data=True) if d.get('group') == 'ONG'])
         numero_temi = len([n for n, d in G.nodes(data=True) if d.get('group') == 'Tema'])
         numero_notizie = len([n for n, d in G.nodes(data=True) if d.get('group') == 'Notizia'])
+        numero_notizie_generali = len([n for n, d in G.nodes(data=True) if d.get('group') == 'NotiziaGenerale'])
         numero_connessioni = G.number_of_edges()
         col_stat1.metric("🔴 Organizzazioni", numero_ong)
         col_stat2.metric("🔵 Temi Monitorati", numero_temi)
-        col_stat3.metric("🟢 Notizie Collegate", numero_notizie)
-        col_stat4.metric("🔗 Connessioni Totali", numero_connessioni)
+        col_stat3.metric("🟢 Notizie ONG", numero_notizie)
+        col_stat4.metric("🔷 Notizie Generali", numero_notizie_generali)
+        col_stat5.metric("🔗 Connessioni Totali", numero_connessioni)
         st.divider()
 
         net = Network(height='700px', width='100%', bgcolor='#0a0a0a', font_color='ffffff',

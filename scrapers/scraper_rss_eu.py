@@ -49,13 +49,36 @@ def pulisci_html(testo_sporco: str) -> str:
     return BeautifulSoup(testo_sporco, "html.parser").text.strip()
 
 
+# Firma della pagina di errore generica di Google (Google Frontend), osservata
+# in produzione il 2026-08-29: quando l'endpoint gratuito translate.google.com
+# usato da deep_translator viene rate-limitato, risponde con HTTP 200 e questo
+# testo al posto di una vera traduzione. GoogleTranslator.translate() non
+# solleva eccezioni in questo caso (lo status non è 429/500), quindi la pagina
+# di errore finiva silenziosamente salvata come titolo/sommario tradotto: 6
+# righe su 40 in rss_eu_sample.csv avevano questo identico testo al posto del
+# contenuto reale. Firma scelta SENZA apostrofo: il testo reale usa un
+# apostrofo tipografico (’, U+2019) non quello dritto ('), un primo tentativo
+# con "that's an error" non ha quindi individuato la stringa reale.
+_FIRMA_ERRORE_GOOGLE = "error 500 (server error)"
+
+
+def _e_traduzione_valida(testo: str) -> bool:
+    return bool(testo) and _FIRMA_ERRORE_GOOGLE not in testo.lower()
+
+
 def traduci_in_italiano(testo: str, lingua_origine: str = 'auto') -> str:
-    """Traduce il testo in italiano via Google Translate (max 4999 caratteri)."""
+    """Traduce il testo in italiano via Google Translate (max 4999 caratteri).
+    Ritorna il testo originale se la traduzione fallisce o se l'endpoint
+    gratuito restituisce una pagina di errore invece di una traduzione."""
     if not testo or len(testo) < 3:
         return testo
     try:
         traduttore = GoogleTranslator(source=lingua_origine, target='it')
-        return traduttore.translate(testo[:4999])
+        tradotto = traduttore.translate(testo[:4999])
+        if not _e_traduzione_valida(tradotto):
+            logger.warning("Traduzione non valida (pagina di errore Google), mantengo il testo originale")
+            return testo
+        return tradotto
     except Exception as e:
         logger.warning("Errore traduzione: %s", e)
         return testo
