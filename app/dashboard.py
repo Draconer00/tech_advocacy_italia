@@ -17,7 +17,9 @@ cartella_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, cartella_root)
 
 from scrapers.scraper_ong import PROFILI_ONG
-from utils.feedback_schema import append_correzioni
+from utils.feedback_schema import append_correzioni, load_feedback
+from utils.ong_profile import carica_profilo_keywords_ong, salva_profilo_keywords_ong
+from utils.ong_manual_entries import carica_documenti_manuali, salva_documento_manuale
 from spacy.lang.it.stop_words import STOP_WORDS as STOPWORD_KW
 
 # --- CONFIGURAZIONE DELLA PAGINA ---
@@ -39,7 +41,11 @@ def carica_dati_ong():
         os.path.join(cartella_script, '..', 'data', 'raw', 'ong_sample.csv'),
     ]:
         if os.path.exists(percorso):
-            return pd.read_csv(percorso)
+            df = pd.read_csv(percorso)
+            df_manuali = carica_documenti_manuali()
+            if not df_manuali.empty:
+                df = pd.concat([df, df_manuali], ignore_index=True)
+            return df
     return pd.DataFrame()
 
 @st.cache_data 
@@ -549,29 +555,81 @@ with tab_home:
 # SCHEDA 1: ORGANIZZAZIONI CIVICHE (Il tuo codice originale)
 # ==========================================
 with tab_ong:
+    ong_con_documenti = set(df_ong['nome_organizzazione'].unique()) if not df_ong.empty else set()
+    ong_senza_documenti = sorted(set(PROFILI_ONG.keys()) - ong_con_documenti)
+    if ong_senza_documenti:
+        st.warning(
+            f"⚠️ {len(ong_senza_documenti)} ONG senza documenti raccolti: " + ", ".join(ong_senza_documenti)
+        )
+
     if df_ong.empty:
-        st.warning("Nessun dato trovato. Esegui prima lo scraper delle ONG!")
+        st.info("Nessun documento ONG raccolto finora. Usa il form sotto per aggiungerne uno manualmente, oppure esegui prima lo scraper delle ONG.")
     else:
         # Layout a due colonne per filtri e metriche
         col_filtri, col_metriche = st.columns([1, 2])
-        
+
         with col_filtri:
             st.subheader("Filtra i Dati")
             ong_selezionate = st.multiselect(
-                "Scegli le Organizzazioni:", 
+                "Scegli le Organizzazioni:",
                 options=df_ong['nome_organizzazione'].unique(),
                 default=df_ong['nome_organizzazione'].unique()
             )
-        
+
         df_filtrato_ong = df_ong[df_ong['nome_organizzazione'].isin(ong_selezionate)]
-        
+
         with col_metriche:
             col1, col2 = st.columns(2)
             col1.metric("Comunicati Analizzati", len(df_filtrato_ong))
             col2.metric("Organizzazioni Attive", len(ong_selezionate))
-        
-        st.subheader("Ultimi Aggiornamenti ONG")
-        st.dataframe(df_filtrato_ong[['data_pubblicazione', 'nome_organizzazione', 'titolo', 'url']], width='stretch')
+
+        st.subheader("📄 Documenti per Organizzazione")
+        if not ong_selezionate:
+            st.info("Seleziona almeno un'ONG dal filtro sopra per vedere i documenti in dettaglio.")
+        else:
+            ong_dettaglio = st.selectbox("Scegli un'ONG per il dettaglio:", options=sorted(ong_selezionate))
+            df_dettaglio = df_filtrato_ong[df_filtrato_ong['nome_organizzazione'] == ong_dettaglio].sort_values(
+                'data_pubblicazione', ascending=False
+            )
+            st.caption(f"{len(df_dettaglio)} documenti per {ong_dettaglio}")
+            for _, doc in df_dettaglio.iterrows():
+                titolo_doc = str(doc.get('titolo', '') or '(senza titolo)')
+                data_doc = str(doc.get('data_pubblicazione', '') or '?')
+                with st.expander(f"{data_doc} — {titolo_doc}"):
+                    testo_doc = str(doc.get('testo_completo', '') or '')
+                    st.write(testo_doc[:500] + ("..." if len(testo_doc) > 500 else ""))
+                    url_doc = str(doc.get('url', '') or '')
+                    if url_doc.strip():
+                        st.markdown(f"[🔗 Apri notizia]({url_doc})")
+                    if str(doc.get('fonte', '')) == 'manuale':
+                        st.caption("✍️ Inserito manualmente")
+
+    st.divider()
+    st.subheader("➕ Aggiungi un documento manualmente")
+    with st.form("aggiungi_documento_ong", clear_on_submit=True):
+        ong_form = st.selectbox("Organizzazione *", options=sorted(PROFILI_ONG.keys()), key="ong_manuale_select")
+        titolo_form = st.text_input("Titolo *")
+        testo_form = st.text_area("Testo *", height=150)
+        data_form = st.date_input("Data *", value=datetime.now().date())
+        url_form = st.text_input("Link *")
+        invia_documento = st.form_submit_button("💾 Salva documento")
+
+        if invia_documento:
+            errori_form = []
+            if not titolo_form.strip():
+                errori_form.append("titolo")
+            if not testo_form.strip():
+                errori_form.append("testo")
+            if not url_form.strip().lower().startswith("http"):
+                errori_form.append("link (deve iniziare con http)")
+
+            if errori_form:
+                st.error(f"Campi mancanti o non validi: {', '.join(errori_form)}")
+            else:
+                salva_documento_manuale(ong_form, titolo_form, testo_form, data_form, url_form)
+                st.success(f"✅ Documento aggiunto per '{ong_form}'.")
+                carica_dati_ong.clear()
+                st.rerun()
 
 # ==========================================
 # SCHEDA 2: ANALISI GEOGRAFICA GLOBALE
@@ -971,6 +1029,26 @@ with tab_network:
     ✅ **Distanza**: Indica quanto vicino è il tema agli argomenti di cui si occupa l'ONG
     """)
 
+    with st.expander("🏷️ Profilo Parole Chiave ONG (migliora l'aggancio Notizia → ONG nel grafo)"):
+        st.markdown(
+            "Parole chiave aggiuntive, specifiche per ONG, usate solo per collegare le notizie "
+            "all'ONG più pertinente in questo grafo — si sommano al `focus` già definito, non lo sostituiscono."
+        )
+        profilo_keywords_ong = carica_profilo_keywords_ong()
+        ong_scelta_profilo = st.selectbox("Organizzazione", options=sorted(PROFILI_ONG.keys()), key="ong_profilo_select")
+        keywords_correnti = profilo_keywords_ong.get(ong_scelta_profilo, [])
+        testo_keywords = st.text_area(
+            "Parole chiave (una per riga)",
+            value="\n".join(keywords_correnti),
+            key="ong_profilo_textarea",
+            height=120,
+        )
+        if st.button("💾 Salva profilo", key="salva_profilo_ong"):
+            nuove_parole = [riga.strip() for riga in testo_keywords.split("\n") if riga.strip()]
+            salva_profilo_keywords_ong(ong_scelta_profilo, nuove_parole)
+            st.success(f"✅ Profilo di '{ong_scelta_profilo}' aggiornato: {len(nuove_parole)} parole chiave.")
+            st.rerun()
+
     if df_ong.empty:
         st.warning("Nessun dato ONG disponibile per costruire il network")
     else:
@@ -1021,6 +1099,31 @@ with tab_network:
             parole_tema.extend(dati_ong.get('focus', []))
         parole_tema = list(set(parole_tema))
 
+        # Profilo parole chiave custom per ONG (vedi expander sopra): si somma a
+        # 'focus' solo per il matching Notizia->ONG di questo grafo, non tocca
+        # PROFILI_ONG né la pipeline offline.
+        PROFILI_ONG_ARRICCHITO = {
+            nome: {**dati, 'focus': list(dati.get('focus', [])) + profilo_keywords_ong.get(nome, [])}
+            for nome, dati in PROFILI_ONG.items()
+        }
+
+        # Correzioni manuali salvate dal pannello "Correggi Associazioni Notizie"
+        # (tipo_correzione == 'ong_collegata' in training_data_feedback.csv): hanno
+        # priorità assoluta, anche sul publisher noto — è proprio quello che l'utente
+        # sta correggendo. Override deterministico per titolo, nessun training.
+        percorso_feedback_ong = os.path.join(cartella_root, 'data', 'processed', 'training_data_feedback.csv')
+        df_feedback_ong = load_feedback(percorso_feedback_ong)
+        correzioni_ong_manuali: dict = {}
+        if not df_feedback_ong.empty:
+            df_correzioni_ong = df_feedback_ong[df_feedback_ong['tipo_correzione'] == 'ong_collegata']
+            for _, riga_corretta in df_correzioni_ong.iterrows():
+                titolo_corretto = str(riga_corretta.get('titolo', '')).strip()
+                ong_corretta = str(riga_corretta.get('ong_collegata_corretta', '')).strip()
+                if titolo_corretto and ong_corretta:
+                    # Il file è append-only in ordine cronologico: l'ultima occorrenza
+                    # per lo stesso titolo sovrascrive le precedenti (correzione più recente vince).
+                    correzioni_ong_manuali[titolo_corretto] = ong_corretta
+
         from datetime import datetime, timedelta
         soglia_data = datetime.now().date() - timedelta(days=30)
 
@@ -1032,16 +1135,21 @@ with tab_network:
         for _, notizia in df_ong_filtrato.iterrows():
             titolo = notizia['titolo'][:50] + "..."
             testo_notizia = (notizia['titolo'] + " " + notizia.get('testo_completo', '')).lower()
-            # Ground truth: la notizia appartiene a chi l'ha PUBBLICATA. Per il feed
-            # ONG il publisher è noto, quindi la si attacca sempre alla sua ONG —
-            # così ogni ONG attiva mostra i propri articoli e non resta vuota.
-            ong_nome = str(notizia.get('nome_organizzazione', '')).strip()
-            ancora = ong_nome if ong_nome in G else None
+            # Priorità 1: correzione manuale salvata dall'utente per questo titolo.
+            ancora = correzioni_ong_manuali.get(str(notizia['titolo']).strip())
+            ancora = ancora if ancora in G else None
+
+            # Priorità 2 (ground truth): la notizia appartiene a chi l'ha PUBBLICATA.
+            # Per il feed ONG il publisher è noto, quindi la si attacca sempre alla
+            # sua ONG — così ogni ONG attiva mostra i propri articoli e non resta vuota.
+            if ancora is None:
+                ong_nome = str(notizia.get('nome_organizzazione', '')).strip()
+                ancora = ong_nome if ong_nome in G else None
 
             # Solo se il publisher non è una ONG nota (es. fonti non-ONG) si ricade
             # sul keyword-overlap del paper per inferire la ONG più pertinente.
             if ancora is None:
-                candidata, _score = link_ong(testo_notizia, PROFILI_ONG, return_score=True)
+                candidata, _score = link_ong(testo_notizia, PROFILI_ONG_ARRICCHITO, return_score=True)
                 ancora = candidata if candidata in G else None
 
             if ancora is not None:
@@ -1218,9 +1326,27 @@ with tab_network:
 
             salva_associazioni = st.button("💾 Salva Correzioni Associazioni", type="primary")
             if salva_associazioni:
-                modifiche_network = df_modificato_network[df_modificato_network['associazione_corretta'] != df_modificato_network['nome_organizzazione']]
+                modifiche_network = df_modificato_network[
+                    df_modificato_network['associazione_corretta'] != df_modificato_network['nome_organizzazione']
+                ].copy()
                 if len(modifiche_network) > 0:
-                    st.success(f"✅ Salvate {len(modifiche_network)} correzioni. I vettori verranno mostrati in verde nella prossima generazione del grafo.")
+                    # Stesso schema/percorso del blocco "Correggi Classificazione" nel tab
+                    # Home Radar: append_correzioni normalizza le colonne mancanti a NaN,
+                    # quindi qui basta valorizzare quelle rilevanti per una correzione ONG.
+                    modifiche_feedback = pd.DataFrame({
+                        'data': modifiche_network['data_pubblicazione'],
+                        'fonte': modifiche_network['nome_organizzazione'],
+                        'titolo': modifiche_network['titolo'],
+                        'errore_segnalato': True,
+                        'ong_collegata_corretta': modifiche_network['associazione_corretta'],
+                        'timestamp_correzione': datetime.now().isoformat(),
+                        'utente': "Operatore",
+                        'tipo_correzione': "ong_collegata",
+                    })
+                    cartella_script = os.path.dirname(os.path.abspath(__file__))
+                    percorso_feedback = os.path.join(cartella_script, '..', 'data', 'processed', 'training_data_feedback.csv')
+                    append_correzioni(modifiche_feedback, percorso_feedback)
+                    st.success(f"✅ Salvate {len(modifiche_network)} correzioni in training_data_feedback.csv.")
                 else:
                     st.info("Nessuna modifica effettuata")
 
