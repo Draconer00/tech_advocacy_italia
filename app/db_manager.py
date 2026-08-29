@@ -294,7 +294,7 @@ with tab_pulisci:
                             df = load_table(tabella)
                             
                             if 'data_pubblicazione' in df.columns:
-                                df['data'] = pd.to_datetime(df['data_pubblicazione'], errors='coerce', format='mixed').dt.date
+                                df['data'] = pd.to_datetime(df['data_pubblicazione'], errors='coerce', format='mixed', utc=True).dt.date
                                 df_nuovo = df[df['data'] >= data_limite]
                                 
                                 cancellati = len(df) - len(df_nuovo)
