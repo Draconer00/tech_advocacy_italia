@@ -211,12 +211,28 @@ def scarica_eu_parlamento() -> pd.DataFrame:
     logger.info("Avvio scraper Parlamento Europeo")
 
     documenti_rss = _scarica_rss()
-    # Open Data API disattivata (2026-08-29): l'endpoint v1 sotto EP_API_BASE
-    # ora reindirizza a /api/v2 con uno schema di risposta diverso (ELI/JSON-LD
-    # annidato invece dei campi piatti label/date/description usati qui sotto),
-    # quindi ogni chiamata fallisce (404 su legislative-acts, timeout su LIBE
-    # documents). Richiede una riscrittura del parsing per il nuovo schema, non
-    # solo un cambio di URL — vedi endpoint v2 funzionanti confermati:
+    # Open Data API disattivata deliberatamente (valutata e scartata il
+    # 2026-08-29, non solo "da riscrivere"). Oltre al cambio di schema v1->v2
+    # (ELI/JSON-LD annidato invece dei campi piatti label/date/description
+    # usati qui sotto), l'endpoint v2 si è rivelato inaffidabile in modo da
+    # rendere i dati non attendibili anche con retry perfetti:
+    #  - ~50% delle richieste identiche restituisce HTTP 200 ma un body
+    #    {"error": "404 Not Found from POST .../view=...-dsd&view-version=v2.0"}
+    #    invece dei dati — raise_for_status() non lo intercetta.
+    #  - Nessun parametro di ordinamento provato (sort=-document_date,
+    #    "document_date desc", sort=-date) restituisce in modo affidabile i
+    #    documenti più recenti prima: stessa chiamata, risultati diversi tra
+    #    un tentativo e l'altro.
+    #  - Il filtro year (es. year=2026) troncava a 1-3 risultati anche con
+    #    limit=50, mentre senza filtro anno lo stesso endpoint restituisce
+    #    correttamente 10-15 risultati per chiamata — bug del filtro/paginazione
+    #    lato server, non dei parametri usati.
+    # Costruirci sopra violerebbe i principi del progetto (evidence-based,
+    # pipeline deterministiche): senza ordinamento/filtro affidabili non c'è
+    # modo di sapere se un campione è davvero "i documenti più recenti" o un
+    # sottoinsieme arbitrario. Il feed RSS "Comunicati Stampa" già coperto
+    # sopra copre comunque gli sviluppi legislativi in modo affidabile.
+    # Endpoint v2 (per riferimento, se l'API si stabilizza in futuro):
     # /adopted-texts, /committee-documents, /procedures (data.europarl.europa.eu/api/v2).
     # documenti_api = _scarica_open_data_api()
     documenti_api = []
