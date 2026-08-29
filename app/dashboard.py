@@ -1117,7 +1117,7 @@ with tab_analisi_temporale:
 
         giorni_intervallo = scelta_intervallo[1]
         if giorni_intervallo > 0:
-            soglia_temporale = pd.Timestamp.now() - pd.Timedelta(days=giorni_intervallo)
+            soglia_temporale = pd.Timestamp.now(tz='UTC') - pd.Timedelta(days=giorni_intervallo)
             df_filtrato_temp = df_temporale[df_temporale['data'] >= soglia_temporale].copy()
         else:
             df_filtrato_temp = df_temporale.copy()
