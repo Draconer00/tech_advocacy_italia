@@ -14,6 +14,7 @@ from functools import wraps
 
 import pandas as pd
 import spacy
+from spacy.lang.it.stop_words import STOP_WORDS as STOPWORD_IT
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Aggiungi root progetto al path (necessario per import cross-package)
@@ -212,12 +213,21 @@ def estrai_keywords_corpus(testi: list[str], num_keywords: int = 5) -> list[list
     Estrae keyword via TF-IDF fittato sull'intero corpus.
     Fittare su un singolo documento renderebbe IDF=0 per tutti i termini,
     vanificando il peso TF-IDF. Qui il fit avviene sul batch completo.
+
+    Stopword italiane e bigrammi (ngram_range) sono necessari per far emergere
+    termini di dominio come "intelligenza artificiale" o "riconoscimento facciale"
+    invece di articoli/preposizioni isolati.
     """
     if not testi:
         return []
     try:
         testi_puliti = [str(t) if t and str(t).strip() != 'nan' else '' for t in testi]
-        vectorizer = TfidfVectorizer(max_features=200, min_df=1)
+        vectorizer = TfidfVectorizer(
+            max_features=200,
+            min_df=1,
+            ngram_range=(1, 2),
+            stop_words=list(STOPWORD_IT),
+        )
         tfidf_matrix = vectorizer.fit_transform(testi_puliti)
         feature_names = vectorizer.get_feature_names_out()
         risultati = []

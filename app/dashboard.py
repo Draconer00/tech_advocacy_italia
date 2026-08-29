@@ -18,6 +18,7 @@ sys.path.insert(0, cartella_root)
 
 from scrapers.scraper_ong import PROFILI_ONG
 from utils.feedback_schema import append_correzioni
+from spacy.lang.it.stop_words import STOP_WORDS as STOPWORD_KW
 
 # --- CONFIGURAZIONE DELLA PAGINA ---
 st.set_page_config(page_title="Radar Diritti Digitali", page_icon="⚖️", layout="wide")
@@ -1366,13 +1367,7 @@ with tab_analisi_temporale:
         )
 
         # Estrai parole chiave da tutti i documenti nel periodo, ignorando stopword banali
-        STOPWORD_KW = {
-            'di', 'del', 'la', 'il', 'le', 'lo', 'un', 'una', 'e', 'in', 'per', 'da',
-            'dei', 'a', 'con', 'non', 'si', 'su', 'al', 'che', 'è', 'gli', 'i', 'o',
-            'ha', 'ma', 'se', 'più', 'tra', 'nei', 'della', 'delle', 'degli', 'al',
-            'i', 'ii', 'iii', 'iv', 'it', 'in', 'the', 'of', 'and', 'to', 'a',
-        }
-
+        # (STOPWORD_KW = spaCy it_core_news_md, importata a livello di modulo)
         righe_kw = []
         for _, riga in df_filtrato_temp.iterrows():
             kw_lista = _parse_parole_chiave(riga.get('parole_chiave_raw'))
