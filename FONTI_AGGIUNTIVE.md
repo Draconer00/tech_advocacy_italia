@@ -34,9 +34,6 @@ Included in `scraper_ong.py`: EDRi, Noyb, Access Now, Electronic Frontier Founda
 ### Italian Tech Media (8 outlets)
 Wired Italia, Punto Informatico, Agenda Digitale, Corriere Comunicazioni, Data Manager Online, Cybersecurity360, Innovation Post, StartupItalia. Source: `scraper_tech_news.py`.
 
-### GDPR Enforcement Database
-GDPRhub (noyb, CC BY-SA 4.0) with fallback to enforcementtracker.com (CMS Law). Source: `scraper_gdpr_fines.py`.
-
 ---
 
 ## Candidate Sources for Future Integration
@@ -52,7 +49,7 @@ GDPRhub (noyb, CC BY-SA 4.0) with fallback to enforcementtracker.com (CMS Law). 
 - European Commission DG Connect — digital strategy publications
 
 ### Public Datasets
-- **GDPRhub full case database** — structured GDPR enforcement records worldwide (CC BY-SA 4.0)
+- **GDPRhub full case database** — structured GDPR enforcement records worldwide (CC BY-SA 4.0), with fallback to enforcementtracker.com (CMS Law). Planned scraper: `scraper_gdpr_fines.py` (not yet implemented).
 - **AI Act Monitor** — implementation tracking across EU member states
 - **Digital Rights Tracker** — per-country digital rights status across Europe
 

@@ -61,7 +61,7 @@ Incorporate structured first-person input from monitored organisations (position
 | Geographic classification | Implemented |
 | Sentiment analysis (rule-based) | Implemented |
 | Urgency index (active learning) | Implemented |
-| GDPR fines structured layer | Implemented |
+| GDPR fines structured layer | Planned (scraper not yet implemented — see FONTI_AGGIUNTIVE.md) |
 | Domain-adapted NER | Planned |
 | Multilingual NER without translation | Planned |
 | Relation extraction | Planned |

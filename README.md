@@ -31,7 +31,7 @@ tech_advocacy_italia/
 │   └── text_analysis.py       ← spaCy NER, TF-IDF, sentiment, active learning
 │
 ├── app/
-│   └── dashboard.py           ← Streamlit interactive dashboard (7 tabs)
+│   └── dashboard.py           ← Streamlit interactive dashboard (6 tabs)
 │
 ├── data/
 │   ├── raw/                   ← Append-only raw CSV files (git-ignored)
@@ -90,6 +90,26 @@ The Streamlit dashboard provides six analytical views:
 | Analisi Temporale | Monthly document volume, keyword trends, GDPR fine amounts over time |
 
 A standalone SQL utility (`app/db_manager.py`) provides direct database access and schema inspection; it is run separately and is not yet wired into the dashboard as a tab.
+
+### Processed columns (per document)
+
+Columns added by `text_analysis.py` on top of each source's raw schema:
+
+| Column | Description |
+|--------|-------------|
+| `Parole_Chiave` | TF-IDF keyword list |
+| `Entita_Coinvolte` | spaCy NER output: `"Entity \|\| Category"` |
+| `Ambito_Geografico` | Geographic scope classification |
+| `Sentiment_Direzione` | Document tone: Positivo / Negativo / Neutro |
+| `livello_allarme` | Urgency score 1–5 |
+| `ong_collegata` | NGO/institution linked via keyword-overlap scoring |
+| `ong_link_score` | Confidence of the entity-linking match (low score = uncertain) |
+
+---
+
+## Human-in-the-Loop
+
+All model outputs are correctable from the dashboard. Corrections are appended to `data/processed/training_data_feedback.csv` — the only piece of `data/` versioned in the repo, since it's curated ground truth rather than scraped raw data — and used to retrain the urgency classifier on the next pipeline run (locally via `run_pipeline.py`, or in CI once the corrections are committed and pushed). This creates a continuous improvement loop without requiring changes to the pipeline code.
 
 ---
 

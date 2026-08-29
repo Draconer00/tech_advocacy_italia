@@ -1,6 +1,6 @@
 # Pipeline Workflow — Tech Advocacy Radar
 
-Complete reference for running the data ingestion, NLP processing, and dashboard layers.
+Detailed runbook for running each pipeline stage individually. For a quick start and architecture overview, see [README.md](README.md); this file only covers what the README doesn't: per-scraper notes and troubleshooting.
 
 ---
 
@@ -12,25 +12,16 @@ Complete reference for running the data ingestion, NLP processing, and dashboard
 └─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
       │                    │                   │                    │
       ▼                    ▼                   ▼                    ▼
-  35+ sources          CSV files         NER, TF-IDF,         7 analytical
+  35+ sources          CSV files         NER, TF-IDF,          6 analytical
   RSS + Web            SQLite DB         classification,       views, human
-  Auto-translate       Append-only       active learning       feedback loop
-```
-
----
-
-## Setup (once)
-
-```bash
-pip install -r requirements.txt
-python -m spacy download it_core_news_md
+  Auto-translate       Append-only       active learning        feedback loop
 ```
 
 ---
 
 ## Step 1 — Data Ingestion
 
-Each scraper is independent and can be run in any order. All scrapers append to existing files without overwriting historical data.
+Each scraper is independent and can be run in any order. All scrapers append to existing files without overwriting historical data. See [README.md](README.md#quick-start) for setup.
 
 ### GPDP — Italian Data Protection Authority
 ```bash
@@ -46,14 +37,9 @@ Aggregates RSS feeds from 23 civil society organisations. Applies semantic dedup
 
 ### News (GNews API)
 ```bash
-# Windows
-$env:GNEWS_API_KEY="your_key"
-# Linux/Mac
-export GNEWS_API_KEY="your_key"
-
 python scrapers/scraper_gnews.py
 ```
-Queries the GNews API for Italian-language articles on privacy, AI, and digital rights. Requires a free API key from gnews.io. Output: `data/raw/gnews_sample.csv`.
+Queries the GNews API for Italian-language articles on privacy, AI, and digital rights. Requires `GNEWS_API_KEY` (see README). Skips cleanly (exit 0) if the key isn't set. Output: `data/raw/gnews_sample.csv`.
 
 ### European Regulators
 ```bash
@@ -79,11 +65,7 @@ python scrapers/scraper_eu_parl.py
 ```
 Combines EP news RSS (in Italian) with the Open Data API for structured legislative acts. Priority committees: LIBE, IMCO, ITRE. Output: `data/raw/eu_parl_sample.csv`.
 
-### GDPR Enforcement Database
-```bash
-python scrapers/scraper_gdpr_fines.py
-```
-Imports structured penalty records from GDPRhub (CC BY-SA 4.0) with fallback to enforcementtracker.com. Normalises fine amounts across European and US decimal formats. Output: `data/raw/gdpr_fines_sample.csv`.
+> `scraper_gdpr_fines.py` (structured GDPR sanctions layer from GDPRhub) is planned but not yet implemented — see [FONTI_AGGIUNTIVE.md](FONTI_AGGIUNTIVE.md).
 
 ---
 
@@ -93,17 +75,7 @@ Imports structured penalty records from GDPRhub (CC BY-SA 4.0) with fallback to 
 python nlp/text_analysis.py
 ```
 
-Processes all eight raw sources sequentially:
-
-1. Text cleaning (HTML, URLs, blacklist filtering)
-2. Named Entity Recognition — spaCy `it_core_news_md`
-3. TF-IDF keyword extraction — scikit-learn corpus-wide
-4. Geographic classification — Italy / Europe / International
-5. Fuzzy deduplication — SequenceMatcher at 0.85 threshold
-6. Entity linking — keyword-overlap scoring against NGO profiles
-7. Urgency index — sentence-transformers + active learning classifier
-
-Output: `data/processed/*_analyzed.csv` (one per source) and `data/tech_advocacy.db`.
+Processes all seven raw sources sequentially through the stages described in the README's [NLP Pipeline](README.md#nlp-pipeline) section. Output: `data/processed/*_analyzed.csv` (one per source) and `data/tech_advocacy.db`.
 
 ---
 
@@ -129,9 +101,7 @@ Executes all scrapers, the NLP pipeline, and launches the dashboard in sequence.
 
 ## Automated Scheduling
 
-The pipeline is compatible with GitHub Actions. The workflow in `.github/workflows/` runs daily at 02:00 UTC. Add `GNEWS_API_KEY` as a repository secret to enable the news scraper in CI.
-
-All data is appended to the historical record on each run — no conflicts, no data loss.
+Same GitHub Actions workflow described in the README's [Automated Scheduling](README.md#automated-scheduling) section — daily at 02:00 UTC, results published as workflow artifacts, `GNEWS_API_KEY` required as a repository secret for the news scraper.
 
 ---
 
