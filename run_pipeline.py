@@ -1,10 +1,20 @@
+"""
+Esecuzione end-to-end della pipeline: scraper -> analisi NLP -> training del
+modello di urgenza -> avvio della dashboard.
+
+Pensato per essere lanciato con un comando solo (`python run_pipeline.py`),
+sia manualmente sia da uno scheduler locale. In CI (GitHub Actions) gli stessi
+passi sono invocati singolarmente dal workflow, senza questo script.
+"""
 import os
 import subprocess
 import sys
 import time
-from dotenv import load_dotenv # Aggiungi questa riga
+from dotenv import load_dotenv
 
-load_dotenv() # Aggiungi questa riga per caricare le chiavi dal file .env
+# Carica le variabili d'ambiente da un eventuale file .env locale (es.
+# GNEWS_API_KEY) prima di lanciare gli scraper come sottoprocessi.
+load_dotenv()
 
 def run_command(command):
     print(f"Executing: {' '.join(command)}")
@@ -21,7 +31,8 @@ def run_command(command):
         print(f"⚠️ Attenzione: errore eseguendo comando: {e}")
         print(e.stderr)
         print("✅ Continuo comunque con i passi successivi...\n")
-        # NON USIAMO PIU' sys.exit(1) - continuiamo sempre
+        # Il fallimento di un singolo step (es. uno scraper offline) non deve
+        # bloccare l'intera pipeline: niente sys.exit(1), si prosegue sempre.
         return False
 
 def main():
@@ -71,11 +82,11 @@ def main():
     print("✅ Pipeline completata. Apertura dashboard in corso...")
     print("🌐 La dashboard sarà disponibile all'indirizzo: http://localhost:8501")
     
-    # ✅ CORREZIONE BUG WINDOWS:
-    # Su Windows quando il processo padre termina, i processi figli vengono automaticamente terminati.
-    # Per evitare che Streamlit venga killato subito dopo l'avvio usiamo DETACHED_PROCESS
-    # e non usiamo CREATE_NEW_CONSOLE che causa problemi con l'uscita immediata.
-    
+    # Su Windows, quando il processo padre termina i suoi processi figli vengono
+    # terminati con lui. DETACHED_PROCESS scollega Streamlit dal processo padre
+    # in modo che resti in esecuzione anche dopo che questo script è terminato;
+    # CREATE_NEW_CONSOLE non va bene perché causa la chiusura prematura del
+    # processo all'uscita dello script principale.
     # Avvia Streamlit come processo completamente indipendente e scollegato
     startupinfo = subprocess.STARTUPINFO()
     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW

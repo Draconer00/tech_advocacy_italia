@@ -1,3 +1,4 @@
+"""Configurazione di logging condivisa da scraper, pipeline NLP e dashboard."""
 import logging
 
 def setup_logger(name: str) -> logging.Logger:

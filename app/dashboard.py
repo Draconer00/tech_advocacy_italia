@@ -1,3 +1,10 @@
+"""
+Dashboard Streamlit del progetto: aggrega i dati NLP-processati (SQLite +
+CSV di fallback) e li presenta attraverso sei viste analitiche (rassegna
+giornaliera, campagne ONG, provvedimenti del Garante, network tematico,
+mappa di posizionamento, analisi temporale), con interfacce di correzione
+umana che alimentano l'active learning del classificatore di urgenza.
+"""
 import streamlit as st
 import pandas as pd
 import os
@@ -136,7 +143,6 @@ def carica_dati_unificati():
     return df.sort_values('data', ascending=False).reset_index(drop=True)
 
 
-# ✅ BUG 2: Carica anche GNews
 @st.cache_data
 def carica_dati_gnews():
     cartella_script = os.path.dirname(os.path.abspath(__file__))
@@ -388,7 +394,7 @@ with tab_home:
                 ("Ultimi 90 giorni", 90),
                 ("Tutto lo storico", 9999)
             ],
-            index=1, # ✅ DEFAULT: 14 GIORNI
+            index=1,  # default: 14 giorni
             format_func=lambda x: x[0]
         )
     
@@ -423,7 +429,7 @@ with tab_home:
         labels={'conteggio': 'Numero eventi'}
     )
     
-    # ✅ Correzione asse orizzontale: forza formato data e nascondi ore/minuti/secondi
+    # Forza il formato data sull'asse orizzontale e nasconde ore/minuti/secondi
     fig_timeline.update_layout(
         xaxis=dict(
             type='date',
@@ -464,7 +470,7 @@ with tab_home:
     # === SISTEMA HUMAN-IN-THE-LOOP ===
     st.subheader("🔧 Correggi Classificazione (Active Learning)")
     
-    # ✅ FILTRO FONTE PER GOLDEN STANDARD
+    # Filtri per restringere il set di documenti da correggere manualmente
     col_filtro_gold1, col_filtro_gold2 = st.columns(2)
     with col_filtro_gold1:
         fonti_disponibili = ["Tutte le fonti"] + list(df_unificato['fonte'].unique())
@@ -858,13 +864,14 @@ with tab_mappa_posizionamento:
             _calcola_scores, axis=1
         )
         df_notizie['tipo'] = 'Notizia'
-        # ✅ Rinomina colonna per compatibilità
+        # Uniforma il nome colonna a 'data' per essere compatibile con df_plot più sotto
         df_notizie['data'] = df_notizie.get('data_pubblicazione', datetime.now().date().isoformat())
         df_notizie['livello_allarme'] = df_notizie.get('livello_allarme', 1)
 
-        # ✅ SALVATAGGIO PERMANENTE POSIZIONE ONG
-        # ✅ Posizione non si perde mai anche se le notizie scompaiono
-        # ✅ Viene aggiornata solamente quando ci sono nuovi dati
+        # La posizione di ogni ONG viene salvata su disco e aggiornata in modo
+        # incrementale: così non torna al centro (nessun dato) quando le sue
+        # notizie recenti escono dalla finestra temporale mostrata altrove in
+        # dashboard, e riflette solo le fonti che hanno effettivamente nuovi dati.
         cartella_script = os.path.dirname(os.path.abspath(__file__))
         percorso_posizioni_ong = os.path.join(cartella_script, '..', 'data', 'processed', 'ong_posizioni_permanenti.csv')
         
@@ -926,15 +933,14 @@ with tab_mappa_posizionamento:
         # Riempie valori NaN per le notizie con dimensione fissa piccola
         df_plot['numero_articoli'] = df_plot['numero_articoli'].fillna(3)
 
-        # ✅ Dimensione punto dipende anche da livello di allarme
-        # Notizie più importanti sono più grandi
+        # Dimensione del punto proporzionale al numero di articoli (i centroidi
+        # ONG con più pubblicazioni recenti risultano visivamente più prominenti)
         df_plot['dimensione_finale'] = df_plot['numero_articoli'] * 1.5
 
-        # ✅ Scala FISSA ASSOLUTA - nessuna normalizzazione dinamica
-        # I valori rimangono stabili nel tempo, comparabili tra esecuzioni diverse
-        # Range: -1.0 / +1.0 definito una volta per sempre nel modello
-        
-        # ✅ FILTRO GLOBALE GRAFICI: solo ultime 30 giorni o allarme >=2
+        # Scala fissa (-1.0/+1.0), senza normalizzazione dinamica sui dati correnti:
+        # i valori restano comparabili tra un'esecuzione e l'altra della dashboard.
+
+        # Mostra solo le notizie recenti (ultimi 30 giorni) o ad alto allarme (>=2)
         from datetime import datetime, timedelta
         soglia_data = datetime.now().date() - timedelta(days=30)
         
@@ -942,15 +948,15 @@ with tab_mappa_posizionamento:
         df_plot['data'] = df_plot['data'].fillna(datetime.now().date().isoformat())
         df_plot['livello_allarme'] = df_plot['livello_allarme'].fillna(2)
         
-        # ✅ LE ONG VENGONO SEMPRE MOSTRATE SEMPRE
+        # I centroidi ONG sono sempre visibili; le notizie solo se recenti o urgenti
         mask_ong = (df_plot['tipo'] == 'ONG')
         mask_notizie = (pd.to_datetime(df_plot['data'], errors='coerce', format='ISO8601').dt.date >= soglia_data) | (df_plot['livello_allarme'] >= 2)
         mask = mask_ong | mask_notizie
         
         df_plot_grafici = df_plot[mask].copy()
         
-        # ✅ Jitter leggero per separare i punti sovrapposti
-        # ✅ Seed FISSO per garantire riproducibilità: stesso risultato ad ogni lancio
+        # Jitter leggero per separare visivamente i punti sovrapposti; seed fisso
+        # così il grafico è riproducibile in modo identico ad ogni esecuzione
         rng = np.random.RandomState(seed=42)
         df_plot_grafici['score_tech_legale'] += rng.normal(0, 0.025, size=len(df_plot_grafici))
         df_plot_grafici['score_geografia'] += rng.normal(0, 0.025, size=len(df_plot_grafici))
@@ -974,8 +980,8 @@ with tab_mappa_posizionamento:
             title='Mappa di Posizionamento delle Organizzazioni e Notizie'
         )
 
-        # ✅ Aggiungi punti ONG con NOME SCRITTO DIRETTAMENTE SUL PUNTO
-        # Nessun offset, nessuna freccia, perfettamente allineato sempre
+        # Punti ONG disegnati separatamente, con il nome scritto direttamente
+        # sul marker (nessun offset/freccia) così l'etichetta resta sempre allineata
         fig.add_scatter(
             x=df_ong_solo['score_geografia'],
             y=df_ong_solo['score_tech_legale'],
@@ -1000,7 +1006,8 @@ with tab_mappa_posizionamento:
         fig.add_hline(y=0, line_dash="dash", line_color="#ff00ff", line_width=2)
         fig.add_vline(x=0, line_dash="dash", line_color="#ff00ff", line_width=2)
 
-        # ✅ Stile Y2K BRUTALIST
+        # Palette ad alto contrasto scelta deliberatamente per distinguere
+        # rapidamente assi, ONG e notizie a colpo d'occhio
         fig.update_layout(
             xaxis_title="🌍 Geografia: Italia ↔ Mondo",
             yaxis_title="⚙️ Tipo: Tecnico ↔ Legale",

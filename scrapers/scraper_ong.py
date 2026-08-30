@@ -1,3 +1,9 @@
+"""
+Scraper per le organizzazioni della società civile (ONG) monitorate dal
+progetto: aggrega i loro feed RSS, applica una deduplicazione semantica
+(oltre a quella per hash) e arricchisce ogni notizia con il profilo
+dell'organizzazione che l'ha pubblicata.
+"""
 import os
 import sys
 import hashlib
@@ -19,9 +25,10 @@ from utils.logger_config import setup_logger
 
 logger = setup_logger(__name__)
 
-# ✅ DIZIONARIO PROFILI ORGANIZZAZIONI
-# Ogni ONG può autodefinirsi e aggiungere la propria descrizione
-# Questo file è pubblico e trasparente, chiunque può proporre modifiche via PR
+# Profilo di ciascuna ONG monitorata: tipo, area geografica, descrizione e
+# focus tematico usati per l'entity linking e il grafo "Network Temi" nella
+# dashboard. Registro pubblico e trasparente: chiunque può proporre modifiche
+# o l'aggiunta di una nuova organizzazione via PR.
 PROFILI_ONG = {
     "Privacy Network": {
         "tipo_organizzazione": "Associazione Advocacy",
@@ -248,7 +255,9 @@ def _classifica_livello_allarme(titolo: str) -> int:
         return 1
 
 
-# ✅ DEDUPLICAZIONE SEMANTICA
+# Deduplicazione semantica via embedding: due notizie con testo diverso ma
+# significato equivalente (es. lo stesso comunicato ripreso da fonti diverse)
+# vengono riconosciute come duplicate anche se l'hash del contenuto differisce.
 SIMILARITY_THRESHOLD = 0.88
 EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
 
@@ -304,12 +313,10 @@ def is_duplicate_semantic(testo: str) -> bool:
 
 def scrape_comunicati_ong():
     """
-    Estrae le ultime campagne dai feed RSS delle principali ONG 
-    italiane ed europee (Tech Advocacy e Diritti Umani).
-    ✅ Profilo ogni organizzazione pubblica e modificabile da tutti
-    ✅ Deduplicazione semantica automatica
+    Estrae le ultime campagne dai feed RSS delle principali ONG
+    italiane ed europee attive su diritti digitali e tech advocacy,
+    scartando i duplicati semantici prima del salvataggio.
     """
-    # Il nostro Radar espanso
     fonti_ong = {
         # --- Core Tech Advocacy & Privacy ---
         "Privacy Network": "https://www.privacynetwork.it/feed/",
@@ -346,7 +353,8 @@ def scrape_comunicati_ong():
 
     logger.info("Avvio scraping parallelo %d fonti ONG...", len(fonti_ong))
 
-    # ✅ PARALLELIZZAZIONE FEED RSS
+    # Ogni feed viene interrogato in un thread separato (I/O-bound): con 20+
+    # fonti RSS lo scraping sequenziale sarebbe dominato dalla latenza di rete.
     def processa_fonte(nome_ong, url_feed):
         try:
             feed = feedparser.parse(url_feed)
@@ -355,7 +363,7 @@ def scrape_comunicati_ong():
             for entry in feed.entries:
                 testo_completo = f"{entry.title} {getattr(entry, 'summary', '')}"
                 
-                # ✅ Controllo deduplicazione semantica PRIMA di salvare
+                # Scarta la notizia se semanticamente equivalente a una già raccolta
                 if is_duplicate_semantic(testo_completo):
                     continue
                 
@@ -410,20 +418,15 @@ if __name__ == "__main__":
     df_test = scrape_comunicati_ong()
     
     if not df_test.empty:
-        # --- SOLUZIONE DEL PERCORSO ANONIMO E UNIVERSALE ---
-        # 1. Trova la cartella esatta dove si trova questo file (scraper_ong.py)
+        # Percorso relativo alla posizione dello script, indipendente dalla
+        # directory da cui viene lanciato.
         cartella_script = os.path.dirname(os.path.abspath(__file__))
-        
-        # 2. Torna indietro di un livello e vai in data/raw
         cartella_raw = os.path.join(cartella_script, '..', 'data', 'raw')
-        
-        # 3. Assicurati che esista
         os.makedirs(cartella_raw, exist_ok=True)
-        
-        # 4. Unisci il nome del file
         percorso_salvataggio = os.path.join(cartella_raw, 'ong_sample.csv')
-        
-        # ✅ SISTEMA DI SALVATAGGIO STORICO: NON SOVRASCRIVE, AGGIUNGE
+
+        # Append-only: i nuovi risultati si aggiungono allo storico esistente,
+        # non lo sostituiscono mai.
         if os.path.exists(percorso_salvataggio):
             df_esistente = pd.read_csv(percorso_salvataggio)
             # Unisci vecchi e nuovi dati

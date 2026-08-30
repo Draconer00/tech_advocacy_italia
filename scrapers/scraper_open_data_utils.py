@@ -1,6 +1,6 @@
 """
-✅ UTILITÀ COMUNI PER SCRAPER OPEN DATA
-Funzioni condivise e normalizzazione standard
+Utilità condivise tra gli scraper: filtro di rilevanza tematica e
+normalizzazione dei DataFrame allo schema standard del progetto.
 """
 
 import sys
@@ -63,8 +63,9 @@ def is_rilevante(testo: str, keywords: frozenset[str] = KEYWORD_DIGITALE) -> boo
 
 def normalizza_df(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
     """
-    Normalizza qualsiasi DataFrame allo standard del progetto
-    Aggiunge tutte le colonne richieste e gestisce valori nulli
+    Normalizza qualsiasi DataFrame allo schema standard del progetto:
+    aggiunge le colonne mancanti, calcola hash/id se assenti e rimuove
+    i duplicati basati sul contenuto.
     """
     
     colonne_standard = [
@@ -82,7 +83,7 @@ def normalizza_df(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
     
     df_normalizzato = df.copy()
     
-    # ✅ Aggiungi campi standard mancanti
+    # Aggiungi i campi standard mancanti
     if 'fonte' not in df_normalizzato.columns:
         df_normalizzato['fonte'] = fonte_nome
     
@@ -95,7 +96,7 @@ def normalizza_df(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
     if 'tipo_contenuto' not in df_normalizzato.columns:
         df_normalizzato['tipo_contenuto'] = 'documento'
     
-    # ✅ Calcola hash e id univoco se mancanti
+    # Calcola hash e id univoco se mancanti
     if 'hash_contenuto' not in df_normalizzato.columns and 'testo_completo' in df_normalizzato.columns:
         df_normalizzato['hash_contenuto'] = df_normalizzato['testo_completo'].apply(
             lambda x: hashlib.sha256(str(x).encode('utf-8')).hexdigest()
@@ -104,15 +105,15 @@ def normalizza_df(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
     if 'id_univoco' not in df_normalizzato.columns:
         df_normalizzato['id_univoco'] = df_normalizzato['hash_contenuto']
     
-    # ✅ Riempi valori nulli
+    # Riempi i valori nulli
     df_normalizzato = df_normalizzato.fillna('')
-    
-    # ✅ Garantisci che esistano TUTTE le colonne standard
+
+    # Garantisce che tutte le colonne standard esistano, anche se vuote
     for col in colonne_standard:
         if col not in df_normalizzato.columns:
             df_normalizzato[col] = ''
-    
-    # ✅ Rimuovi duplicati
+
+    # Rimuove i duplicati sullo stesso contenuto, tenendo la voce più recente
     df_normalizzato = df_normalizzato.drop_duplicates(subset=['hash_contenuto'], keep='last')
     
     logger.info(f"✅ Normalizzato {fonte_nome}: {len(df_normalizzato)} record")

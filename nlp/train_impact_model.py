@@ -1,3 +1,9 @@
+"""
+Addestra il classificatore Random Forest che assegna il livello di urgenza
+(1-5) ai documenti, usando come ground truth le correzioni manuali raccolte
+dalla dashboard (`data/processed/training_data_feedback.csv`). Il modello
+addestrato viene usato da `nlp/text_analysis.py::calcola_livello_allarme`.
+"""
 import os
 import sys
 import pandas as pd
@@ -20,9 +26,7 @@ logger = setup_logger(__name__)
 def train_impact_classifier():
     """
     Addestra un modello di classificazione per predire il livello di allarme
-    basandosi sulle correzioni manuali effettuate nella dashboard (Golden Standard)
-    
-    Livello 3: Active Learning
+    basandosi sulle correzioni manuali effettuate nella dashboard (active learning).
     """
     
     cartella_script = os.path.dirname(os.path.abspath(__file__))
@@ -66,19 +70,19 @@ def train_impact_classifier():
     testi = validi.apply(lambda row: f"{row['titolo']} {row['fonte']}", axis=1).tolist()
     labels = validi['livello_allarme_corretto'].to_numpy()
     
-    # 4. Genera embeddings
+    # 5. Genera embeddings
     logger.info("🔢 Generazione vettori embedding...")
     embeddings = model.encode(testi, show_progress_bar=True, batch_size=32)
-    
-    # 5. Split train / test — stratifica solo se ogni classe ha almeno 2 campioni
+
+    # 6. Split train / test — stratifica solo se ogni classe ha almeno 2 campioni
     from collections import Counter
     puo_stratificare = min(Counter(labels.tolist()).values()) >= 2
     X_train, X_test, y_train, y_test = train_test_split(
         embeddings, labels, test_size=0.2, random_state=42,
         stratify=labels if puo_stratificare else None,
     )
-    
-    # 6. Addestramento classificatore
+
+    # 7. Addestramento classificatore
     logger.info("🤖 Addestramento Random Forest Classifier...")
     clf = RandomForestClassifier(
         n_estimators=200,
@@ -88,18 +92,18 @@ def train_impact_classifier():
         random_state=42,
         n_jobs=-1
     )
-    
+
     clf.fit(X_train, y_train)
-    
-    # 7. Valutazione modello
+
+    # 8. Valutazione modello
     y_pred = clf.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
-    
+
     logger.info("\n✅ REPORT TRAINING:")
     logger.info(f"    Accuracy modello: {accuracy:.2f}")
     logger.info("\n" + classification_report(y_test, y_pred, zero_division=0))
-    
-    # 8. Salva il classificatore. Il sentence-transformer NON viene serializzato:
+
+    # 9. Salva il classificatore. Il sentence-transformer NON viene serializzato:
     # è pubblico e immutabile, in inferenza si ri-istanzia per nome (vedi
     # text_analysis.carica_modello_impatto), evitando un .pkl da ~480MB.
     joblib.dump(clf, percorso_modello)

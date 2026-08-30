@@ -1,3 +1,8 @@
+"""
+Utility standalone (Streamlit, lanciata separatamente dalla dashboard
+principale) per ispezionare e interrogare direttamente il database SQLite
+del progetto: schema, contenuto delle tabelle, query libere.
+"""
 import streamlit as st
 import pandas as pd
 import os

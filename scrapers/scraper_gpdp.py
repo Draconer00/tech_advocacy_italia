@@ -1,3 +1,8 @@
+"""
+Scraper per il sito del Garante per la protezione dei dati personali (GPDP):
+estrae provvedimenti e comunicati, seguendo i redirect intermedi con cui il
+sito pubblica il testo integrale dei documenti.
+"""
 import os
 import sys
 import hashlib

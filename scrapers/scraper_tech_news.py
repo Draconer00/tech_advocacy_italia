@@ -1,3 +1,8 @@
+"""
+Scraper per le principali testate tech italiane: aggrega i feed RSS e
+scarta gli articoli non pertinenti a privacy, AI e diritti digitali
+tramite un filtro per parole chiave.
+"""
 import os
 import sys
 import hashlib

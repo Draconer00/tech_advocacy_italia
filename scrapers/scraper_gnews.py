@@ -1,4 +1,10 @@
-﻿import os
+﻿"""
+Scraper per l'API GNews: interroga il servizio con una query in italiano
+su privacy, intelligenza artificiale e diritti digitali. Unica fonte del
+progetto che richiede un secret (GNEWS_API_KEY); se non configurato, la
+fonte viene saltata senza interrompere la pipeline.
+"""
+import os
 import sys
 import hashlib
 from datetime import datetime
@@ -57,13 +63,10 @@ def fetch_gnews(
     logger.info("📰 Avvio ricerca GNews: lang=%s country=%s max=%s", lang, country, max_results)
 
     try:
-        # 1. Otteniamo il dizionario grezzo dalla richiesta
         dati_grezzi = _make_gnews_request(params, timeout)
-        
-        # 2. Estraiamo la lista degli articoli (la chiave 'articles' di GNews)
         lista_articoli = dati_grezzi.get("articles", [])
-        
-        # 3. Applichiamo lo schema METADATI STANDARDIZZATO
+
+        # Riporta ogni articolo GNews allo schema standard condiviso da tutti gli scraper
         articoli_normalizzati = []
         
         for articolo in lista_articoli:
@@ -130,7 +133,7 @@ if __name__ == "__main__":
 
         percorso_salvataggio = os.path.join(cartella_raw, "gnews_sample.csv")
         
-        # ✅ SISTEMA DI SALVATAGGIO STORICO: non sovrascrive, aggiunge
+        # Append-only: i nuovi articoli si aggiungono allo storico esistente
         if os.path.exists(percorso_salvataggio):
             df_esistente = pd.read_csv(percorso_salvataggio)
             # Unisci vecchi e nuovi dati

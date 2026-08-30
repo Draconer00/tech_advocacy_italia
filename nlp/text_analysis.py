@@ -1,3 +1,10 @@
+"""
+Pipeline NLP del progetto: legge i CSV grezzi prodotti dagli scraper e li
+arricchisce con pulizia del testo, NER, keyword TF-IDF, classificazione
+geografica, deduplicazione (fuzzy + semantica), entity linking verso le ONG
+monitorate e un indice di urgenza basato su active learning. L'output va in
+`data/processed/*_analyzed.csv` e nella tabella SQLite `provvedimenti_analyzed`.
+"""
 import os
 import sys
 import re

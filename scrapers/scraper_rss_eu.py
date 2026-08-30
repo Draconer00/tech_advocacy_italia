@@ -1,3 +1,8 @@
+"""
+Scraper per i regolatori privacy europei (attualmente EDPB e CNIL — vedi
+sotto per gli enti valutati e scartati): i contenuti non italiani vengono
+tradotti automaticamente prima del salvataggio.
+"""
 import os
 import sys
 import hashlib

@@ -1,3 +1,7 @@
+"""
+Scraper per AGCOM (Autorità per le Garanzie nelle Comunicazioni): aggrega il
+feed RSS ufficiale con delibere, comunicati e consultazioni pubbliche.
+"""
 import os
 import sys
 import hashlib
