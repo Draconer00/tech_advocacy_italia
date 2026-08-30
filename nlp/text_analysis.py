@@ -15,7 +15,11 @@ from functools import wraps
 import pandas as pd
 import spacy
 from spacy.lang.it.stop_words import STOP_WORDS as STOPWORD_IT
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
+
+# Il corpus è multilingua: alcune ONG monitorate (EFF, noyb, ecc.) pubblicano in
+# inglese, quindi le keyword vanno filtrate su entrambe le lingue.
+STOPWORD_IT_EN = set(STOPWORD_IT) | set(ENGLISH_STOP_WORDS)
 
 # Aggiungi root progetto al path (necessario per import cross-package)
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -226,7 +230,7 @@ def estrai_keywords_corpus(testi: list[str], num_keywords: int = 5) -> list[list
             max_features=200,
             min_df=1,
             ngram_range=(1, 2),
-            stop_words=list(STOPWORD_IT),
+            stop_words=list(STOPWORD_IT_EN),
         )
         tfidf_matrix = vectorizer.fit_transform(testi_puliti)
         feature_names = vectorizer.get_feature_names_out()
@@ -418,12 +422,41 @@ def carica_modello_impatto() -> tuple:
 def calcola_livello_allarme(testo: str, clf, embedding_model) -> int:
     if clf is None or embedding_model is None:
         return 2
+    testo = str(testo) if pd.notna(testo) else ''
     try:
         predizione = clf.predict(embedding_model.encode([testo]))[0]
         return int(max(1, min(5, predizione)))
     except Exception as e:
         logger.warning("Errore predizione impatto: %s", e)
         return 2
+
+
+def _tipo_sqlite(dtype) -> str:
+    """Mappa un dtype pandas al tipo SQLite più vicino, per ALTER TABLE ADD COLUMN."""
+    if pd.api.types.is_integer_dtype(dtype) or pd.api.types.is_bool_dtype(dtype):
+        return "INTEGER"
+    if pd.api.types.is_float_dtype(dtype):
+        return "REAL"
+    return "TEXT"
+
+
+def _migra_schema_sqlite(conn: sqlite3.Connection, tabella: str, df: pd.DataFrame) -> None:
+    """
+    Allinea le colonne della tabella a quelle del DataFrame prima di un append,
+    aggiungendo (mai rimuovendo) le colonne mancanti. Senza questo, un to_sql
+    con colonne nuove (es. Entita_Coinvolte introdotta dopo la creazione della
+    tabella) fallisce silenziosamente e la tabella smette di aggiornarsi.
+    """
+    colonne_esistenti = {
+        riga[1] for riga in conn.execute(f"PRAGMA table_info({tabella})").fetchall()
+    }
+    if not colonne_esistenti:
+        return  # la tabella non esiste ancora: to_sql la crea da zero con lo schema corretto
+    for colonna in df.columns:
+        if colonna not in colonne_esistenti:
+            tipo = _tipo_sqlite(df[colonna].dtype)
+            conn.execute(f'ALTER TABLE {tabella} ADD COLUMN "{colonna}" {tipo}')
+            logger.info("Migrazione schema SQLite: aggiunta colonna '%s' (%s) a %s", colonna, tipo, tabella)
 
 
 def salva_in_sqlite(df: pd.DataFrame, db_path: str) -> None:
@@ -433,6 +466,24 @@ def salva_in_sqlite(df: pd.DataFrame, db_path: str) -> None:
     Non sovrascrive mai la tabella intera (evita perdita dati su crash).
     """
     df_copy = df.copy()
+
+    # SQLite tratta i nomi colonna come case-insensitive: alcune fonti (es. RSS EU)
+    # producono sia 'Ente_Origine' che 'ente_origine' come colonne pandas distinte,
+    # che altrimenti farebbero fallire ALTER TABLE/to_sql con "duplicate column name".
+    colonne_normalizzate: dict[str, str] = {}
+    colonne_da_tenere: list[str] = []
+    for col in df_copy.columns:
+        chiave = col.lower()
+        if chiave in colonne_normalizzate:
+            logger.warning(
+                "Colonna duplicata (case-insensitive) ignorata per SQLite: '%s' (già presente come '%s')",
+                col, colonne_normalizzate[chiave],
+            )
+            continue
+        colonne_normalizzate[chiave] = col
+        colonne_da_tenere.append(col)
+    df_copy = df_copy[colonne_da_tenere]
+
     for col in df_copy.columns:
         if df_copy[col].apply(lambda x: isinstance(x, list)).any():
             df_copy[col] = df_copy[col].apply(
@@ -440,6 +491,7 @@ def salva_in_sqlite(df: pd.DataFrame, db_path: str) -> None:
             )
     try:
         conn = sqlite3.connect(db_path)
+        _migra_schema_sqlite(conn, 'provvedimenti_analyzed', df_copy)
         df_copy.to_sql('provvedimenti_analyzed', conn, if_exists='append', index=False)
         conn.execute("""
             DELETE FROM provvedimenti_analyzed
@@ -532,12 +584,17 @@ def main() -> None:
             if isinstance(ents, list):
                 all_entities.extend(ents)
 
-        if os.path.exists(percorso_processed):
-            df_esistente = pd.read_csv(percorso_processed)
-            df_unito = pd.concat([df_esistente, df_processato], ignore_index=True)
-            df_finale = df_unito.drop_duplicates(subset=['titolo'], keep='last')
-        else:
-            df_finale = df_processato
+        # Rigenerazione completa dal raw, non merge incrementale col CSV esistente:
+        # la deduplicazione semantica sceglie il rappresentante "primario" di ogni
+        # cluster in base all'INTERO corpus raw corrente, e quella scelta può
+        # cambiare da un run all'altro (nuovi articoli si aggiungono ai cluster).
+        # Un merge per 'titolo' con keep='last' non rimuove mai il vecchio primario
+        # quando ne subentra uno nuovo: i due finivano per convivere nel CSV
+        # processato, vanificando la deduplica, e i campi NLP delle righe non più
+        # primarie restavano congelati ai valori di quando lo erano state l'ultima
+        # volta. Il layer raw è append-only e mai troncato, quindi rigenerare da
+        # zero non perde nulla: è solo la cache derivata a essere ricalcolata.
+        df_finale = df_processato
 
         df_finale.to_csv(percorso_processed, index=False)
         logger.info("Salvato: %s | Totale: %d record", percorso_processed, len(df_finale))

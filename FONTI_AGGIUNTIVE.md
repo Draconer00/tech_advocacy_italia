@@ -40,6 +40,8 @@ Gazzetta Ufficiale — Serie Generale (filtered to digital/privacy/AI relevance 
 ### EU Case Law
 Court of Justice of the European Union (CJEU) — single aggregated press-release feed (all subject areas, no topic-specific feed exists), filtered to digital/privacy/AI relevance via `KEYWORD_DIGITALE_STRETTO`. Feed verified live 2026-08-29 but intermittently returns HTTP 503 (~1 in 3 requests in testing; stabilizes on retry — no automatic retry implemented, next pipeline run picks it up). Source: `scraper_curia.py`.
 
+> **Pipeline wiring gap (as of 2026-08-30):** both the Gazzetta Ufficiale and CJEU scrapers run as part of `run_pipeline.py` and their raw CSVs are visible in the dashboard's raw-feed preview, but `nlp/text_analysis.py` does not yet include `gazzetta_ufficiale_sample.csv` or `cjeu_sample.csv` in its source list — so these two sources get no NER, keyword extraction, sentiment, entity linking, or urgency scoring, and never reach the SQLite-backed analytical tabs (Network Temi, Mappa Posizionamento, Analisi Temporale). Adding them to the `FONTI` list in `text_analysis.py::main()` is the next step to fully integrate these sources.
+
 ---
 
 ## Candidate Sources for Future Integration

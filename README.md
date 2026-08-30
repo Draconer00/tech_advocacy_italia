@@ -17,15 +17,20 @@ The system monitors over 35 sources continuously, processes documents in Italian
 ```
 tech_advocacy_italia/
 │
-├── scrapers/                  ← Data ingestion layer (7 independent scrapers)
+├── scrapers/                  ← Data ingestion layer (9 independent scrapers)
 │   ├── scraper_gpdp.py        ← Italian Data Protection Authority (web scraper)
 │   ├── scraper_ong.py         ← 23 civil society organisations (RSS feeds)
 │   ├── scraper_gnews.py       ← GNews API (requires GNEWS_API_KEY)
-│   ├── scraper_rss_eu.py      ← European regulators: EDPB, CNIL, AEPD, ICO
+│   ├── scraper_rss_eu.py      ← European regulators: EDPB, CNIL (AEPD, ICO currently unmonitored — no working feed, see FONTI_AGGIUNTIVE.md)
 │   ├── scraper_agcom.py       ← AGCOM communications authority (RSS)
 │   ├── scraper_tech_news.py   ← 8 Italian tech media outlets (relevance-filtered)
-│   └── scraper_eu_parl.py     ← European Parliament (RSS + Open Data API)
+│   ├── scraper_eu_parl.py     ← European Parliament (RSS; Open Data API disabled, see FONTI_AGGIUNTIVE.md)
+│   ├── scraper_gazzetta_ufficiale.py ← Italian Gazzetta Ufficiale, series SG/S1/S2 (RSS, relevance-filtered)
+│   └── scraper_curia.py       ← EU Court of Justice (CJEU) press releases (RSS, relevance-filtered)
 │   # planned: scraper_gdpr_fines.py — structured GDPR sanctions layer (GDPRhub / enforcementtracker)
+│   # NOTE: scraper_gazzetta_ufficiale.py and scraper_curia.py are wired into run_pipeline.py and
+│   # visible in the dashboard's raw-feed preview, but are NOT YET in nlp/text_analysis.py's source
+│   # list — their documents are not NLP-enriched or merged into the main analytical tabs yet.
 │
 ├── nlp/                       ← NLP processing layer
 │   └── text_analysis.py       ← spaCy NER, TF-IDF, sentiment, active learning
@@ -55,6 +60,10 @@ AGCOM RSS         →  agcom_sample.csv       │         ↑
 8 Tech outlets    →  tech_news_sample.csv   │  human-in-the-loop corrections
 EU Parliament     →  eu_parl_sample.csv    ─┘  (dashboard feedback interface)
 
+Gazzetta Ufficiale →  gazzetta_ufficiale_sample.csv ─┐
+CJEU               →  cjeu_sample.csv               ─┴─→ dashboard raw-feed preview only
+                                                          (not yet processed by text_analysis.py)
+
 # planned: GDPRhub → gdpr_fines_sample.csv (structured sanctions layer, under development)
 ```
 
@@ -68,7 +77,7 @@ Each document is processed through the following stages:
 
 1. **Text cleaning** — HTML removal, URL stripping, domain-specific blacklist filtering
 2. **Named Entity Recognition** — spaCy `it_core_news_md`, categories: Organisation, Person, Location
-3. **TF-IDF keyword extraction** — corpus-wide vectorisation (scikit-learn), top keywords per document
+3. **TF-IDF keyword extraction** — corpus-wide vectorisation (scikit-learn), top keywords per document; stop words cover both Italian and English since some monitored NGOs (EFF, noyb, etc.) publish in English
 4. **Geographic classification** — rule-based: Italy / Europe / International
 5. **Fuzzy deduplication** — `SequenceMatcher` at threshold 0.85
 6. **Entity linking** — keyword-overlap scoring against NGO profile registry
@@ -82,10 +91,10 @@ The Streamlit dashboard provides six analytical views:
 
 | Tab | Description |
 |-----|-------------|
-| Home Radar | Rolling 14-day overview with urgency-coded document feed and correction interface |
-| Campagne ONG | Aggregated feed from all monitored civil society organisations |
+| Home Radar | Rolling 14-day overview with urgency-coded document feed, correction interface, and a per-source raw-feed preview (titles from `data/raw/*_sample.csv`, shown even for sources not yet processed by the NLP pipeline) |
+| Campagne ONG | Aggregated feed from all monitored civil society organisations, plus a form to manually add NGO documents (statements, testimony) that aren't published via RSS |
 | Provvedimenti Garante | Italian Data Protection Authority decisions, filterable by geography and alert level |
-| Network Temi | Force-directed graph: NGOs → focus topics → recent documents |
+| Network Temi | Force-directed graph: NGOs → focus topics → recent documents, with an editable curated keyword profile per NGO to improve topic matching |
 | Mappa Posizionamento | 2D Cartesian map: Italy↔Global (X) × Technical↔Legal (Y) |
 | Analisi Temporale | Monthly document volume, keyword trends, GDPR fine amounts over time |
 
@@ -109,7 +118,9 @@ Columns added by `text_analysis.py` on top of each source's raw schema:
 
 ## Human-in-the-Loop
 
-All model outputs are correctable from the dashboard. Corrections are appended to `data/processed/training_data_feedback.csv` — the only piece of `data/` versioned in the repo, since it's curated ground truth rather than scraped raw data — and used to retrain the urgency classifier on the next pipeline run (locally via `run_pipeline.py`, or in CI once the corrections are committed and pushed). This creates a continuous improvement loop without requiring changes to the pipeline code.
+All model outputs are correctable from the dashboard. Corrections are appended to `data/processed/training_data_feedback.csv` — the only piece of scraped-data `data/` versioned in the repo, since it's curated ground truth rather than scraped raw data — and used to retrain the urgency classifier on the next pipeline run (locally via `run_pipeline.py`, or in CI once the corrections are committed and pushed). This creates a continuous improvement loop without requiring changes to the pipeline code.
+
+Two smaller human-curated inputs work the same way, each kept in its own file so the append-only NLP-generated CSVs are never hand-edited: NGO documents added manually from the Campagne ONG tab (`data/processed/ong_manual_entries.csv`, merged in at read time by the dashboard) and the per-NGO curated keyword profile used by the Network Temi tab (`data/config/ong_keywords_profilo.csv`, timestamped backup on every edit).
 
 ---
 

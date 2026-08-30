@@ -20,7 +20,12 @@ from scrapers.scraper_ong import PROFILI_ONG
 from utils.feedback_schema import append_correzioni, load_feedback
 from utils.ong_profile import carica_profilo_keywords_ong, salva_profilo_keywords_ong
 from utils.ong_manual_entries import carica_documenti_manuali, salva_documento_manuale
-from spacy.lang.it.stop_words import STOP_WORDS as STOPWORD_KW
+from spacy.lang.it.stop_words import STOP_WORDS as STOPWORD_IT
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+
+# Corpus multilingua (alcune ONG pubblicano in inglese): stessa combinazione
+# usata in nlp/text_analysis.py::estrai_keywords_corpus per coerenza.
+STOPWORD_KW = STOPWORD_IT | set(ENGLISH_STOP_WORDS)
 
 # --- CONFIGURAZIONE DELLA PAGINA ---
 st.set_page_config(page_title="Radar Diritti Digitali", page_icon="⚖️", layout="wide")
@@ -59,15 +64,23 @@ def carica_dati_garante():
     if os.path.exists(percorso_db):
         try:
             conn = sqlite3.connect(percorso_db)
-            df = pd.read_sql('SELECT * FROM provvedimenti_analyzed', conn)
+            # provvedimenti_analyzed contiene l'unione di TUTTE le fonti (nlp/text_analysis.py
+            # ci scrive tutti i CSV processati, non solo GPDP) — filtrare per fonte_origine
+            # è indispensabile, altrimenti articoli GNews/ONG/etc. verrebbero mostrati come
+            # provvedimenti del Garante Privacy.
+            df = pd.read_sql(
+                "SELECT * FROM provvedimenti_analyzed WHERE fonte_origine = 'Garante Privacy GPDP'",
+                conn,
+            )
             conn.close()
-            
-            # Converti liste salvate come stringhe in liste Python
-            if 'Entita_Coinvolte' in df.columns:
-                df['Entita_Coinvolte'] = df['Entita_Coinvolte'].apply(
-                    lambda x: ast.literal_eval(x) if isinstance(x, str) else []
-                )
-            return df
+
+            if not df.empty:
+                # Converti liste salvate come stringhe in liste Python
+                if 'Entita_Coinvolte' in df.columns:
+                    df['Entita_Coinvolte'] = df['Entita_Coinvolte'].apply(
+                        lambda x: ast.literal_eval(x) if isinstance(x, str) else []
+                    )
+                return df
         except Exception as e:
             st.warning(f"⚠️ Errore lettura SQLite: {e}. Fallback su CSV...")
     
