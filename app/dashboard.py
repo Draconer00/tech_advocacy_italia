@@ -216,6 +216,22 @@ def carica_dati_agcom():
         return pd.read_csv(percorso_csv)
     return pd.DataFrame()
 
+@st.cache_data
+def carica_dati_gazzetta_ufficiale():
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'gazzetta_ufficiale_analyzed.csv')
+    if os.path.exists(percorso_csv):
+        return pd.read_csv(percorso_csv)
+    return pd.DataFrame()
+
+@st.cache_data
+def carica_dati_cjeu():
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'cjeu_analyzed.csv')
+    if os.path.exists(percorso_csv):
+        return pd.read_csv(percorso_csv)
+    return pd.DataFrame()
+
 # Etichetta visualizzata -> nome file data/raw/{nome}_sample.csv, uno per scraper.
 FONTI_RAW_CSV: dict[str, str] = {
     "Garante Privacy (GPDP)":       "gpdp",
@@ -268,6 +284,8 @@ def carica_dati_per_analisi_temporale():
     df_tech = carica_dati_tech_news()
     df_eu = carica_dati_eu_parl()
     df_agcom = carica_dati_agcom()
+    df_gu = carica_dati_gazzetta_ufficiale()
+    df_cjeu = carica_dati_cjeu()
 
     fonti_config = [
         (df_gpdp,   'GPDP'),
@@ -277,6 +295,8 @@ def carica_dati_per_analisi_temporale():
         (df_tech,   'Tech News'),
         (df_eu,     'Parlamento EU'),
         (df_agcom,  'AGCOM'),
+        (df_gu,     'Gazzetta Ufficiale'),
+        (df_cjeu,   'CJEU'),
     ]
 
     blocchi = []

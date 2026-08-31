@@ -79,8 +79,6 @@ Aggregates the single CJEU press-release RSS feed (all subject areas), filtered 
 
 > `scraper_gdpr_fines.py` (structured GDPR sanctions layer from GDPRhub) is planned but not yet implemented — see [FONTI_AGGIUNTIVE.md](FONTI_AGGIUNTIVE.md).
 
-> **Known gap:** Gazzetta Ufficiale and CJEU are the two newest scrapers and are already called by `run_pipeline.py`, but `nlp/text_analysis.py` doesn't include them in its source list yet — their raw documents show up only in the dashboard's "Home Radar" raw-feed preview, not NLP-enriched or merged into the SQLite-backed analytical tabs. Wiring them in is the next scraper-side task.
-
 ---
 
 ## Step 2 — NLP Processing
@@ -89,7 +87,7 @@ Aggregates the single CJEU press-release RSS feed (all subject areas), filtered 
 python nlp/text_analysis.py
 ```
 
-Processes the seven wired raw sources sequentially through the stages described in the README's [NLP Pipeline](README.md#nlp-pipeline) section (Gazzetta Ufficiale and CJEU are not yet included — see the note above). Output: `data/processed/*_analyzed.csv` (one per source) and `data/tech_advocacy.db`.
+Processes all nine raw sources sequentially through the stages described in the README's [NLP Pipeline](README.md#nlp-pipeline) section. Output: `data/processed/*_analyzed.csv` (one per source) and `data/tech_advocacy.db`.
 
 ---
 

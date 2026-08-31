@@ -28,9 +28,6 @@ tech_advocacy_italia/
 │   ├── scraper_gazzetta_ufficiale.py ← Italian Gazzetta Ufficiale, series SG/S1/S2 (RSS, relevance-filtered)
 │   └── scraper_curia.py       ← EU Court of Justice (CJEU) press releases (RSS, relevance-filtered)
 │   # planned: scraper_gdpr_fines.py — structured GDPR sanctions layer (GDPRhub / enforcementtracker)
-│   # NOTE: scraper_gazzetta_ufficiale.py and scraper_curia.py are wired into run_pipeline.py and
-│   # visible in the dashboard's raw-feed preview, but are NOT YET in nlp/text_analysis.py's source
-│   # list — their documents are not NLP-enriched or merged into the main analytical tabs yet.
 │
 ├── nlp/                       ← NLP processing layer
 │   └── text_analysis.py       ← spaCy NER, TF-IDF, sentiment, active learning
@@ -52,17 +49,15 @@ tech_advocacy_italia/
 ## Data Flow
 
 ```
-GPDP (web)        →  gpdp_sample.csv       ─┐
-23 NGO RSS feeds  →  ong_sample.csv         │
-GNews API         →  gnews_sample.csv       │
-EU regulators     →  rss_eu_sample.csv      ├─→ text_analysis.py → *_analyzed.csv → SQLite
-AGCOM RSS         →  agcom_sample.csv       │         ↑
-8 Tech outlets    →  tech_news_sample.csv   │  human-in-the-loop corrections
-EU Parliament     →  eu_parl_sample.csv    ─┘  (dashboard feedback interface)
-
-Gazzetta Ufficiale →  gazzetta_ufficiale_sample.csv ─┐
-CJEU               →  cjeu_sample.csv               ─┴─→ dashboard raw-feed preview only
-                                                          (not yet processed by text_analysis.py)
+GPDP (web)         →  gpdp_sample.csv               ─┐
+23 NGO RSS feeds   →  ong_sample.csv                 │
+GNews API          →  gnews_sample.csv               │
+EU regulators      →  rss_eu_sample.csv              ├─→ text_analysis.py → *_analyzed.csv → SQLite
+AGCOM RSS          →  agcom_sample.csv               │         ↑
+8 Tech outlets     →  tech_news_sample.csv           │  human-in-the-loop corrections
+EU Parliament      →  eu_parl_sample.csv             │  (dashboard feedback interface)
+Gazzetta Ufficiale →  gazzetta_ufficiale_sample.csv  │
+CJEU               →  cjeu_sample.csv               ─┘
 
 # planned: GDPRhub → gdpr_fines_sample.csv (structured sanctions layer, under development)
 ```

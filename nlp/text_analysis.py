@@ -555,7 +555,7 @@ def processa_dataframe(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
 
 
 def main() -> None:
-    """Pipeline NLP principale — processa GPDP, GNews, RSS EU."""
+    """Pipeline NLP principale — processa tutte le fonti elencate in `fonti`."""
     cartella_raw = os.path.join(_SCRIPT_DIR, '..', 'data', 'raw')
     cartella_processed = os.path.join(_SCRIPT_DIR, '..', 'data', 'processed')
     os.makedirs(cartella_processed, exist_ok=True)
@@ -568,6 +568,8 @@ def main() -> None:
         {'nome': 'AGCOM',                'file_raw': 'agcom_sample.csv',       'file_processed': 'agcom_analyzed.csv'},
         {'nome': 'Tech News Italia',     'file_raw': 'tech_news_sample.csv',   'file_processed': 'tech_news_analyzed.csv'},
         {'nome': 'Parlamento Europeo',   'file_raw': 'eu_parl_sample.csv',     'file_processed': 'eu_parl_analyzed.csv'},
+        {'nome': 'Gazzetta Ufficiale',   'file_raw': 'gazzetta_ufficiale_sample.csv', 'file_processed': 'gazzetta_ufficiale_analyzed.csv'},
+        {'nome': 'CJEU',                 'file_raw': 'cjeu_sample.csv',        'file_processed': 'cjeu_analyzed.csv'},
     ]
 
     all_entities: list[str] = []  # raccolta per il report di qualità NLP finale
