@@ -9,7 +9,7 @@ agents.md
 # Dati raccolti dagli scraper (raw e processati)
 data/raw/
 data/processed/*
-data/*.db
+data/*.db*
 data/snapshots/
 
 # Eccezione: le correzioni umane della dashboard (Gold Standard per l'active
