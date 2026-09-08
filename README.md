@@ -169,4 +169,4 @@ This project is released under the [MIT License](LICENSE). Data collected by the
 
 This platform is described in:
 
-> *Tech Advocacy Radar: An NLP Pipeline for Monitoring Digital Rights in Italy and Europe* — [venue, year]
+> *Advocacy Radar: Monitoring Advocacy for Digital Rights* — [2026]
