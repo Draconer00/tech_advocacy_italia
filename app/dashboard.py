@@ -100,45 +100,67 @@ def carica_dati_garante():
     
     return pd.DataFrame()
 
+# Fonti processate incluse nella vista unificata (Home Radar / analisi geografica).
+# (nome_file_*_analyzed, etichetta_fonte, tipo_documento). La ONG è gestita a parte
+# perché la sua "fonte" è il nome della singola organizzazione (ground truth).
+# REGOLA: ogni scraper registrato deve comparire qui, o i suoi documenti restano
+# invisibili in Home Radar (era il caso di 6 fonti su 9 prima di questo fix).
+_FONTI_UNIFICATE: list[tuple[str, str, str]] = [
+    ('gpdp_analyzed',               'Garante Privacy',    'Provvedimento'),
+    ('gnews_analyzed',              'GNews',              'Articolo'),
+    ('rss_eu_analyzed',             'Regolatori UE',      'Comunicato'),
+    ('agcom_analyzed',              'AGCOM',              'Documento'),
+    ('tech_news_analyzed',          'Tech News',          'Articolo'),
+    ('eu_parl_analyzed',            'Parlamento UE',      'Atto'),
+    ('gazzetta_ufficiale_analyzed', 'Gazzetta Ufficiale', 'Atto normativo'),
+    ('cjeu_analyzed',               'CJEU',               'Sentenza'),
+    ('feeds_analyzed',              'Blog/Newsletter',    'Approfondimento'),
+]
+
+_COLONNE_UNIFICATE = ['data', 'titolo', 'fonte', 'tipo', 'url',
+                      'sentiment', 'ambito_geografico', 'livello_allarme']
+
+
+def _leggi_processed(nome_file: str) -> pd.DataFrame:
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso = os.path.join(cartella_script, '..', 'data', 'processed', f'{nome_file}.csv')
+    return pd.read_csv(percorso) if os.path.exists(percorso) else pd.DataFrame()
+
+
+def _riga_unificata(row, fonte: str, tipo: str) -> dict:
+    return {
+        'data': row.get('data_pubblicazione', row.get('Data', datetime.now().date().isoformat())),
+        'titolo': row.get('titolo', row.get('Titolo', '')),
+        'fonte': fonte,
+        'tipo': tipo,
+        'url': row.get('url', row.get('Link', '')),
+        'sentiment': row.get('Sentiment_Direzione', 'NEUTRALE'),
+        'ambito_geografico': row.get('Ambito_Geografico', row.get('area_geografica', 'Italia')),
+        'livello_allarme': row.get('livello_allarme', 2),
+    }
+
+
 @st.cache_data
 def carica_dati_unificati():
-    """Unisce tutti i dati da TUTTE le fonti in un singolo dataframe standardizzato"""
-    df_gpdp = carica_dati_garante()
-    df_ong = carica_dati_ong()
-    
+    """Unisce i dati da TUTTE le fonti processate in un dataframe standardizzato.
+    Legge i CSV *_analyzed direttamente per non dipendere dall'ordine di definizione
+    dei loader e per includere ogni fonte registrata in _FONTI_UNIFICATE."""
     dati_unificati = []
-    
-    # Normalizza dati GPDP
-    for _, row in df_gpdp.iterrows():
-        dati_unificati.append({
-            'data': row.get('data_pubblicazione', datetime.now().date().isoformat()),
-            'titolo': row.get('titolo', ''),
-            'fonte': 'Garante Privacy',
-            'tipo': 'Provvedimento',
-            'url': row.get('url', ''),
-            'sentiment': row.get('Sentiment_Direzione', 'NEUTRALE'),
-            'ambito_geografico': row.get('Ambito_Geografico', 'Italia'),
-            'livello_allarme': 2
-        })
-    
-    # Normalizza dati ONG
+    for nome_file, fonte, tipo in _FONTI_UNIFICATE:
+        df_fonte = _leggi_processed(nome_file)
+        for _, row in df_fonte.iterrows():
+            dati_unificati.append(_riga_unificata(row, fonte, tipo))
+
+    # ONG: la fonte è il nome della singola organizzazione
+    df_ong = _leggi_processed('ong_analyzed')
     for _, row in df_ong.iterrows():
-        # Supporto sia nuovo schema che vecchio schema ONG
-        nome_ong = row.get('nome_organizzazione', 'Organizzazione')
-        
-        dati_unificati.append({
-            'data': row.get('data_pubblicazione', row.get('Data', datetime.now().date().isoformat())),
-            'titolo': row.get('titolo', row.get('Titolo', '')),
-            'fonte': nome_ong,
-            'tipo': 'Comunicato ONG',
-            'url': row.get('url', row.get('Link', '')),
-            'sentiment': row.get('Sentiment_Direzione', 'NEUTRALE'),
-            'ambito_geografico': row.get('Ambito_Geografico', row.get('area_geografica', 'Italia')),
-            'livello_allarme': row.get('livello_allarme', 1)
-        })
+        nome_ong = str(row.get('nome_organizzazione', 'Organizzazione'))
+        dati_unificati.append(_riga_unificata(row, nome_ong, 'Comunicato ONG'))
+
+    if not dati_unificati:
+        return pd.DataFrame(columns=_COLONNE_UNIFICATE)
 
     df = pd.DataFrame(dati_unificati)
-
     df['data'] = pd.to_datetime(df['data'], errors='coerce', format='mixed', utc=True).dt.date
     return df.sort_values('data', ascending=False).reset_index(drop=True)
 
@@ -157,24 +179,10 @@ def carica_dati_gnews():
 df_unificato = carica_dati_unificati()
 df_ong = carica_dati_ong()
 df_gpdp = carica_dati_garante()
-df_gnews = carica_dati_gnews()
-
-# Normalizza GNews prima della concatenazione con schema standard
-df_gnews_normalizzato = pd.DataFrame()
-if not df_gnews.empty:
-    df_gnews_normalizzato = df_gnews.apply(lambda row: pd.Series({
-        'data': row.get('publishedAt', row.get('data', datetime.now().date().isoformat())),
-        'titolo': row.get('title', row.get('titolo', '')),
-        'fonte': row.get('source', 'GNews'),
-        'tipo': 'Notizia',
-        'url': row.get('url', ''),
-        'sentiment': row.get('sentiment', 'NEUTRALE'),
-        'ambito_geografico': row.get('ambito_geografico', 'Italia'),
-        'livello_allarme': row.get('impact_score', row.get('livello_allarme', 2))
-    }), axis=1)
-
-# Unisci TUTTE le fonti con lo stesso schema
-df_master = pd.concat([df_unificato, df_gnews_normalizzato], ignore_index=True)
+# df_master deriva direttamente dalla vista unificata completa (tutte le fonti,
+# GNews inclusa). La vecchia normalizzazione separata di GNews è stata rimossa:
+# ora GNews è già dentro carica_dati_unificati, evitando il doppio conteggio.
+df_master = df_unificato.copy()
 
 # Rimuovi duplicati per titolo e fonte
 df_master = df_master.drop_duplicates(subset=['titolo', 'fonte'], keep='first')
