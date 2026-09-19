@@ -225,14 +225,105 @@ jobs:
           if-no-files-found: ignore
 
   # ==============================================
+  # SCRAPER GAZZETTA UFFICIALE (solo raccolta, no commit)
+  # ==============================================
+  scraper-gazzetta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - run: pip install -r requirements.txt
+
+      - name: Scraping Gazzetta Ufficiale
+        run: python scrapers/scraper_gazzetta_ufficiale.py
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: raw-gazzetta-data
+          path: data/raw/gazzetta_ufficiale*.csv
+          retention-days: 1
+          if-no-files-found: ignore
+
+  # ==============================================
+  # SCRAPER CJEU / CURIA (solo raccolta, no commit)
+  # ==============================================
+  scraper-curia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - run: pip install -r requirements.txt
+
+      - name: Scraping CJEU (Corte di Giustizia UE)
+        run: python scrapers/scraper_curia.py
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: raw-cjeu-data
+          path: data/raw/cjeu*.csv
+          retention-days: 1
+          if-no-files-found: ignore
+
+  # ==============================================
+  # SCRAPER FEEDS (blog/newsletter, config-driven; solo raccolta, no commit)
+  # ==============================================
+  scraper-feeds:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - run: pip install -r requirements.txt
+
+      - name: Scraping feed (blog e newsletter)
+        run: python scrapers/scraper_feeds.py
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: raw-feeds-data
+          path: data/raw/feeds*.csv
+          retention-days: 1
+          if-no-files-found: ignore
+
+  # ==============================================
   # ANALISI NLP & SALVATAGGIO FINALE
-  # Dipende da tutti e 7 gli scraper.
+  # Dipende da tutti gli scraper.
   # continue-on-error sui job scraper garantisce che
   # questo step parta comunque anche se uno scraper fallisce.
   # ==============================================
   analisi-nlp:
     needs: [scraper-gpdp, scraper-ong, scraper-gnews, scraper-rss-eu,
-            scraper-agcom, scraper-tech-news, scraper-eu-parl]
+            scraper-agcom, scraper-tech-news, scraper-eu-parl,
+            scraper-gazzetta, scraper-curia, scraper-feeds]
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -306,6 +397,27 @@ jobs:
         continue-on-error: true
         with:
           name: raw-eu-parl-data
+          path: data/raw/
+
+      - name: Scarica dati Gazzetta Ufficiale
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: raw-gazzetta-data
+          path: data/raw/
+
+      - name: Scarica dati CJEU
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: raw-cjeu-data
+          path: data/raw/
+
+      - name: Scarica dati Feed (blog/newsletter)
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: raw-feeds-data
           path: data/raw/
 
       # Riaddestra il modello di urgenza (Active Learning) dalle correzioni umane
