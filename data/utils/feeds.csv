@@ -1,0 +1,5 @@
+nome,url,tipo_fonte,trust_tier,filtro_rilevanza,lingua,attivo
+Guerre di Rete,https://guerredirete.substack.com/feed,blog_newsletter,2,no,it,si
+Valigia Blu,https://www.valigiablu.it/feed/,media,2,si,it,si
+Platformer,https://www.platformer.news/feed,blog_newsletter,2,si,en,si
+Import AI,https://importai.substack.com/feed,blog_newsletter,2,si,en,si

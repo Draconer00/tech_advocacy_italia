@@ -570,6 +570,7 @@ def main() -> None:
         {'nome': 'Parlamento Europeo',   'file_raw': 'eu_parl_sample.csv',     'file_processed': 'eu_parl_analyzed.csv'},
         {'nome': 'Gazzetta Ufficiale',   'file_raw': 'gazzetta_ufficiale_sample.csv', 'file_processed': 'gazzetta_ufficiale_analyzed.csv'},
         {'nome': 'CJEU',                 'file_raw': 'cjeu_sample.csv',        'file_processed': 'cjeu_analyzed.csv'},
+        {'nome': 'Blog/Newsletter',      'file_raw': 'feeds_sample.csv',       'file_processed': 'feeds_analyzed.csv'},
     ]
 
     all_entities: list[str] = []  # raccolta per il report di qualità NLP finale

@@ -54,6 +54,7 @@ def main():
         "scrapers/scraper_eu_parl.py",
         "scrapers/scraper_gazzetta_ufficiale.py",
         "scrapers/scraper_curia.py",
+        "scrapers/scraper_feeds.py",
     ]
     
     for scraper in scrapers:
