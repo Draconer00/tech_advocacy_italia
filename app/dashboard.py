@@ -248,6 +248,31 @@ def carica_dati_feeds():
         return pd.read_csv(percorso_csv)
     return pd.DataFrame()
 
+@st.cache_data
+def carica_temi() -> dict:
+    """Lessico curato dei temi tech/diritti digitali per l'analisi delle tendenze.
+    Config editabile in data/utils/temi.csv (colonne: tema, termini separati da '|').
+    Un documento "tratta" un tema se il suo testo contiene uno dei termini.
+    Deterministico e spiegabile (regola CLAUDE.md), robusto al rumore dei token grezzi."""
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso = os.path.join(cartella_script, '..', 'data', 'utils', 'temi.csv')
+    temi: dict[str, list[str]] = {}
+    if os.path.exists(percorso):
+        df_temi = pd.read_csv(percorso)
+        for _, r in df_temi.iterrows():
+            nome = str(r.get('tema', '')).strip()
+            termini = [t.strip().lower() for t in str(r.get('termini', '')).split('|') if t.strip()]
+            if nome and termini:
+                temi[nome] = termini
+    if not temi:
+        # Fallback minimo se la config manca
+        temi = {
+            'Privacy e Dati': ['privacy', 'gdpr', 'dati personali'],
+            'Intelligenza Artificiale': ['intelligenza artificiale', 'ai act', 'algoritm'],
+            'Sorveglianza': ['sorveglian', 'telecamer', 'biometr'],
+        }
+    return temi
+
 # Etichetta visualizzata -> nome file data/raw/{nome}_sample.csv, uno per scraper.
 FONTI_RAW_CSV: dict[str, str] = {
     "Garante Privacy (GPDP)":       "gpdp",
@@ -325,6 +350,10 @@ def carica_dati_per_analisi_temporale():
         blocco = pd.DataFrame()
         blocco['data'] = _estrai_data_pubblicazione(df_src)
         blocco['fonte'] = etichetta
+        # Testo per il matching tematico (titolo + testo completo, minuscolo)
+        t_tit = df_src['titolo'].fillna('').astype(str) if 'titolo' in df_src.columns else pd.Series([''] * len(df_src))
+        t_txt = df_src['testo_completo'].fillna('').astype(str) if 'testo_completo' in df_src.columns else pd.Series([''] * len(df_src))
+        blocco['testo_ricerca'] = [f"{a} {b}".lower() for a, b in zip(t_tit.values, t_txt.values)]
         # Parole chiave — colonna Parole_Chiave o keywords
         for col_kw in ['Parole_Chiave', 'keywords']:
             if col_kw in df_src.columns:
@@ -1551,38 +1580,34 @@ with tab_analisi_temporale:
             "Consente di identificare quali argomenti stanno crescendo o calando di importanza."
         )
 
-        # Estrai parole chiave da tutti i documenti nel periodo, ignorando stopword banali
-        # (STOPWORD_KW = spaCy it_core_news_md, importata a livello di modulo)
-        righe_kw = []
+        # Conta, per mese, quanti documenti trattano ciascun TEMA del lessico curato
+        # (data/utils/temi.csv). Approccio deterministico e spiegabile: un documento
+        # "tratta" un tema se il suo testo contiene almeno uno dei termini del tema.
+        # Sostituisce il vecchio conteggio dei token TF-IDF grezzi, che faceva
+        # emergere spazzatura (es. "span", "org") invece di temi reali.
+        temi_dict = carica_temi()
+        righe_temi = []
         for _, riga in df_filtrato_temp.iterrows():
-            kw_lista = _parse_parole_chiave(riga.get('parole_chiave_raw'))
+            testo = str(riga.get('testo_ricerca', '') or '')
+            if not testo:
+                continue
             mese_str = riga['data'].to_period('M').strftime('%Y-%m')
-            for kw in kw_lista:
-                kw_norm = kw.lower().strip()
-                if kw_norm and kw_norm not in STOPWORD_KW and len(kw_norm) > 2:
-                    righe_kw.append({'mese': mese_str, 'parola': kw_norm})
+            for tema, termini in temi_dict.items():
+                if any(term in testo for term in termini):
+                    righe_temi.append({'mese': mese_str, 'tema': tema})
 
-        if not righe_kw:
+        if not righe_temi:
             st.info(
-                "Nessuna parola chiave trovata nel periodo selezionato. "
-                "Verifica che i CSV analizzati contengano la colonna `Parole_Chiave`."
+                "Nessun tema rilevato nel periodo selezionato. "
+                "Il lessico dei temi è configurabile in data/utils/temi.csv."
             )
         else:
-            df_kw = pd.DataFrame(righe_kw)
+            df_temi = pd.DataFrame(righe_temi)
 
-            # Top 10 parole chiave globali nel periodo
-            top_parole = (
-                df_kw.groupby('parola')
-                .size()
-                .sort_values(ascending=False)
-                .head(10)
-                .index.tolist()
-            )
-
-            # Pivot: mesi × parole chiave
+            # Pivot: mesi × temi (tutti i temi del lessico che compaiono)
             df_kw_pivot = (
-                df_kw[df_kw['parola'].isin(top_parole)]
-                .groupby(['mese', 'parola'])
+                df_temi
+                .groupby(['mese', 'tema'])
                 .size()
                 .reset_index(name='conteggio')
                 .sort_values('mese')
@@ -1592,18 +1617,18 @@ with tab_analisi_temporale:
                 df_kw_pivot,
                 x='mese',
                 y='conteggio',
-                color='parola',
+                color='tema',
                 markers=True,
-                title='Top 10 temi — frequenza mensile',
+                title='Tendenze dei temi tech — documenti per mese',
                 labels={
                     'mese': 'Mese',
-                    'conteggio': 'Occorrenze',
-                    'parola': 'Tema'
+                    'conteggio': 'Documenti',
+                    'tema': 'Tema'
                 }
             )
             fig_trend.update_layout(
                 xaxis_title="Mese",
-                yaxis_title="Occorrenze mensili",
+                yaxis_title="Documenti che trattano il tema",
                 legend_title="Tema",
                 hovermode='x unified',
                 xaxis=dict(tickangle=-45)
@@ -1619,7 +1644,7 @@ with tab_analisi_temporale:
 
                 def _freq_media(df_p, mesi_sel):
                     sub = df_p[df_p['mese'].isin(mesi_sel)]
-                    return sub.groupby('parola')['conteggio'].mean()
+                    return sub.groupby('tema')['conteggio'].mean()
 
                 freq_recente = _freq_media(df_kw_pivot, mesi_recenti)
                 freq_precedente = _freq_media(df_kw_pivot, mesi_precedenti)
@@ -1647,10 +1672,10 @@ with tab_analisi_temporale:
                     if trending_up.empty:
                         st.info("Nessun tema in crescita rilevato.")
                     else:
-                        for parola, riga in trending_up.iterrows():
+                        for tema, riga in trending_up.iterrows():
                             st.metric(
-                                label=parola.title(),
-                                value=f"{riga['freq_recente']:.1f} occ/mese",
+                                label=tema,
+                                value=f"{riga['freq_recente']:.1f} doc/mese",
                                 delta=f"+{riga['variazione_pct']:.0f}%"
                             )
 
@@ -1660,10 +1685,10 @@ with tab_analisi_temporale:
                     if trending_down.empty:
                         st.info("Nessun tema in calo rilevato.")
                     else:
-                        for parola, riga in trending_down.iterrows():
+                        for tema, riga in trending_down.iterrows():
                             st.metric(
-                                label=parola.title(),
-                                value=f"{riga['freq_recente']:.1f} occ/mese",
+                                label=tema,
+                                value=f"{riga['freq_recente']:.1f} doc/mese",
                                 delta=f"{riga['variazione_pct']:.0f}%"
                             )
             else:
@@ -1675,8 +1700,8 @@ with tab_analisi_temporale:
             st.divider()
 
             # Tabella di riepilogo parole chiave
-            st.markdown("**Tabella dettagliata — occorrenze mensili per tema**")
+            st.markdown("**Tabella dettagliata — documenti per tema per mese**")
             df_tabella = df_kw_pivot.pivot_table(
-                index='mese', columns='parola', values='conteggio', fill_value=0
+                index='mese', columns='tema', values='conteggio', fill_value=0
             ).reset_index()
             st.dataframe(df_tabella, hide_index=True, width='stretch')
