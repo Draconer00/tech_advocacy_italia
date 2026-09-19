@@ -240,6 +240,14 @@ def carica_dati_cjeu():
         return pd.read_csv(percorso_csv)
     return pd.DataFrame()
 
+@st.cache_data
+def carica_dati_feeds():
+    cartella_script = os.path.dirname(os.path.abspath(__file__))
+    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'feeds_analyzed.csv')
+    if os.path.exists(percorso_csv):
+        return pd.read_csv(percorso_csv)
+    return pd.DataFrame()
+
 # Etichetta visualizzata -> nome file data/raw/{nome}_sample.csv, uno per scraper.
 FONTI_RAW_CSV: dict[str, str] = {
     "Garante Privacy (GPDP)":       "gpdp",
@@ -251,6 +259,7 @@ FONTI_RAW_CSV: dict[str, str] = {
     "Parlamento Europeo":           "eu_parl",
     "Gazzetta Ufficiale":           "gazzetta_ufficiale",
     "CJEU (Corte di Giustizia UE)": "cjeu",
+    "Blog e Newsletter":            "feeds",
 }
 
 
@@ -294,6 +303,7 @@ def carica_dati_per_analisi_temporale():
     df_agcom = carica_dati_agcom()
     df_gu = carica_dati_gazzetta_ufficiale()
     df_cjeu = carica_dati_cjeu()
+    df_feeds = carica_dati_feeds()
 
     fonti_config = [
         (df_gpdp,   'GPDP'),
@@ -305,6 +315,7 @@ def carica_dati_per_analisi_temporale():
         (df_agcom,  'AGCOM'),
         (df_gu,     'Gazzetta Ufficiale'),
         (df_cjeu,   'CJEU'),
+        (df_feeds,  'Blog/Newsletter'),
     ]
 
     blocchi = []
