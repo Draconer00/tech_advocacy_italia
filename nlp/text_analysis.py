@@ -26,7 +26,13 @@ from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 
 # Il corpus è multilingua: alcune ONG monitorate (EFF, noyb, ecc.) pubblicano in
 # inglese, quindi le keyword vanno filtrate su entrambe le lingue.
-STOPWORD_IT_EN = set(STOPWORD_IT) | set(ENGLISH_STOP_WORDS)
+# _JUNK_TOKENS: residui HTML/web che il TF-IDF scambierebbe per keyword (span, org...).
+_JUNK_TOKENS = {
+    "span", "div", "href", "http", "https", "www", "org", "com", "net", "html",
+    "nbsp", "amp", "rss", "xml", "font", "style", "class", "strong", "src",
+    "img", "alt", "target", "blank", "widget", "cookie", "newsletter",
+}
+STOPWORD_IT_EN = set(STOPWORD_IT) | set(ENGLISH_STOP_WORDS) | _JUNK_TOKENS
 
 # Aggiungi root progetto al path (necessario per import cross-package)
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -238,6 +244,7 @@ def estrai_keywords_corpus(testi: list[str], num_keywords: int = 5) -> list[list
             min_df=1,
             ngram_range=(1, 2),
             stop_words=list(STOPWORD_IT_EN),
+            token_pattern=r"(?u)\b[a-zà-ÿ]{3,}\b",  # solo parole alfabetiche >=3 caratteri
         )
         tfidf_matrix = vectorizer.fit_transform(testi_puliti)
         feature_names = vectorizer.get_feature_names_out()
