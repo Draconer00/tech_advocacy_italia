@@ -105,20 +105,31 @@ def carica_dati_garante():
 # perché la sua "fonte" è il nome della singola organizzazione (ground truth).
 # REGOLA: ogni scraper registrato deve comparire qui, o i suoi documenti restano
 # invisibili in Home Radar (era il caso di 6 fonti su 9 prima di questo fix).
-_FONTI_UNIFICATE: list[tuple[str, str, str]] = [
-    ('gpdp_analyzed',               'Garante Privacy',    'Provvedimento'),
-    ('gnews_analyzed',              'GNews',              'Articolo'),
-    ('rss_eu_analyzed',             'Regolatori UE',      'Comunicato'),
-    ('agcom_analyzed',              'AGCOM',              'Documento'),
-    ('tech_news_analyzed',          'Tech News',          'Articolo'),
-    ('eu_parl_analyzed',            'Parlamento UE',      'Atto'),
-    ('gazzetta_ufficiale_analyzed', 'Gazzetta Ufficiale', 'Atto normativo'),
-    ('cjeu_analyzed',               'CJEU',               'Sentenza'),
-    ('feeds_analyzed',              'Blog/Newsletter',    'Approfondimento'),
+# (file_*_analyzed, etichetta_fonte, tipo_documento, categoria_fonte).
+_FONTI_UNIFICATE: list[tuple[str, str, str, str]] = [
+    ('gpdp_analyzed',               'Garante Privacy',    'Provvedimento',  'Ufficiale'),
+    ('gnews_analyzed',              'GNews',              'Articolo',       'Stampa'),
+    ('rss_eu_analyzed',             'Regolatori UE',      'Comunicato',     'Ufficiale'),
+    ('agcom_analyzed',              'AGCOM',              'Documento',      'Ufficiale'),
+    ('tech_news_analyzed',          'Tech News',          'Articolo',       'Stampa'),
+    ('eu_parl_analyzed',            'Parlamento UE',      'Atto',           'Ufficiale'),
+    ('gazzetta_ufficiale_analyzed', 'Gazzetta Ufficiale', 'Atto normativo', 'Ufficiale'),
+    ('cjeu_analyzed',               'CJEU',               'Sentenza',       'Ufficiale'),
 ]
+# I feed (feeds_analyzed) sono gestiti a parte: un solo file contiene fonti di
+# natura diversa (istituzionali, stampa, blog), quindi etichetta e categoria si
+# derivano per riga dai metadati tipo_fonte/trust_tier.
 
-_COLONNE_UNIFICATE = ['data', 'titolo', 'fonte', 'tipo', 'url',
+_COLONNE_UNIFICATE = ['data', 'titolo', 'fonte', 'tipo', 'categoria', 'url',
                       'sentiment', 'ambito_geografico', 'livello_allarme']
+
+# Categoria-macro per separare i fatti (atti ufficiali) dall'opinione (blog).
+_TIPO_FONTE_A_CATEGORIA = {
+    'istituzionale':   'Ufficiale',
+    'media':           'Stampa',
+    'ngo':             'Società civile',
+    'blog_newsletter': 'Blog/Opinione',
+}
 
 
 def _leggi_processed(nome_file: str) -> pd.DataFrame:
@@ -127,12 +138,25 @@ def _leggi_processed(nome_file: str) -> pd.DataFrame:
     return pd.read_csv(percorso) if os.path.exists(percorso) else pd.DataFrame()
 
 
-def _riga_unificata(row, fonte: str, tipo: str) -> dict:
+def _categoria_feed(row) -> str:
+    """Categoria-macro di un feed dai suoi metadati (tipo_fonte, poi trust_tier)."""
+    tf = str(row.get('tipo_fonte', '')).strip().lower()
+    if tf in _TIPO_FONTE_A_CATEGORIA:
+        return _TIPO_FONTE_A_CATEGORIA[tf]
+    try:
+        tier = int(float(row.get('trust_tier', 2)))
+    except (ValueError, TypeError):
+        tier = 2
+    return {1: 'Ufficiale', 2: 'Stampa', 3: 'Blog/Opinione'}.get(tier, 'Blog/Opinione')
+
+
+def _riga_unificata(row, fonte: str, tipo: str, categoria: str) -> dict:
     return {
         'data': row.get('data_pubblicazione', row.get('Data', datetime.now().date().isoformat())),
         'titolo': row.get('titolo', row.get('Titolo', '')),
         'fonte': fonte,
         'tipo': tipo,
+        'categoria': categoria,
         'url': row.get('url', row.get('Link', '')),
         'sentiment': row.get('Sentiment_Direzione', 'NEUTRALE'),
         'ambito_geografico': row.get('Ambito_Geografico', row.get('area_geografica', 'Italia')),
@@ -142,20 +166,27 @@ def _riga_unificata(row, fonte: str, tipo: str) -> dict:
 
 @st.cache_data
 def carica_dati_unificati():
-    """Unisce i dati da TUTTE le fonti processate in un dataframe standardizzato.
-    Legge i CSV *_analyzed direttamente per non dipendere dall'ordine di definizione
-    dei loader e per includere ogni fonte registrata in _FONTI_UNIFICATE."""
+    """Unisce i dati da TUTTE le fonti processate in un dataframe standardizzato,
+    con una categoria-macro (Ufficiale / Stampa / Blog-Opinione / Società civile)
+    che separa i fatti dall'opinione. Legge i CSV *_analyzed direttamente."""
     dati_unificati = []
-    for nome_file, fonte, tipo in _FONTI_UNIFICATE:
+    for nome_file, fonte, tipo, categoria in _FONTI_UNIFICATE:
         df_fonte = _leggi_processed(nome_file)
         for _, row in df_fonte.iterrows():
-            dati_unificati.append(_riga_unificata(row, fonte, tipo))
+            dati_unificati.append(_riga_unificata(row, fonte, tipo, categoria))
+
+    # Feed: fonte = nome della testata reale; categoria derivata per riga, così
+    # AGID/FRA (istituzionali) non finiscono nel mucchio dei blog.
+    df_feeds = _leggi_processed('feeds_analyzed')
+    for _, row in df_feeds.iterrows():
+        nome_testata = str(row.get('nome_testata', 'Feed'))
+        dati_unificati.append(_riga_unificata(row, nome_testata, 'Approfondimento', _categoria_feed(row)))
 
     # ONG: la fonte è il nome della singola organizzazione
     df_ong = _leggi_processed('ong_analyzed')
     for _, row in df_ong.iterrows():
         nome_ong = str(row.get('nome_organizzazione', 'Organizzazione'))
-        dati_unificati.append(_riga_unificata(row, nome_ong, 'Comunicato ONG'))
+        dati_unificati.append(_riga_unificata(row, nome_ong, 'Comunicato ONG', 'Società civile'))
 
     if not dati_unificati:
         return pd.DataFrame(columns=_COLONNE_UNIFICATE)
@@ -444,8 +475,18 @@ with tab_home:
     
     # --- FILTRI UNIVERSALI ---
     st.subheader("🔍 Filtri")
+
+    # Categoria-macro: separa i fatti (atti ufficiali) dall'opinione (blog).
+    categorie_disponibili = sorted(df_master['categoria'].dropna().unique()) if 'categoria' in df_master.columns else []
+    categorie_selezionate = st.multiselect(
+        "🏛️ Categoria fonte — Ufficiale (fatti) · Stampa · Blog/Opinione · Società civile",
+        options=categorie_disponibili,
+        default=categorie_disponibili,
+        help="Filtra per natura della fonte: distingue gli atti ufficiali da stampa e opinioni."
+    )
+
     col_f1, col_f2, col_f3, col_f4 = st.columns(4)
-    
+
     with col_f1:
         fonti_selezionate = st.multiselect("Fonte", options=df_master['fonte'].unique(), default=df_master['fonte'].unique())
     with col_f2:
@@ -473,11 +514,12 @@ with tab_home:
     else:
         df_master_filtrato = df_master.copy()
     
-    # Applica filtri
-    df_filtrato = df_master[
-        df_master['fonte'].isin(fonti_selezionate) &
-        df_master['ambito_geografico'].isin(aree_selezionate) &
-        (df_master['livello_allarme'] >= livello_allarme)
+    # Applica filtri (categoria + fonte + area + allarme) sulla base già filtrata per data
+    df_filtrato = df_master_filtrato[
+        df_master_filtrato['categoria'].isin(categorie_selezionate) &
+        df_master_filtrato['fonte'].isin(fonti_selezionate) &
+        df_master_filtrato['ambito_geografico'].isin(aree_selezionate) &
+        (df_master_filtrato['livello_allarme'] >= livello_allarme)
     ]
     
     st.divider()
@@ -633,7 +675,7 @@ with tab_home:
     # --- ULTIMI EVENTI ---
     st.subheader("📌 Ultimi 50 Eventi")
     st.dataframe(
-        df_filtrato[['data', 'fonte', 'tipo', 'titolo', 'livello_allarme']].head(50),
+        df_filtrato[['data', 'categoria', 'fonte', 'tipo', 'titolo', 'livello_allarme']].head(50),
         hide_index=True,
         width='stretch'
     )
@@ -790,7 +832,7 @@ with tab_garante:
     st.subheader("📜 Elenco Tutti i Documenti")
     
     st.dataframe(
-        df_geo_filtrato[['data', 'fonte', 'tipo', 'ambito_geografico', 'titolo', 'livello_allarme']],
+        df_geo_filtrato[['data', 'categoria', 'fonte', 'tipo', 'ambito_geografico', 'titolo', 'livello_allarme']],
         hide_index=True,
         width='stretch'
     )
