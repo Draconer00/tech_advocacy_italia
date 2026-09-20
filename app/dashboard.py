@@ -385,6 +385,18 @@ def carica_dati_per_analisi_temporale():
         t_tit = df_src['titolo'].fillna('').astype(str) if 'titolo' in df_src.columns else pd.Series([''] * len(df_src))
         t_txt = df_src['testo_completo'].fillna('').astype(str) if 'testo_completo' in df_src.columns else pd.Series([''] * len(df_src))
         blocco['testo_ricerca'] = [f"{a} {b}".lower() for a, b in zip(t_tit.values, t_txt.values)]
+        # Temi già rilevati dal NLP (ibrido lessicale+semantico, persistito).
+        # Fallback lessicale a runtime solo per CSV generati prima della feature,
+        # così la Sezione B legge sempre e solo 'temi_rilevati'.
+        if 'temi_rilevati' in df_src.columns:
+            blocco['temi_rilevati'] = df_src['temi_rilevati'].fillna('').astype(str).values
+        else:
+            temi_fb = carica_temi()
+            blocco['temi_rilevati'] = [
+                '|'.join(tema for tema, termini in temi_fb.items()
+                         if any(term in ts for term in termini))
+                for ts in blocco['testo_ricerca']
+            ]
         # Parole chiave — colonna Parole_Chiave o keywords
         for col_kw in ['Parole_Chiave', 'keywords']:
             if col_kw in df_src.columns:
@@ -1618,24 +1630,23 @@ with tab_analisi_temporale:
         # ==========================================
         st.subheader("🔍 Sezione B — Tendenze dei Temi nel Tempo")
         st.markdown(
-            "Evoluzione mensile delle parole chiave/temi più frequenti estratti dai documenti. "
-            "Consente di identificare quali argomenti stanno crescendo o calando di importanza."
+            "Evoluzione mensile dei temi tech/diritti digitali trattati dai documenti. "
+            "Consente di identificare quali argomenti stanno crescendo o calando di importanza. "
+            "I temi sono rilevati dalla pipeline NLP con un approccio **ibrido**: match "
+            "lessicale esatto sul lessico curato (`data/utils/temi.csv`) più match "
+            "**semantico** via embedding, che recupera sinonimi e parafrasi anche in altre lingue."
         )
 
-        # Conta, per mese, quanti documenti trattano ciascun TEMA del lessico curato
-        # (data/utils/temi.csv). Approccio deterministico e spiegabile: un documento
-        # "tratta" un tema se il suo testo contiene almeno uno dei termini del tema.
-        # Sostituisce il vecchio conteggio dei token TF-IDF grezzi, che faceva
-        # emergere spazzatura (es. "span", "org") invece di temi reali.
-        temi_dict = carica_temi()
+        # Conta, per mese, quanti documenti trattano ciascun tema. I temi sono già
+        # stati rilevati e persistiti dal NLP (colonna 'temi_rilevati', pipe-joined),
+        # quindi qui si legge soltanto: nessun ricalcolo a runtime. Il caricatore
+        # temporale garantisce la colonna anche per eventuali CSV pre-feature
+        # (fallback lessicale), così questo blocco resta uniforme.
         righe_temi = []
         for _, riga in df_filtrato_temp.iterrows():
-            testo = str(riga.get('testo_ricerca', '') or '')
-            if not testo:
-                continue
             mese_str = riga['data'].to_period('M').strftime('%Y-%m')
-            for tema, termini in temi_dict.items():
-                if any(term in testo for term in termini):
+            for tema in str(riga.get('temi_rilevati', '') or '').split('|'):
+                if tema:
                     righe_temi.append({'mese': mese_str, 'tema': tema})
 
         if not righe_temi:

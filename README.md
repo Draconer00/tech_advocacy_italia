@@ -79,6 +79,7 @@ Each document is processed through the following stages:
 5. **Fuzzy deduplication** — `SequenceMatcher` at threshold 0.85
 6. **Entity linking** — keyword-overlap scoring against NGO profile registry
 7. **Urgency index** — 1–5 score via sentence-transformers embeddings + active learning classifier
+8. **Thematic tagging (hybrid)** — each document is tagged with digital-rights themes using a curated lexicon (`data/utils/temi.csv`): an **exact** substring match (high precision, deterministic) plus a **semantic** embedding match (sentence-transformers cosine ≥ threshold) that recovers synonyms, paraphrases, and other languages the literal match misses. Method (`esatto`/`semantico`), score, and matched seed term are stored per tag so the classification stays auditable
 
 ---
 
@@ -123,6 +124,8 @@ Columns added by `text_analysis.py` on top of each source's raw schema:
 | `livello_allarme` | Urgency score 1–5 |
 | `ong_collegata` | NGO/institution linked via keyword-overlap scoring |
 | `ong_link_score` | Confidence of the entity-linking match (low score = uncertain) |
+| `temi_rilevati` | Digital-rights themes tagged on the document (pipe-separated) |
+| `temi_dettaglio` | JSON trace per theme: `{tema, metodo (esatto/semantico), score, seme}` for auditability |
 
 ---
 

@@ -41,8 +41,9 @@ if _ROOT not in sys.path:
 
 from utils.logger_config import setup_logger
 from scrapers.scraper_ong import PROFILI_ONG  # dict {nome_ong: {tipo, area, ...}}
-from nlp.deduplication import deduplica_dataframe
+from nlp.deduplication import deduplica_dataframe, get_embedding_model
 from nlp.entity_linking import link_ong
+from nlp.theme_matching import carica_temi, rileva_temi_batch, serializza
 
 logger = setup_logger(__name__)
 
@@ -557,6 +558,26 @@ def processa_dataframe(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
     rimossi = n_prima - len(df)
     if rimossi:
         logger.info("Deduplica semantica %s: rimossi %d near-duplicate", fonte_nome, rimossi)
+
+    # Rilevamento temi IBRIDO (lessicale esatto + semantico via embedding),
+    # calcolato una volta qui e PERSISTITO nel CSV, così la dashboard non
+    # ricalcola nulla a runtime. 'temi_dettaglio' conserva metodo/score/seme di
+    # ogni match: la classificazione resta ispezionabile (regola CLAUDE.md).
+    # Calcolato sui soli rappresentanti primari (post-dedup), non sugli scarti.
+    try:
+        temi = carica_temi()
+        matches = rileva_temi_batch(df['testo_completo'].tolist(), temi, get_embedding_model())
+        serial = [serializza(m) for m in matches]
+        df['temi_rilevati'] = [s[0] for s in serial]
+        df['temi_dettaglio'] = [s[1] for s in serial]
+        n_con_tema = sum(1 for s in serial if s[0])
+        logger.info("Temi rilevati %s: %d/%d documenti con almeno un tema",
+                    fonte_nome, n_con_tema, len(df))
+    except Exception as e:
+        logger.warning("Rilevamento temi saltato per %s: %s", fonte_nome, e)
+        df['temi_rilevati'] = ''
+        df['temi_dettaglio'] = ''
+
     logger.info("Completata analisi %s", fonte_nome)
     return df
 
