@@ -42,6 +42,11 @@ Court of Justice of the European Union (CJEU) — single aggregated press-releas
 
 > **NLP integration (2026-08-31):** both sources are now in `nlp/text_analysis.py`'s `FONTI` list, so they get the full NLP treatment (NER, keyword extraction, sentiment, entity linking, urgency scoring) and are written to `gazzetta_ufficiale_analyzed.csv` / `cjeu_analyzed.csv` and the SQLite table, and appear in the dashboard's Analisi Temporale tab alongside the other sources. Network Temi and Mappa Posizionamento stay ONG-specific by design, so these two institutional sources won't appear there.
 
+### Blogs, Newsletters & Extra Institutions (config-driven, `scraper_feeds.py`)
+Added 2026-09-20. A single generic scraper reads `data/utils/feeds.csv` — **one row per feed**, columns `nome,url,tipo_fonte,trust_tier,filtro_rilevanza,lingua,attivo`. Adding a source (a blog, a Substack, an extra institution) is a CSV edit, no new code. `tipo_fonte` ∈ {`istituzionale`, `media`, `ngo`, `blog_newsletter`} and `trust_tier` ∈ {1,2,3} flow through the pipeline into the dashboard's macro source-category (Ufficiale / Stampa / Blog-Opinione / Società civile), so each feed keeps its real outlet name and lands in the right bucket. Output feeds into `feeds_sample.csv` → `feeds_analyzed.csv` (full NLP treatment) → SQLite.
+
+Currently seeded (12 feeds): Guerre di Rete, Valigia Blu, Platformer, Import AI, AGID, Il Post Tecnologia, FRA, Statewatch, Netzpolitik, The Markup, Wikimedia, MIT Tech Review. IT feeds work reliably; EN/DE feeds depend on the free Google Translate endpoint (rate-limited on bursty local runs → they yield little locally, recover in spaced CI runs). Pre-filter-then-translate is a noted follow-up to make foreign feeds more reliable.
+
 ---
 
 ## Candidate Sources for Future Integration
@@ -65,6 +70,8 @@ Court of Justice of the European Union (CJEU) — single aggregated press-releas
 
 ## Adding New RSS Sources
 
-New RSS feeds can be added by including them in the `PROFILI_ONG` dictionary in `scrapers/scraper_ong.py`. The scraper handles any standard RSS 2.0 or Atom feed without additional configuration.
+**Preferred path (blogs, newsletters, media, extra institutions):** add one row to `data/utils/feeds.csv` and set `attivo=si`. `scraper_feeds.py` handles any standard RSS 2.0 or Atom feed with no code change; choose `tipo_fonte`/`trust_tier` to place it in the right source category, and `filtro_rilevanza=si` to apply the relevance keyword filter (recommended for broad general-interest feeds, `no` for already-niche digital-rights sources).
+
+**NGO-specific feeds** that should appear in the Network Temi / Mappa Posizionamento tabs still belong in the `PROFILI_ONG` dictionary in `scrapers/scraper_ong.py` (those tabs are ONG-registry-driven by design).
 
 For structured datasets (CSV, JSON, API), create a dedicated scraper following the conventions in any existing scraper file: SHA-256 hashing, append-only persistence, and unified schema output.

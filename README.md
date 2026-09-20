@@ -17,7 +17,7 @@ The system monitors over 35 sources continuously, processes documents in Italian
 ```
 tech_advocacy_italia/
 │
-├── scrapers/                  ← Data ingestion layer (9 independent scrapers)
+├── scrapers/                  ← Data ingestion layer (10 independent scrapers)
 │   ├── scraper_gpdp.py        ← Italian Data Protection Authority (web scraper)
 │   ├── scraper_ong.py         ← 23 civil society organisations (RSS feeds)
 │   ├── scraper_gnews.py       ← GNews API (requires GNEWS_API_KEY)
@@ -26,7 +26,8 @@ tech_advocacy_italia/
 │   ├── scraper_tech_news.py   ← 8 Italian tech media outlets (relevance-filtered)
 │   ├── scraper_eu_parl.py     ← European Parliament (RSS; Open Data API disabled, see FONTI_AGGIUNTIVE.md)
 │   ├── scraper_gazzetta_ufficiale.py ← Italian Gazzetta Ufficiale, series SG/S1/S2 (RSS, relevance-filtered)
-│   └── scraper_curia.py       ← EU Court of Justice (CJEU) press releases (RSS, relevance-filtered)
+│   ├── scraper_curia.py       ← EU Court of Justice (CJEU) press releases (RSS, relevance-filtered)
+│   └── scraper_feeds.py       ← Generic config-driven RSS (blogs, newsletters, extra institutions) — sources defined in data/utils/feeds.csv, one row per feed
 │   # planned: scraper_gdpr_fines.py — structured GDPR sanctions layer (GDPRhub / enforcementtracker)
 │
 ├── nlp/                       ← NLP processing layer
@@ -38,7 +39,7 @@ tech_advocacy_italia/
 ├── data/
 │   ├── raw/                   ← Append-only raw CSV files (git-ignored)
 │   ├── processed/             ← NLP-enriched CSV + SQLite database (git-ignored)
-│   └── utils/                 ← nlp_blacklist.csv
+│   └── utils/                 ← config (tracked): nlp_blacklist.csv, feeds.csv (RSS registry), temi.csv (theme lexicon)
 │
 ├── run_pipeline.py            ← Single-command full pipeline execution
 └── requirements.txt
@@ -52,12 +53,13 @@ tech_advocacy_italia/
 GPDP (web)         →  gpdp_sample.csv               ─┐
 23 NGO RSS feeds   →  ong_sample.csv                 │
 GNews API          →  gnews_sample.csv               │
-EU regulators      →  rss_eu_sample.csv              ├─→ text_analysis.py → *_analyzed.csv → SQLite
-AGCOM RSS          →  agcom_sample.csv               │         ↑
-8 Tech outlets     →  tech_news_sample.csv           │  human-in-the-loop corrections
-EU Parliament      →  eu_parl_sample.csv             │  (dashboard feedback interface)
-Gazzetta Ufficiale →  gazzetta_ufficiale_sample.csv  │
-CJEU               →  cjeu_sample.csv               ─┘
+EU regulators      →  rss_eu_sample.csv              │
+AGCOM RSS          →  agcom_sample.csv               ├─→ text_analysis.py → *_analyzed.csv → SQLite
+8 Tech outlets     →  tech_news_sample.csv           │         ↑
+EU Parliament      →  eu_parl_sample.csv             │  human-in-the-loop corrections
+Gazzetta Ufficiale →  gazzetta_ufficiale_sample.csv  │  (dashboard feedback interface)
+CJEU               →  cjeu_sample.csv                │
+Blogs/newsletters  →  feeds_sample.csv              ─┘  (config-driven, data/utils/feeds.csv)
 
 # planned: GDPRhub → gdpr_fines_sample.csv (structured sanctions layer, under development)
 ```
@@ -86,12 +88,25 @@ The Streamlit dashboard provides six analytical views:
 
 | Tab | Description |
 |-----|-------------|
-| Home Radar | Rolling 14-day overview with urgency-coded document feed, correction interface, and a per-source raw-feed preview (titles from `data/raw/*_sample.csv`, shown even for sources not yet processed by the NLP pipeline) |
+| Home Radar | Rolling overview across **all** processed sources with urgency-coded document feed, correction interface, filters by source category (see below), source, geography, alert level and time window, and a per-source raw-feed preview (titles from `data/raw/*_sample.csv`, shown even for sources not yet processed by the NLP pipeline) |
 | Campagne ONG | Aggregated feed from all monitored civil society organisations, plus a form to manually add NGO documents (statements, testimony) that aren't published via RSS |
 | Provvedimenti Garante | Italian Data Protection Authority decisions, filterable by geography and alert level |
 | Network Temi | Force-directed graph: NGOs → focus topics → recent documents, with an editable curated keyword profile per NGO to improve topic matching |
 | Mappa Posizionamento | 2D Cartesian map: Italy↔Global (X) × Technical↔Legal (Y) |
-| Analisi Temporale | Monthly document volume, keyword trends, GDPR fine amounts over time |
+| Analisi Temporale | Monthly document volume and **theme trends over time** — themes are matched against a curated lexicon (`data/utils/temi.csv`: Privacy, AI, Surveillance, …) rather than raw TF-IDF tokens, so the trend lines track meaningful topics instead of frequent-but-noisy words |
+
+### Source categories (facts vs. opinion)
+
+Every processed document carries a macro `categoria` that separates evidence from commentary, per the project's advocacy principles:
+
+| Category | Contents |
+|----------|----------|
+| **Ufficiale** | Regulators and institutions (Garante, EU regulators, AGCOM, EU Parliament, Gazzetta Ufficiale, CJEU, plus institutional feeds e.g. AGID, FRA) — the factual/evidentiary base |
+| **Stampa** | Press: GNews, Italian tech outlets, and media feeds |
+| **Blog/Opinione** | Blogs and newsletters — analysis and opinion, explicitly kept distinct from official acts |
+| **Società civile** | Monitored NGOs / civil society organisations |
+
+Feeds ingested via `scraper_feeds.py` are classified per-row from their `tipo_fonte`/`trust_tier`, so an institutional feed keeps its real outlet name and lands in **Ufficiale**, not lumped with blogs.
 
 A standalone SQL utility (`app/db_manager.py`) provides direct database access and schema inspection; it is run separately and is not yet wired into the dashboard as a tab.
 

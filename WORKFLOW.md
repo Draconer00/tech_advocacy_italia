@@ -77,6 +77,14 @@ python scrapers/scraper_curia.py
 ```
 Aggregates the single CJEU press-release RSS feed (all subject areas), filtered to privacy/AI/digital-rights relevance. The feed intermittently returns HTTP 503 (~1 in 3 requests observed); no automatic retry — the next scheduled run picks it up. Output: `data/raw/cjeu_sample.csv`.
 
+### Blogs, Newsletters & Extra Institutions (config-driven)
+```bash
+python scrapers/scraper_feeds.py
+```
+Generic RSS scraper driven entirely by `data/utils/feeds.csv` — one row per feed (`nome,url,tipo_fonte,trust_tier,filtro_rilevanza,lingua,attivo`). Adding a blog or Substack means adding a CSV row, not writing code. Reuses the tech-news relevance filter (when `filtro_rilevanza=si`) and the `rss_eu` translator for non-Italian feeds. `tipo_fonte`/`trust_tier` flow through the pipeline and drive the dashboard's source-category classification. Output: `data/raw/feeds_sample.csv`.
+
+> Note on foreign-language feeds: EN/DE/FR feeds are translated to Italian before the relevance filter runs. The free Google Translate endpoint rate-limits under bursty local runs — when translation fails the text stays foreign and the Italian filter over-drops it, so such feeds yield little locally but recover in spaced CI runs. Pre-filter-then-translate is a noted follow-up.
+
 > `scraper_gdpr_fines.py` (structured GDPR sanctions layer from GDPRhub) is planned but not yet implemented — see [FONTI_AGGIUNTIVE.md](FONTI_AGGIUNTIVE.md).
 
 ---
@@ -87,7 +95,7 @@ Aggregates the single CJEU press-release RSS feed (all subject areas), filtered 
 python nlp/text_analysis.py
 ```
 
-Processes all nine raw sources sequentially through the stages described in the README's [NLP Pipeline](README.md#nlp-pipeline) section. Output: `data/processed/*_analyzed.csv` (one per source) and `data/tech_advocacy.db`.
+Processes all ten raw sources sequentially through the stages described in the README's [NLP Pipeline](README.md#nlp-pipeline) section. Output: `data/processed/*_analyzed.csv` (one per source) and `data/tech_advocacy.db`.
 
 ---
 

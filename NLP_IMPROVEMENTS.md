@@ -12,7 +12,7 @@ Technical roadmap for improving the NLP pipeline in `nlp/text_analysis.py`. Item
 | Geographic classification | Rule-based matching; does not handle implicit geographic references or multilingual abbreviations |
 | Sentiment | Rule-based; insufficient for formal legal language where polarity signals are weak or hedged |
 | Translation | Translate-then-process approach for non-Italian sources introduces information loss |
-| Topic structure | TF-IDF keywords reflect term frequency but do not capture stable thematic clusters across the corpus |
+| Topic structure | TF-IDF keywords reflect term frequency but do not capture stable thematic clusters across the corpus. Partially mitigated: temporal theme trends now use a curated lexicon (`data/utils/temi.csv`) instead of raw TF-IDF tokens, and TF-IDF itself now excludes HTML/web junk tokens. A stable emergent-cluster layer (BERTopic) is still the planned next step |
 
 ---
 
@@ -55,7 +55,8 @@ Incorporate structured first-person input from monitored organisations (position
 |---------|--------|
 | Text cleaning + blacklist | Implemented |
 | NER (spaCy `it_core_news_md`) | Implemented |
-| TF-IDF keyword extraction (bilingual IT/EN stop words) | Implemented |
+| TF-IDF keyword extraction (bilingual IT/EN stop words, HTML/web junk excluded) | Implemented |
+| Curated theme lexicon for temporal trends (`data/utils/temi.csv`) | Implemented (2026-09-20) |
 | Fuzzy deduplication (SequenceMatcher) | Implemented |
 | Semantic deduplication (sentence-transformers) | Implemented |
 | Geographic classification | Implemented |
