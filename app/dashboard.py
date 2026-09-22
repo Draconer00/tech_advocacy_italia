@@ -304,6 +304,19 @@ def carica_temi() -> dict:
         }
     return temi
 
+
+@st.cache_data
+def carica_topic_emergenti() -> tuple:
+    """Report BERTopic (layer di scoperta), prodotto OFFLINE da nlp/topic_discovery.py.
+    Ritorna (df_topic, df_trend); DataFrame vuoti se l'artefatto non esiste ancora."""
+    cartella = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'processed')
+    p_topic = os.path.join(cartella, 'topic_emergenti.csv')
+    p_trend = os.path.join(cartella, 'topic_emergenti_trend.csv')
+    df_topic = pd.read_csv(p_topic) if os.path.exists(p_topic) else pd.DataFrame()
+    df_trend = pd.read_csv(p_trend) if os.path.exists(p_trend) else pd.DataFrame()
+    return df_topic, df_trend
+
+
 # Etichetta visualizzata -> nome file data/raw/{nome}_sample.csv, uno per scraper.
 FONTI_RAW_CSV: dict[str, str] = {
     "Garante Privacy (GPDP)":       "gpdp",
@@ -468,7 +481,7 @@ def _termini_da_lista_serializzata(valore) -> set:
     return termini
 
 # --- CREAZIONE DELLE SCHEDE (TABS) ---
-tab_home, tab_ong, tab_garante, tab_network, tab_mappa_posizionamento, tab_analisi_temporale = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante", "🕸️ Network Temi", "📍 Mappa Posizionamento", "📈 Analisi Temporale"])
+tab_home, tab_ong, tab_garante, tab_network, tab_mappa_posizionamento, tab_analisi_temporale, tab_topic = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante", "🕸️ Network Temi", "📍 Mappa Posizionamento", "📈 Analisi Temporale", "🔬 Topic Emergenti"])
 
 # ==========================================
 # SCHEDA 0: HOME RADAR UNIFICATO
@@ -1758,3 +1771,70 @@ with tab_analisi_temporale:
                 index='mese', columns='tema', values='conteggio', fill_value=0
             ).reset_index()
             st.dataframe(df_tabella, hide_index=True, width='stretch')
+
+
+with tab_topic:
+    st.header("🔬 Topic Emergenti — Scoperta")
+    st.info(
+        "**Vista esplorativa, distinta dai temi curati.** I trend dell'Analisi Temporale "
+        "tracciano gli 8 temi che *già conosci* (`temi.csv`). Qui invece BERTopic **scopre** "
+        "in modo non supervisionato i cluster tematici che emergono dai documenti — anche "
+        "argomenti che non hai previsto. Serve a **individuare temi nuovi da promuovere** nel "
+        "lessico curato. Essendo statistica, la clusterizzazione può cambiare tra un'esecuzione "
+        "e l'altra: da leggere come radar, non come misura definitiva."
+    )
+
+    df_topic, df_trend = carica_topic_emergenti()
+
+    if df_topic.empty:
+        st.warning(
+            "Nessun report di scoperta trovato. Generalo (offline, periodicamente) con:\n\n"
+            "```\npython nlp/topic_discovery.py\n```\n\n"
+            "Produce `data/processed/topic_emergenti.csv` e `_trend.csv`, che questa vista legge."
+        )
+    else:
+        c1, c2 = st.columns(2)
+        c1.metric("Topic scoperti", len(df_topic))
+        c2.metric("Documenti raggruppati", int(df_topic['dimensione'].sum()))
+
+        st.subheader("Topic per dimensione")
+        st.caption("Ogni riga è un cluster scoperto: le parole distintive (c-TF-IDF) e i "
+                   "titoli d'esempio ti dicono di cosa parla. Le fonti mostrano da dove arriva.")
+        st.dataframe(
+            df_topic.rename(columns={
+                'topic_id': 'ID', 'dimensione': 'N. doc',
+                'parole_chiave': 'Parole distintive',
+                'titoli_esempio': 'Titoli di esempio', 'fonti': 'Fonti',
+            }),
+            hide_index=True, width='stretch',
+        )
+
+        # Andamento mensile dei topic (dal report di trend)
+        if not df_trend.empty:
+            st.subheader("Andamento nel tempo")
+            etichetta = {
+                int(r['topic_id']): f"#{int(r['topic_id'])} · " +
+                ', '.join(str(r['parole_chiave']).split(', ')[:3])
+                for _, r in df_topic.iterrows()
+            }
+            top_default = df_topic.nlargest(5, 'dimensione')['topic_id'].astype(int).tolist()
+            scelti = st.multiselect(
+                "Topic da confrontare",
+                options=sorted(etichetta.keys()),
+                default=top_default,
+                format_func=lambda t: etichetta.get(t, f"#{t}"),
+            )
+            if scelti:
+                df_t = df_trend[df_trend['topic_id'].isin(scelti)].copy()
+                df_t['Topic'] = df_t['topic_id'].map(etichetta)
+                fig_topic = px.line(
+                    df_t.sort_values('mese'), x='mese', y='conteggio', color='Topic',
+                    markers=True, labels={'mese': 'Mese', 'conteggio': 'Documenti'},
+                    title="Documenti per topic emergente, per mese",
+                )
+                fig_topic.update_layout(hovermode='x unified', xaxis=dict(tickangle=-45))
+                st.plotly_chart(fig_topic, width='stretch')
+
+        st.caption("💡 Trovi un cluster ricorrente e rilevante non ancora nel lessico? "
+                   "Aggiungilo come tema in `data/utils/temi.csv`: da lì il matcher affidabile "
+                   "lo traccerà con precisione, senza le oscillazioni di BERTopic.")

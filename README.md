@@ -8,7 +8,7 @@ An open-source civic intelligence platform for monitoring digital rights, privac
 
 Tech Advocacy Radar aggregates and semantically analyses public-interest documents from institutional regulators, civil society organisations, and news sources. It transforms heterogeneous raw text into a structured, queryable knowledge base and presents the results through an interactive dashboard designed for journalists, researchers, policy professionals, and activists.
 
-The system monitors over 35 sources continuously, processes documents in Italian and English, and provides six analytical views including network visualisation, geographic classification, temporal trend analysis, and a two-dimensional positioning map.
+The system monitors over 35 sources continuously, processes documents in Italian and English, and provides seven analytical views including network visualisation, geographic classification, temporal trend analysis, a two-dimensional positioning map, and an unsupervised topic-discovery view.
 
 ---
 
@@ -34,7 +34,7 @@ tech_advocacy_italia/
 │   └── text_analysis.py       ← spaCy NER, TF-IDF, sentiment, active learning
 │
 ├── app/
-│   └── dashboard.py           ← Streamlit interactive dashboard (6 tabs)
+│   └── dashboard.py           ← Streamlit interactive dashboard (7 tabs)
 │
 ├── data/
 │   ├── raw/                   ← Append-only raw CSV files (git-ignored)
@@ -85,7 +85,7 @@ Each document is processed through the following stages:
 
 ## Dashboard
 
-The Streamlit dashboard provides six analytical views:
+The Streamlit dashboard provides seven analytical views:
 
 | Tab | Description |
 |-----|-------------|
@@ -95,6 +95,7 @@ The Streamlit dashboard provides six analytical views:
 | Network Temi | Force-directed graph: NGOs → focus topics → recent documents, with an editable curated keyword profile per NGO to improve topic matching |
 | Mappa Posizionamento | 2D Cartesian map: Italy↔Global (X) × Technical↔Legal (Y) |
 | Analisi Temporale | Monthly document volume and **theme trends over time** — themes are matched against a curated lexicon (`data/utils/temi.csv`: Privacy, AI, Surveillance, …) rather than raw TF-IDF tokens, so the trend lines track meaningful topics instead of frequent-but-noisy words |
+| Topic Emergenti | **Unsupervised topic discovery** (BERTopic): clusters the corpus into emergent topics *not* defined in the lexicon, with distinctive keywords, example documents, and monthly trends. Explicitly exploratory (statistical, may shift between runs) and kept distinct from the curated theme trends; used to spot new themes worth promoting into `temi.csv`. Report generated offline by `nlp/topic_discovery.py` |
 
 ### Source categories (facts vs. opinion)
 

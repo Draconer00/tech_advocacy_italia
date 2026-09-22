@@ -12,7 +12,7 @@ Technical roadmap for improving the NLP pipeline in `nlp/text_analysis.py`. Item
 | Geographic classification | Rule-based matching; does not handle implicit geographic references or multilingual abbreviations |
 | Sentiment | Rule-based; insufficient for formal legal language where polarity signals are weak or hedged |
 | Translation | Translate-then-process approach for non-Italian sources introduces information loss |
-| Topic structure | TF-IDF keywords reflect term frequency but do not capture stable thematic clusters across the corpus. Mitigated: documents are tagged against a curated theme lexicon (`data/utils/temi.csv`) with a **hybrid** matcher — exact lexical + semantic embedding (`nlp/theme_matching.py`) — persisted as `temi_rilevati`/`temi_dettaglio`; TF-IDF itself now excludes HTML/web junk tokens. A stable emergent-cluster layer (BERTopic) to *discover* themes not in the lexicon is still the planned next step |
+| Topic structure | TF-IDF keywords reflect term frequency but do not capture stable thematic clusters across the corpus. Mitigated on two fronts: (a) documents are tagged against a curated theme lexicon (`data/utils/temi.csv`) with a **hybrid** matcher — exact lexical + semantic embedding (`nlp/theme_matching.py`) — persisted as `temi_rilevati`/`temi_dettaglio`; (b) an unsupervised **BERTopic discovery layer** (`nlp/topic_discovery.py`) surfaces emergent clusters *not* in the lexicon. TF-IDF itself now excludes HTML/web junk tokens |
 
 ---
 
@@ -68,6 +68,6 @@ Incorporate structured first-person input from monitored organisations (position
 | Domain-adapted NER | Planned |
 | Multilingual NER without translation | Planned |
 | Relation extraction | Planned |
-| BERTopic topic modelling | Planned |
+| BERTopic topic modelling (discovery layer, `nlp/topic_discovery.py` → dashboard "Topic Emergenti") | Implemented (2026-09-20) — offline/periodic, exploratory; reuses shared MiniLM embeddings, UMAP `random_state` fixed, HDBSCAN `leaf` |
 | Legal language model integration | Planned |
 | NGO testimony as training signal | Planned |

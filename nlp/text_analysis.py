@@ -260,27 +260,24 @@ def estrai_keywords_corpus(testi: list[str], num_keywords: int = 5) -> list[list
         return [[] for _ in testi]
 
 
-# ===== PRIORITY 3.1: Topic Modeling BERTopic =====
+# ===== Topic Modeling BERTopic (layer di SCOPERTA) =====
 def topic_modeling(testi_lista: list[str]) -> tuple[list[int], list[str]]:
     """
-    Topic modeling non supervisionato via BERTopic + HDBSCAN.
+    Topic modeling non supervisionato via BERTopic (scoperta di temi emergenti).
 
-    NOTA (roadmap, Fase 2): funzione NON ancora agganciata alla pipeline. È lo
-    stub del topic modeling indicato tra le Future Directions del paper, da
-    integrare come step corpus-level per produrre cluster tematici stabili nel
-    tempo (in sostituzione del classificatore topic ad-hoc, rimosso perché non
-    descritto nel paper e ridondante con la classificazione geografica).
+    L'implementazione vera vive in `nlp/topic_discovery.py`, che gira OFFLINE e
+    produce i report `data/processed/topic_emergenti*.csv` letti dalla dashboard.
+    NON è agganciato a `processa_dataframe`: i cluster BERTopic sono statistici e
+    instabili tra run, quindi restano una vista esplorativa, distinta dai trend
+    affidabili del lessico curato (theme_matching.py). Questo wrapper resta per
+    comodità/compatibilità e delega al modulo di scoperta.
     """
     try:
-        from bertopic import BERTopic
-        topic_model = BERTopic(
-            language="italian",
-            min_topic_size=3,
-            verbose=False,
-            calculate_probabilities=True,
-        )
-        topics, _ = topic_model.fit_transform(testi_lista)
-        etichette = topic_model.generate_topic_labels(nr_words=3)
+        from nlp.topic_discovery import scopri_topic
+        model, topics = scopri_topic(testi_lista)
+        etichette = [', '.join(w for w, _ in (model.get_topic(t) or [])[:3])
+                     if t != -1 else "Outlier"
+                     for t in sorted(set(topics))]
         return topics, etichette
     except ImportError:
         logger.warning("BERTopic non installato. Per attivare: pip install bertopic")

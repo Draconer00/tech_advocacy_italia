@@ -12,7 +12,7 @@ Detailed runbook for running each pipeline stage individually. For a quick start
 └─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
       │                    │                   │                    │
       ▼                    ▼                   ▼                    ▼
-  35+ sources          CSV files         NER, TF-IDF,          6 analytical
+  35+ sources          CSV files         NER, TF-IDF,          7 analytical
   RSS + Web            SQLite DB         classification,       views, human
   Auto-translate       Append-only       active learning        feedback loop
 ```
@@ -106,6 +106,16 @@ python -m streamlit run app/dashboard.py
 ```
 
 Opens the interactive dashboard at `http://localhost:8501`.
+
+---
+
+## Step 4 — Topic Discovery (offline, periodic)
+
+```bash
+python nlp/topic_discovery.py
+```
+
+Runs unsupervised topic discovery (BERTopic: shared MiniLM embeddings → UMAP → HDBSCAN → c-TF-IDF) over all processed documents and writes `data/processed/topic_emergenti.csv` + `topic_emergenti_trend.csv`, which the dashboard's **Topic Emergenti** tab reads. Kept **separate from `run_pipeline.py`** on purpose: the clustering is statistical and can shift between runs, so it's a periodic exploratory pass, not a per-run step. Use it to spot emergent themes worth promoting into `data/utils/temi.csv`. Options: `--min-topic N` (minimum documents per cluster, default 8).
 
 ---
 

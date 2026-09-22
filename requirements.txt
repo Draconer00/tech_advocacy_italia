@@ -23,6 +23,8 @@ transformers==5.5.4
 torch==2.7.1
 sentence-transformers==5.4.1
 bertopic==0.17.4
+umap-learn==0.5.12   # topic discovery (imported directly by nlp/topic_discovery.py)
+hdbscan==0.8.42      # topic discovery (imported directly by nlp/topic_discovery.py)
 # Italian spaCy model (equivalent to: python -m spacy download it_core_news_md)
 it_core_news_md @ https://github.com/explosion/spacy-models/releases/download/it_core_news_md-3.8.0/it_core_news_md-3.8.0-py3-none-any.whl
 
