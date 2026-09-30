@@ -58,6 +58,7 @@ Incorporate structured first-person input from monitored organisations (position
 | TF-IDF keyword extraction (bilingual IT/EN stop words, HTML/web junk excluded) | Implemented |
 | Curated theme lexicon for temporal trends (`data/utils/temi.csv`) | Implemented (2026-09-20) |
 | Hybrid theme tagging (exact lexical + semantic embedding, `nlp/theme_matching.py`) | Implemented (2026-09-20) — per-theme semantic thresholds in `temi.csv` (`soglia` column), calibrated via `nlp/valuta_temi.py` |
+| Theme gold set for objective P/R/F1 tuning | Scaffold ready (`nlp/prepara_gold.py` → `data/utils/temi_gold_worksheet.csv`, 129 docs); awaiting human labeling, then `valuta_temi.py --gold` |
 | Fuzzy deduplication (SequenceMatcher) | Implemented |
 | Semantic deduplication (sentence-transformers) | Implemented |
 | Geographic classification | Implemented |

@@ -66,12 +66,23 @@ def _carica_documenti(fonte: str | None) -> pd.DataFrame:
             if not testo:
                 continue
             righe.append({
-                'id': str(r.get('id_univoco', r.get('hash_contenuto', ''))),
+                'id': _id_documento(r),
                 'titolo': str(r.get('titolo', ''))[:110],
                 'fonte': nome.replace('_analyzed.csv', ''),
                 'testo': testo,
             })
     return pd.DataFrame(righe)
+
+
+def _id_documento(row) -> str:
+    """Id stabile del documento: id_univoco, con fallback a hash_contenuto quando
+    è mancante/NaN (alcune righe rss_eu lo hanno vuoto). Evita che più documenti
+    collassino sulla stessa chiave 'nan' — critico per allineare il gold set."""
+    for col in ('id_univoco', 'hash_contenuto'):
+        val = row.get(col)
+        if pd.notna(val) and str(val).strip() not in ('', 'nan'):
+            return str(val).strip()
+    return ''
 
 
 def _temi_semantici(sim_riga, etichette, soglia) -> set[str]:
