@@ -79,7 +79,7 @@ Each document is processed through the following stages:
 5. **Fuzzy deduplication** — `SequenceMatcher` at threshold 0.85
 6. **Entity linking** — keyword-overlap scoring against NGO profile registry
 7. **Urgency index** — 1–5 score via sentence-transformers embeddings + active learning classifier
-8. **Thematic tagging (hybrid)** — each document is tagged with digital-rights themes using a curated lexicon (`data/utils/temi.csv`): an **exact** substring match (high precision, deterministic) plus a **semantic** embedding match (sentence-transformers cosine ≥ threshold) that recovers synonyms, paraphrases, and other languages the literal match misses. Method (`esatto`/`semantico`), score, and matched seed term are stored per tag so the classification stays auditable
+8. **Thematic tagging (hybrid)** — each document is tagged with digital-rights themes using a curated lexicon (`data/utils/temi.csv`): an **exact** substring match (high precision, deterministic) plus a **semantic** embedding match (sentence-transformers cosine ≥ threshold) that recovers synonyms, paraphrases, and other languages the literal match misses. Method (`esatto`/`semantico`), score, and matched seed term are stored per tag so the classification stays auditable. The lexicon has **two levels**: 8 stable macro-themes (comparable long-term trends) and **sub-themes** added over time (`padre`, `stato`, `dal`, `origine` columns). A sub-theme match also tags its parent (`metodo: da_sottotema`); since processed data is regenerated from raw on every run, a new sub-theme applies retroactively to the whole archive
 
 ---
 
@@ -95,7 +95,7 @@ The Streamlit dashboard provides seven analytical views:
 | Network Temi | Force-directed graph: NGOs → focus topics → recent documents, with an editable curated keyword profile per NGO to improve topic matching |
 | Mappa Posizionamento | 2D Cartesian map: Italy↔Global (X) × Technical↔Legal (Y) |
 | Analisi Temporale | Monthly document volume and **theme trends over time** — themes are matched against a curated lexicon (`data/utils/temi.csv`: Privacy, AI, Surveillance, …) rather than raw TF-IDF tokens, so the trend lines track meaningful topics instead of frequent-but-noisy words |
-| Topic Emergenti | **Unsupervised topic discovery** (BERTopic): clusters the corpus into emergent topics *not* defined in the lexicon, with distinctive keywords, example documents, and monthly trends. Explicitly exploratory (statistical, may shift between runs) and kept distinct from the curated theme trends; used to spot new themes worth promoting into `temi.csv`. Report generated offline by `nlp/topic_discovery.py` |
+| Topic Emergenti | **Unsupervised topic discovery** (BERTopic): clusters the corpus into emergent topics *not* defined in the lexicon, with distinctive keywords, example documents, and monthly trends. Explicitly exploratory (statistical, may shift between runs) and kept distinct from the curated theme trends; each topic is compared with the existing themes (already covered / sub-theme candidate / outside the lexicon), and the operator can **promote a topic to a sub-theme** or edit/retire sub-themes directly from this tab (validated, with backup). Report generated offline by `nlp/topic_discovery.py` |
 
 ### Source categories (facts vs. opinion)
 
@@ -126,7 +126,7 @@ Columns added by `text_analysis.py` on top of each source's raw schema:
 | `ong_collegata` | NGO/institution linked via keyword-overlap scoring |
 | `ong_link_score` | Confidence of the entity-linking match (low score = uncertain) |
 | `temi_rilevati` | Digital-rights themes tagged on the document (pipe-separated) |
-| `temi_dettaglio` | JSON trace per theme: `{tema, metodo (esatto/semantico), score, seme}` for auditability |
+| `temi_dettaglio` | JSON trace per theme: `{tema, metodo (esatto/semantico/da_sottotema), score, seme}` for auditability |
 
 ---
 

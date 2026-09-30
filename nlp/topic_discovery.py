@@ -37,6 +37,7 @@ except Exception:
 
 from utils.logger_config import setup_logger
 from nlp.deduplication import get_embedding_model
+from nlp.theme_matching import carica_gerarchia, macro_temi
 
 logger = setup_logger(__name__)
 
@@ -48,6 +49,7 @@ MIN_TOPIC_SIZE = 8    # documenti minimi per formare un cluster (HDBSCAN)
 SEED = 42             # riproducibilità UMAP
 _N_PAROLE = 8
 _N_ESEMPI = 3
+_QUOTA_COPERTURA = 0.5   # quota di documenti del topic già etichettati con un tema
 
 # Residui HTML/RSS che sporcano SOLO le etichette dei topic (non sono contenuto):
 # 'ecl'/'icon'/'cnt' = classi CSS Europa Component Library (EDRi), 'noreferrer'/
@@ -71,13 +73,53 @@ def _carica_documenti() -> pd.DataFrame:
             testo = f"{r.get('titolo', '')} {r.get('testo_completo', '')}".strip()
             if len(testo) < 20:
                 continue
+            temi_doc = r.get('temi_rilevati', '')
             righe.append({
                 'testo': testo,
                 'titolo': str(r.get('titolo', ''))[:120],
                 'fonte': fonte,
                 'data': r.get('data_pubblicazione', r.get('Data', r.get('data', ''))),
+                'temi': {t for t in str(temi_doc).split('|') if t} if pd.notna(temi_doc) else set(),
             })
     return pd.DataFrame(righe)
+
+
+def confronta_con_temi(topics, temi_per_doc, gerarchia: dict[str, str],
+                       macro: list[str]) -> dict[int, dict]:
+    """Per ogni topic, quanto è già coperto dal registro dei temi.
+
+    Si basa sui temi GIÀ assegnati ai suoi documenti dalla pipeline (colonna
+    temi_rilevati): nessuna nuova similarità da calibrare, e il giudizio è
+    spiegabile ("il 70% dei suoi documenti ha già il tema X").
+      - coperto            : un sotto-tema esistente copre >= metà dei documenti
+      - candidato_sottotema: un macro-tema copre >= metà dei documenti, ma nessun
+                             sotto-tema -> proposto come sotto-tema di quel padre
+      - fuori_lessico      : nessun tema copre metà dei documenti -> tema nuovo?
+    """
+    esito: dict[int, dict] = {}
+    for tid in sorted({t for t in topics if t != -1}):
+        docs = [temi_per_doc[i] for i, t in enumerate(topics) if t == tid]
+        n = len(docs)
+
+        def quota(tema):
+            return sum(1 for d in docs if tema in d) / n
+
+        sotto = max(((s, quota(s)) for s in gerarchia), key=lambda x: x[1], default=('', 0.0))
+        padre = max(((m, quota(m)) for m in macro), key=lambda x: x[1], default=('', 0.0))
+        if sotto[1] >= _QUOTA_COPERTURA:
+            valutazione = 'coperto'
+        elif padre[1] >= _QUOTA_COPERTURA:
+            valutazione = 'candidato_sottotema'
+        else:
+            valutazione = 'fuori_lessico'
+        esito[tid] = {
+            'padre_proposto': padre[0] if padre[1] > 0 else '',
+            'quota_padre': round(padre[1], 2),
+            'sottotema_esistente': sotto[0] if sotto[1] > 0 else '',
+            'quota_sottotema': round(sotto[1], 2),
+            'valutazione': valutazione,
+        }
+    return esito
 
 
 def _costruisci_modello(min_topic_size: int, seed: int):
@@ -121,8 +163,10 @@ def scopri_topic(docs: list[str], min_topic_size: int = MIN_TOPIC_SIZE, seed: in
     return model, topics
 
 
-def costruisci_report(model, topics, titoli, fonti) -> pd.DataFrame:
-    """Un topic per riga: dimensione, parole distintive, titoli d'esempio, fonti."""
+def costruisci_report(model, topics, titoli, fonti, copertura=None) -> pd.DataFrame:
+    """Un topic per riga: dimensione, parole distintive, titoli d'esempio, fonti
+    e (se fornito) il confronto con il registro dei temi."""
+    copertura = copertura or {}
     righe = []
     for tid in sorted({t for t in topics if t != -1}):
         parole = [w for w, _ in (model.get_topic(tid) or [])][:_N_PAROLE]
@@ -135,6 +179,7 @@ def costruisci_report(model, topics, titoli, fonti) -> pd.DataFrame:
             'parole_chiave': ', '.join(parole),
             'titoli_esempio': ' | '.join(esempi),
             'fonti': ', '.join(fonti_topic),
+            **copertura.get(tid, {}),
         })
     return pd.DataFrame(righe).sort_values('dimensione', ascending=False)
 
@@ -167,8 +212,10 @@ def main():
                 len(docs_df), args.min_topic)
     model, topics = scopri_topic(docs_df['testo'].tolist(), args.min_topic)
 
+    copertura = confronta_con_temi(topics, docs_df['temi'].tolist(),
+                                   carica_gerarchia(), macro_temi())
     report = costruisci_report(model, topics, docs_df['titolo'].tolist(),
-                               docs_df['fonte'].tolist())
+                               docs_df['fonte'].tolist(), copertura)
     trend = costruisci_trend(topics, docs_df['data'].tolist())
 
     report.to_csv(REPORT_TOPIC, index=False)
@@ -177,7 +224,8 @@ def main():
                 REPORT_TOPIC, len(report), REPORT_TREND)
     print(f"\nTopic emergenti scoperti: {len(report)}")
     for _, r in report.head(12).iterrows():
-        print(f"  #{r['topic_id']:>2} ({r['dimensione']:>3} doc)  {r['parole_chiave']}")
+        print(f"  #{r['topic_id']:>2} ({r['dimensione']:>3} doc)  [{r.get('valutazione', '')}"
+              f" → {r.get('padre_proposto', '')}]  {r['parole_chiave']}")
 
 
 if __name__ == "__main__":

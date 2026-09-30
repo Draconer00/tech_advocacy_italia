@@ -1,9 +1,10 @@
 """
 Dashboard Streamlit del progetto: aggrega i dati NLP-processati (SQLite +
-CSV di fallback) e li presenta attraverso sei viste analitiche (rassegna
+CSV di fallback) e li presenta attraverso sette viste analitiche (rassegna
 giornaliera, campagne ONG, provvedimenti del Garante, network tematico,
-mappa di posizionamento, analisi temporale), con interfacce di correzione
-umana che alimentano l'active learning del classificatore di urgenza.
+mappa di posizionamento, analisi temporale, topic emergenti), con interfacce di
+correzione umana che alimentano l'active learning del classificatore di urgenza
+e la gestione dei sotto-temi del registro temi.
 """
 import streamlit as st
 import pandas as pd
@@ -27,6 +28,10 @@ from scrapers.scraper_ong import PROFILI_ONG
 from utils.feedback_schema import append_correzioni, load_feedback
 from utils.ong_profile import carica_profilo_keywords_ong, salva_profilo_keywords_ong
 from utils.ong_manual_entries import carica_documenti_manuali, salva_documento_manuale
+from nlp.theme_matching import (
+    STATI as STATI_TEMA, SOGLIA_SOTTOTEMA,
+    carica_temi as carica_temi_registro, carica_registro_temi, salva_registro_temi,
+)
 from spacy.lang.it.stop_words import STOP_WORDS as STOPWORD_IT
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
@@ -281,28 +286,24 @@ def carica_dati_feeds():
 
 @st.cache_data
 def carica_temi() -> dict:
-    """Lessico curato dei temi tech/diritti digitali per l'analisi delle tendenze.
-    Config editabile in data/utils/temi.csv (colonne: tema, termini separati da '|').
-    Un documento "tratta" un tema se il suo testo contiene uno dei termini.
-    Deterministico e spiegabile (regola CLAUDE.md), robusto al rumore dei token grezzi."""
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso = os.path.join(cartella_script, '..', 'data', 'utils', 'temi.csv')
-    temi: dict[str, list[str]] = {}
-    if os.path.exists(percorso):
-        df_temi = pd.read_csv(percorso)
-        for _, r in df_temi.iterrows():
-            nome = str(r.get('tema', '')).strip()
-            termini = [t.strip().lower() for t in str(r.get('termini', '')).split('|') if t.strip()]
-            if nome and termini:
-                temi[nome] = termini
-    if not temi:
-        # Fallback minimo se la config manca
-        temi = {
-            'Privacy e Dati': ['privacy', 'gdpr', 'dati personali'],
-            'Intelligenza Artificiale': ['intelligenza artificiale', 'ai act', 'algoritm'],
-            'Sorveglianza': ['sorveglian', 'telecamer', 'biometr'],
-        }
-    return temi
+    """Temi attivi del registro (data/utils/temi.csv) -> termini-seme.
+    Unico punto di definizione in nlp/theme_matching.py, condiviso con la pipeline.
+    Qui serve solo al fallback lessicale per CSV processati pre-feature."""
+    return carica_temi_registro()
+
+
+@st.cache_data
+def carica_registro() -> pd.DataFrame:
+    """Registro completo dei temi (macro + sotto-temi, tutti gli stati)."""
+    return carica_registro_temi()
+
+
+# Esito del confronto topic scoperto ↔ registro temi (nlp/topic_discovery.py)
+ETICHETTE_VALUTAZIONE_TOPIC = {
+    'coperto': '✅ già coperto',
+    'candidato_sottotema': '🟡 candidato sotto-tema',
+    'fuori_lessico': '🔴 fuori lessico',
+}
 
 
 @st.cache_data
@@ -1655,11 +1656,39 @@ with tab_analisi_temporale:
         # quindi qui si legge soltanto: nessun ricalcolo a runtime. Il caricatore
         # temporale garantisce la colonna anche per eventuali CSV pre-feature
         # (fallback lessicale), così questo blocco resta uniforme.
+        # Livello: i macro-temi sono stabili (serie confrontabili nel lungo
+        # periodo); i sotto-temi sono aggiunti nel tempo dal registro.
+        reg_temi = carica_registro()
+        reg_attivi = reg_temi[reg_temi['stato'] == 'attivo']
+        macro_set = set(reg_attivi[reg_attivi['padre'] == '']['tema'])
+        sotto_attivi = reg_attivi[reg_attivi['padre'] != '']
+        livello = st.radio(
+            "Livello", ["Macro-temi", "Sotto-temi", "Tutti"], horizontal=True,
+            key="livello_temi_trend",
+            help="I macro-temi includono anche i documenti dei loro sotto-temi.",
+        )
+        if livello == "Macro-temi":
+            ammessi = macro_set
+        elif livello == "Sotto-temi":
+            ammessi = set(sotto_attivi['tema'])
+        else:
+            ammessi = None
+        if livello != "Macro-temi" and not sotto_attivi.empty:
+            st.caption(
+                "Sotto-temi introdotti nel tempo: " + "; ".join(
+                    f"**{r['tema']}** (in {r['padre']}, dal {r['dal'] or 'n.d.'})"
+                    for _, r in sotto_attivi.iterrows()
+                ) + ". Il trend è **retroattivo**: la pipeline riapplica il registro a tutto "
+                "lo storico, quindi i mesi precedenti all'introduzione sono ricostruiti a posteriori."
+            )
+        elif livello == "Sotto-temi":
+            st.info("Nessun sotto-tema attivo. Puoi crearne uno dalla scheda 🔬 Topic Emergenti.")
+
         righe_temi = []
         for _, riga in df_filtrato_temp.iterrows():
             mese_str = riga['data'].to_period('M').strftime('%Y-%m')
             for tema in str(riga.get('temi_rilevati', '') or '').split('|'):
-                if tema:
+                if tema and (ammessi is None or tema in ammessi):
                     righe_temi.append({'mese': mese_str, 'tema': tema})
 
         if not righe_temi:
@@ -1799,13 +1828,29 @@ with tab_topic:
 
         st.subheader("Topic per dimensione")
         st.caption("Ogni riga è un cluster scoperto: le parole distintive (c-TF-IDF) e i "
-                   "titoli d'esempio ti dicono di cosa parla. Le fonti mostrano da dove arriva.")
+                   "titoli d'esempio ti dicono di cosa parla. Le fonti mostrano da dove arriva. "
+                   "**Confronto con i temi**: quota dei documenti del topic a cui la pipeline ha "
+                   "già assegnato un tema — ✅ già coperto da un sotto-tema, 🟡 dentro un macro-tema "
+                   "ma senza sotto-tema (candidato), 🔴 nessun tema lo copre.")
+        df_vista = df_topic.copy()
+        if 'valutazione' in df_vista.columns:
+            df_vista['valutazione'] = df_vista['valutazione'].map(ETICHETTE_VALUTAZIONE_TOPIC)
+        else:
+            st.caption("ℹ️ Report generato prima del confronto con i temi: rilancia "
+                       "`nlp/topic_discovery.py` per vedere la colonna di valutazione.")
         st.dataframe(
-            df_topic.rename(columns={
+            df_vista.rename(columns={
                 'topic_id': 'ID', 'dimensione': 'N. doc',
                 'parole_chiave': 'Parole distintive',
                 'titoli_esempio': 'Titoli di esempio', 'fonti': 'Fonti',
+                'valutazione': 'Confronto con i temi', 'padre_proposto': 'Macro-tema prevalente',
+                'quota_padre': 'Quota macro', 'sottotema_esistente': 'Sotto-tema prevalente',
+                'quota_sottotema': 'Quota sotto-tema',
             }),
+            column_config={
+                'Quota macro': st.column_config.ProgressColumn(format="%.0f%%", min_value=0, max_value=1),
+                'Quota sotto-tema': st.column_config.ProgressColumn(format="%.0f%%", min_value=0, max_value=1),
+            },
             hide_index=True, width='stretch',
         )
 
@@ -1835,6 +1880,138 @@ with tab_topic:
                 fig_topic.update_layout(hovermode='x unified', xaxis=dict(tickangle=-45))
                 st.plotly_chart(fig_topic, width='stretch')
 
-        st.caption("💡 Trovi un cluster ricorrente e rilevante non ancora nel lessico? "
-                   "Aggiungilo come tema in `data/utils/temi.csv`: da lì il matcher affidabile "
-                   "lo traccerà con precisione, senza le oscillazioni di BERTopic.")
+    # ==========================================
+    # GESTIONE SOTTO-TEMI (registro data/utils/temi.csv)
+    # Ciclo: BERTopic SCOPRE -> l'operatore APPROVA qui -> il matcher TRACCIA.
+    # I macro-temi restano fissi (serie confrontabili e codebook del gold set);
+    # qui si gestiscono solo i sotto-temi. Nessuna cancellazione: un sotto-tema
+    # si "dismette" (stato) così la sua storia resta nel registro.
+    # ==========================================
+    st.divider()
+    st.subheader("🗂️ Sotto-temi")
+    st.markdown(
+        "Un **sotto-tema** specializza uno degli 8 macro-temi (es. *Chat Control* dentro "
+        "*Chat e Messaggistica*). I documenti che lo trattano contano anche per il suo "
+        "macro-tema. Le modifiche vengono salvate in `data/utils/temi.csv` (con backup) "
+        "e si applicano al prossimo `python nlp/text_analysis.py`, **retroattivamente** su "
+        "tutto lo storico."
+    )
+
+    if msg := st.session_state.pop('msg_registro_temi', None):
+        st.success(msg)
+
+    registro = carica_registro()
+    macro_attivi = registro[(registro['padre'] == '') & (registro['stato'] == 'attivo')]['tema'].tolist()
+
+    def _salva_registro(df_nuovo: pd.DataFrame, messaggio: str) -> None:
+        """Salva via nlp.theme_matching (validazione + backup) e ricarica la vista."""
+        try:
+            backup = salva_registro_temi(df_nuovo)
+        except ValueError as err:
+            st.error("Registro non salvato, correggi questi punti:\n\n" +
+                     "\n".join(f"- {e}" for e in str(err).splitlines()))
+            return
+        carica_registro.clear()
+        carica_temi.clear()
+        st.session_state['msg_registro_temi'] = (
+            messaggio + (f" Backup della versione precedente: `{os.path.basename(backup)}`."
+                         if backup else "") +
+            " Rilancia `python nlp/text_analysis.py` per applicarlo ai documenti."
+        )
+        st.rerun()
+
+    # --- Nuovo sotto-tema (da un topic scoperto o manuale) ---
+    with st.expander("➕ Nuovo sotto-tema", expanded=False):
+        opzioni_topic = [None]
+        if not df_topic.empty:
+            ordine = {'fuori_lessico': 0, 'candidato_sottotema': 1, 'coperto': 2}
+            df_ord = df_topic.copy()
+            if 'valutazione' in df_ord.columns:
+                df_ord = df_ord.assign(_o=df_ord['valutazione'].map(ordine).fillna(3)) \
+                               .sort_values(['_o', 'dimensione'], ascending=[True, False])
+            opzioni_topic += df_ord['topic_id'].astype(int).tolist()
+        righe_topic = {int(r['topic_id']): r for _, r in df_topic.iterrows()} if not df_topic.empty else {}
+
+        def _etichetta_topic(tid):
+            if tid is None:
+                return "— Manuale (nessun topic) —"
+            r = righe_topic[tid]
+            val = ETICHETTE_VALUTAZIONE_TOPIC.get(r.get('valutazione'), '')
+            return f"#{tid} · {', '.join(str(r['parole_chiave']).split(', ')[:3])} · {val}"
+
+        tid = st.selectbox("Parti da un topic scoperto", opzioni_topic,
+                           format_func=_etichetta_topic, key="nuovo_sottotema_topic")
+        sorgente = righe_topic.get(tid)
+        parole = str(sorgente['parole_chiave']).split(', ') if sorgente is not None else []
+        if sorgente is not None:
+            st.caption(f"Titoli d'esempio: {sorgente['titoli_esempio']}")
+            if sorgente.get('valutazione') == 'coperto':
+                st.warning(f"Questo topic è già coperto dal sotto-tema "
+                           f"«{sorgente.get('sottotema_esistente')}».")
+
+        padre_default = sorgente.get('padre_proposto') if sorgente is not None else None
+        with st.form(f"form_sottotema_{tid}"):
+            nome = st.text_input("Nome del sotto-tema",
+                                 value=' '.join(parole[:2]).title() if parole else '')
+            padre = st.selectbox(
+                "Macro-tema padre", macro_attivi,
+                index=macro_attivi.index(padre_default) if padre_default in macro_attivi else 0,
+            )
+            termini = st.text_area(
+                "Termini-seme (uno per riga)", value='\n'.join(parole),
+                help="Un documento ha il sotto-tema se contiene uno di questi termini (match "
+                     "esatto) o se gli è semanticamente vicino. Le parole di BERTopic sono solo un "
+                     "punto di partenza: tieni quelle specifiche, togli quelle generiche. "
+                     "Minimo 3 caratteri; una radice come 'sorveglian' copre più desinenze.",
+            )
+            soglia = st.slider(
+                "Soglia semantica", 0.30, 1.0, SOGLIA_SOTTOTEMA, 0.01,
+                help="Più alta = più preciso, meno documenti. 1.0 = solo match esatto dei termini.",
+            )
+            stato = st.radio("Stato", ['attivo', 'candidato'], horizontal=True,
+                             help="'candidato' lo salva nel registro senza ancora rilevarlo.")
+            if st.form_submit_button("💾 Aggiungi sotto-tema", type="primary"):
+                origine = (f"bertopic#{tid}: {', '.join(parole[:3])}" if sorgente is not None
+                           else 'manuale')
+                nuova = pd.DataFrame([{
+                    'tema': nome.strip(), 'termini': '|'.join(termini.splitlines()),
+                    'soglia': soglia, 'padre': padre, 'stato': stato,
+                    'dal': datetime.now().strftime('%Y-%m-%d'), 'origine': origine,
+                }])
+                _salva_registro(pd.concat([registro, nuova], ignore_index=True),
+                                f"Sotto-tema «{nome.strip()}» aggiunto a «{padre}».")
+
+    # --- Modifica dei sotto-temi esistenti ---
+    sotto = registro[registro['padre'] != ''].copy()
+    if sotto.empty:
+        st.info("Nessun sotto-tema ancora registrato.")
+    else:
+        st.caption("Modifica direttamente nella tabella. Per ritirare un sotto-tema imposta lo "
+                   "stato su **dismesso**: smette di essere rilevato ma resta nel registro.")
+        sotto_mod = st.data_editor(
+            sotto,
+            column_config={
+                'tema': st.column_config.TextColumn("Sotto-tema", required=True),
+                'termini': st.column_config.TextColumn("Termini (separati da |)", width="large", required=True),
+                'soglia': st.column_config.NumberColumn("Soglia", min_value=0.30, max_value=1.0,
+                                                        step=0.01, format="%.2f"),
+                'padre': st.column_config.SelectboxColumn("Macro-tema", options=macro_attivi, required=True),
+                'stato': st.column_config.SelectboxColumn("Stato", options=list(STATI_TEMA), required=True),
+                'dal': st.column_config.TextColumn("Dal", disabled=True),
+                'origine': st.column_config.TextColumn("Origine", disabled=True),
+            },
+            hide_index=True, width='stretch', num_rows="fixed", key="editor_sottotemi",
+        )
+        if st.button("💾 Salva modifiche ai sotto-temi", type="primary"):
+            if sotto_mod.reset_index(drop=True).equals(sotto.reset_index(drop=True)):
+                st.info("Nessuna modifica da salvare.")
+            else:
+                macro_righe = registro[registro['padre'] == '']
+                _salva_registro(pd.concat([macro_righe, sotto_mod], ignore_index=True),
+                                "Sotto-temi aggiornati.")
+
+    with st.expander("Macro-temi (sola lettura)"):
+        st.caption("Sono il riferimento stabile per i trend e per il gold set: si modificano "
+                   "solo in `data/utils/temi.csv`, con una decisione esplicita.")
+        st.dataframe(registro[registro['padre'] == ''][['tema', 'termini', 'soglia', 'stato', 'dal']],
+                     hide_index=True, width='stretch')

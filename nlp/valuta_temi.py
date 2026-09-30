@@ -43,7 +43,8 @@ try:
 except Exception:
     pass
 
-from nlp.theme_matching import carica_temi, carica_soglie, temi_lessicali, matrice_similarita
+from nlp.theme_matching import (carica_temi, carica_soglie, carica_gerarchia, macro_temi,
+                                temi_lessicali, matrice_similarita)
 from nlp.deduplication import get_embedding_model
 
 _DIR_PROCESSED = os.path.join(_ROOT, 'data', 'processed')
@@ -202,12 +203,18 @@ def valuta_gold(docs_df, temi, etichette, sim, percorso_gold, soglie):
         return
     testi = docs_df['testo'].tolist()
     lex = [set(temi_lessicali(testi[i], temi)) for i in range(len(testi))]
+    # Stessa regola della pipeline: un sotto-tema implica il padre. Si valutano
+    # solo i temi che il gold può giudicare (macro-temi + quelli usati nelle
+    # etichette): un sotto-tema mai etichettato non è un falso positivo.
+    padre_di = carica_gerarchia()
+    universo = set(macro_temi()) | {t for v in atteso.values() for t in v}
     print(f"\n=== GOLD — precision/recall/F1 su {len(idx_gold)} documenti etichettati ===\n")
     print("soglia   precision   recall     F1")
     for s in soglie:
         tp = fp = fn = 0
         for i in idx_gold:
             pred = lex[i] | _temi_semantici(sim[i], etichette, s)
+            pred = (pred | {padre_di[t] for t in pred if t in padre_di}) & universo
             veri = atteso[docs_df['id'].iloc[i]]
             tp += len(pred & veri)
             fp += len(pred - veri)

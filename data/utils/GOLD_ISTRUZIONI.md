@@ -50,6 +50,10 @@ indica l'ambito; i termini tra parentesi vengono da `temi.csv`.
 | `Minori` | tutela dei minori online, verifica dell'età |
 | `Chat e Messaggistica` | app di messaggistica, crittografia end-to-end, Chat Control |
 
+Il gold set si etichetta **solo con questi 8 macro-temi**, anche quando nel
+registro esistono sotto-temi: la previsione di un sotto-tema viene contata come
+previsione del suo macro-tema padre.
+
 Sovrapposizioni frequenti:
 - un provvedimento del Garante su un sistema di IA va sia in `Privacy e Dati` sia
   in `Intelligenza Artificiale`, se entrambi gli aspetti sono centrali;

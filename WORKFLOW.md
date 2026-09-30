@@ -115,7 +115,7 @@ Opens the interactive dashboard at `http://localhost:8501`.
 python nlp/topic_discovery.py
 ```
 
-Runs unsupervised topic discovery (BERTopic: shared MiniLM embeddings → UMAP → HDBSCAN → c-TF-IDF) over all processed documents and writes `data/processed/topic_emergenti.csv` + `topic_emergenti_trend.csv`, which the dashboard's **Topic Emergenti** tab reads. Kept **separate from `run_pipeline.py`** on purpose: the clustering is statistical and can shift between runs, so it's a periodic exploratory pass, not a per-run step. Use it to spot emergent themes worth promoting into `data/utils/temi.csv`. Options: `--min-topic N` (minimum documents per cluster, default 8).
+Runs unsupervised topic discovery (BERTopic: shared MiniLM embeddings → UMAP → HDBSCAN → c-TF-IDF) over all processed documents and writes `data/processed/topic_emergenti.csv` + `topic_emergenti_trend.csv`, which the dashboard's **Topic Emergenti** tab reads. Kept **separate from `run_pipeline.py`** on purpose: the clustering is statistical and can shift between runs, so it's a periodic exploratory pass, not a per-run step. Each topic is compared with the themes already assigned to its documents (✅ covered by a sub-theme / 🟡 inside a macro-theme, sub-theme candidate / 🔴 outside the lexicon). Promote a topic to a **sub-theme** from the dashboard tab (or edit `data/utils/temi.csv` by hand), then rerun `python nlp/text_analysis.py` to apply it — retroactively — to all documents. Options: `--min-topic N` (minimum documents per cluster, default 8).
 
 ---
 

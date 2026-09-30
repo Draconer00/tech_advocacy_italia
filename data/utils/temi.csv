@@ -1,9 +1,9 @@
-tema,termini,soglia
-Privacy e Dati,privacy|dati personali|gdpr|data protection|data breach|violazione dei dati|trattamento dei dati|profilazione,0.50
-Intelligenza Artificiale,intelligenza artificiale|ai act|machine learning|algoritm|chatbot|deepfake|modello linguistico|generativa,0.50
-Sorveglianza,sorveglian|videosorveglian|telecamer|riconoscimento faccial|biometr|tracciament|spyware|captatore|geolocalizz,0.52
-Cybersicurezza,cybersecurity|sicurezza informatica|ransomware|attacco informatico|vulnerabilit|malware|data leak,0.55
-Piattaforme e Contenuti,dsa|dma|moderazione|disinformazione|piattaform|social network|fake news,0.50
-Diritti Digitali,diritti digitali|censura|libertà di espressione|net neutrality|accesso a internet|sorveglianza di massa,0.58
-Minori,tutela dei minori|verifica dell'età|protezione dei minori|minori online,0.55
-Chat e Messaggistica,messaggistica|whatsapp|telegram|crittografia|cifratura|end-to-end|chat control,0.50
+tema,termini,soglia,padre,stato,dal,origine
+Privacy e Dati,privacy|dati personali|gdpr|data protection|data breach|violazione dei dati|trattamento dei dati|profilazione,0.50,,attivo,2026-09-20,manuale
+Intelligenza Artificiale,intelligenza artificiale|ai act|machine learning|algoritm|chatbot|deepfake|modello linguistico|generativa,0.50,,attivo,2026-09-20,manuale
+Sorveglianza,sorveglian|videosorveglian|telecamer|riconoscimento faccial|biometr|tracciament|spyware|captatore|geolocalizz,0.52,,attivo,2026-09-20,manuale
+Cybersicurezza,cybersecurity|sicurezza informatica|ransomware|attacco informatico|vulnerabilit|malware|data leak,0.55,,attivo,2026-09-20,manuale
+Piattaforme e Contenuti,dsa|dma|moderazione|disinformazione|piattaform|social network|fake news,0.50,,attivo,2026-09-20,manuale
+Diritti Digitali,diritti digitali|censura|libertà di espressione|net neutrality|accesso a internet|sorveglianza di massa,0.58,,attivo,2026-09-20,manuale
+Minori,tutela dei minori|verifica dell'età|protezione dei minori|minori online,0.55,,attivo,2026-09-20,manuale
+Chat e Messaggistica,messaggistica|whatsapp|telegram|crittografia|cifratura|end-to-end|chat control,0.50,,attivo,2026-09-20,manuale

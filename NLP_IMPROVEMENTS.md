@@ -59,6 +59,7 @@ Incorporate structured first-person input from monitored organisations (position
 | TF-IDF keyword extraction (bilingual IT/EN stop words, HTML/web junk excluded) | Implemented |
 | Curated theme lexicon for temporal trends (`data/utils/temi.csv`) | Implemented (2026-09-20) |
 | Hybrid theme tagging (exact lexical + semantic embedding, `nlp/theme_matching.py`) | Implemented (2026-09-20) — per-theme semantic thresholds in `temi.csv` (`soglia` column), calibrated via `nlp/valuta_temi.py` |
+| Two-level theme registry (8 stable macro-themes + dynamic sub-themes; `padre`/`stato`/`dal`/`origine` columns in `temi.csv`) | Implemented (2026-09-30) — sub-theme match implies its parent (`metodo: da_sottotema`); BERTopic topics compared against existing themes (covered / sub-theme candidate / outside lexicon); sub-themes created and edited from the dashboard "Topic Emergenti" tab, with validation and backup |
 | Theme gold set for objective P/R/F1 tuning | Scaffold ready (`nlp/prepara_gold.py` → `data/utils/temi_gold_worksheet.csv`, 129 docs); awaiting human labeling, then `valuta_temi.py --gold` |
 | Fuzzy deduplication (SequenceMatcher) | Implemented |
 | Semantic deduplication (sentence-transformers) | Implemented |

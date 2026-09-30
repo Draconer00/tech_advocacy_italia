@@ -11,6 +11,9 @@ data/raw/
 data/processed/*
 data/*.db*
 data/snapshots/
+# Backup locali del registro temi creati dalla dashboard (la storia versionata
+# di data/utils/temi.csv è già in git)
+data/utils/backup_temi/
 
 # Eccezione: le correzioni umane della dashboard (Gold Standard per l'active
 # learning) sono poche righe di label curate, non dati grezzi scraped — le
