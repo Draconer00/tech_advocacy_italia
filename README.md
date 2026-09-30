@@ -31,7 +31,11 @@ tech_advocacy_italia/
 │   # planned: scraper_gdpr_fines.py — structured GDPR sanctions layer (GDPRhub / enforcementtracker)
 │
 ├── nlp/                       ← NLP processing layer
-│   └── text_analysis.py       ← spaCy NER, TF-IDF, sentiment, active learning
+│   ├── text_analysis.py       ← spaCy NER, TF-IDF, sentiment, active learning (main pipeline)
+│   ├── theme_matching.py      ← theme registry (macro-themes + sub-themes) and hybrid theme tagging
+│   ├── topic_discovery.py     ← BERTopic discovery layer, compares topics with the theme registry (offline)
+│   ├── valuta_temi.py         ← theme-threshold calibration and gold-set evaluation (P/R/F1)
+│   └── prepara_gold.py        ← generates the stratified gold-set annotation worksheet
 │
 ├── app/
 │   └── dashboard.py           ← Streamlit interactive dashboard (7 tabs)
@@ -39,7 +43,8 @@ tech_advocacy_italia/
 ├── data/
 │   ├── raw/                   ← Append-only raw CSV files (git-ignored)
 │   ├── processed/             ← NLP-enriched CSV + SQLite database (git-ignored)
-│   └── utils/                 ← config (tracked): nlp_blacklist.csv, feeds.csv (RSS registry), temi.csv (theme lexicon)
+│   └── utils/                 ← config (tracked): nlp_blacklist.csv, feeds.csv (RSS registry), temi.csv (theme registry),
+│                                 temi_gold_worksheet.csv + GOLD_ISTRUZIONI.md (theme gold set and labeling guide)
 │
 ├── run_pipeline.py            ← Single-command full pipeline execution
 └── requirements.txt
@@ -79,7 +84,47 @@ Each document is processed through the following stages:
 5. **Fuzzy deduplication** — `SequenceMatcher` at threshold 0.85
 6. **Entity linking** — keyword-overlap scoring against NGO profile registry
 7. **Urgency index** — 1–5 score via sentence-transformers embeddings + active learning classifier
-8. **Thematic tagging (hybrid)** — each document is tagged with digital-rights themes using a curated lexicon (`data/utils/temi.csv`): an **exact** substring match (high precision, deterministic) plus a **semantic** embedding match (sentence-transformers cosine ≥ threshold) that recovers synonyms, paraphrases, and other languages the literal match misses. Method (`esatto`/`semantico`), score, and matched seed term are stored per tag so the classification stays auditable. The lexicon has **two levels**: 8 stable macro-themes (comparable long-term trends) and **sub-themes** added over time (`padre`, `stato`, `dal`, `origine` columns). A sub-theme match also tags its parent (`metodo: da_sottotema`); since processed data is regenerated from raw on every run, a new sub-theme applies retroactively to the whole archive
+8. **Thematic tagging (hybrid)** — each document is tagged with digital-rights themes using a curated lexicon (`data/utils/temi.csv`): an **exact** substring match (high precision, deterministic) plus a **semantic** embedding match (sentence-transformers cosine ≥ threshold) that recovers synonyms, paraphrases, and other languages the literal match misses. Method (`esatto`/`semantico`/`da_sottotema`), score, and matched seed term are stored per tag so the classification stays auditable. Themes are organised in two levels (macro-themes and sub-themes) — see [Themes and Sub-themes](#themes-and-sub-themes)
+
+---
+
+## Themes and Sub-themes
+
+The theme registry (`data/utils/temi.csv`) has **two levels**, so the lexicon can grow with the public debate without breaking long-term comparability:
+
+| Level | What it is | How it changes |
+|-------|------------|----------------|
+| **Macro-themes** (8) | Privacy e Dati, Intelligenza Artificiale, Sorveglianza, Cybersicurezza, Piattaforme e Contenuti, Diritti Digitali, Minori, Chat e Messaggistica | Stable. They are the reference for long-term trends and the codebook of the theme gold set; changed only by editing the CSV, as an explicit decision |
+| **Sub-themes** | Specific issues inside a macro-theme (e.g. *Chat Control* inside *Chat e Messaggistica*) | Added, edited and retired over time from the dashboard |
+
+Each registry row records its own history:
+
+| Column | Meaning |
+|--------|---------|
+| `tema`, `termini`, `soglia` | Name, seed terms (`\|`-separated, min. 3 characters), semantic threshold (0.30–1.0; `1.0` = exact matches only) |
+| `padre` | Empty for macro-themes; the parent macro-theme for sub-themes (two levels only) |
+| `stato` | `attivo` (tagged), `candidato` (saved, not yet tagged), `dismesso` (retired — kept for history, never deleted) |
+| `dal` | Date the theme was introduced |
+| `origine` | `manuale`, or `bertopic#N: keywords` when promoted from a discovered topic |
+
+**Lifecycle: discover → approve → track.**
+
+```
+topic_discovery.py (BERTopic)  →  topic compared with existing themes  →  operator promotes it (dashboard)
+        ▲                                                                            │
+        │                                                                            ▼
+        └───────────  text_analysis.py tags every document, retroactively  ←  temi.csv (validated, backed up)
+```
+
+1. `nlp/topic_discovery.py` clusters the corpus and, for each topic, checks the themes the pipeline already assigned to its documents: ✅ *already covered* by a sub-theme, 🟡 *sub-theme candidate* (inside a macro-theme, no sub-theme yet), 🔴 *outside the lexicon* (no theme covers at least half of its documents).
+2. In the **Topic Emergenti** tab the operator promotes a topic to a sub-theme (name, parent and seed terms are pre-filled from the topic's keywords and must be reviewed), or creates one manually, and edits or retires existing sub-themes. Every save is validated (unique names, valid parent, no too-short terms, threshold range) and the previous registry is backed up to `data/utils/backup_temi/` (git-ignored; the versioned history is in git).
+3. The next `python nlp/text_analysis.py` run applies the change. A document tagged with a sub-theme is also tagged with its parent (`metodo: da_sottotema`), so macro-theme trends stay complete.
+
+**Methodology notes.**
+- **Retroactive by design.** Processed data is regenerated from the append-only raw archive on every run, so a new sub-theme is applied to the whole history, not only to new documents. The dashboard shows each sub-theme's introduction date, so the reader knows that the earlier part of its trend was reconstructed after the fact.
+- **BERTopic proposes, a person decides.** Topics are statistical and can shift between runs; nothing enters the registry without explicit human approval.
+- **New sub-themes are uncalibrated.** Their default threshold (0.55) has not been measured against labeled data. Starting at `1.0` (exact terms only) is the conservative choice until the gold set covers them.
+- **The gold set is labeled with macro-themes only.** When evaluating, a sub-theme prediction counts as a prediction of its parent.
 
 ---
 
@@ -94,7 +139,7 @@ The Streamlit dashboard provides seven analytical views:
 | Provvedimenti Garante | Italian Data Protection Authority decisions, filterable by geography and alert level |
 | Network Temi | Force-directed graph: NGOs → focus topics → recent documents, with an editable curated keyword profile per NGO to improve topic matching |
 | Mappa Posizionamento | 2D Cartesian map: Italy↔Global (X) × Technical↔Legal (Y) |
-| Analisi Temporale | Monthly document volume and **theme trends over time** — themes are matched against a curated lexicon (`data/utils/temi.csv`: Privacy, AI, Surveillance, …) rather than raw TF-IDF tokens, so the trend lines track meaningful topics instead of frequent-but-noisy words |
+| Analisi Temporale | Monthly document volume and **theme trends over time** — themes are matched against a curated lexicon (`data/utils/temi.csv`: Privacy, AI, Surveillance, …) rather than raw TF-IDF tokens, so the trend lines track meaningful topics instead of frequent-but-noisy words. A selector switches between macro-themes, sub-themes or both; each sub-theme shows its introduction date |
 | Topic Emergenti | **Unsupervised topic discovery** (BERTopic): clusters the corpus into emergent topics *not* defined in the lexicon, with distinctive keywords, example documents, and monthly trends. Explicitly exploratory (statistical, may shift between runs) and kept distinct from the curated theme trends; each topic is compared with the existing themes (already covered / sub-theme candidate / outside the lexicon), and the operator can **promote a topic to a sub-theme** or edit/retire sub-themes directly from this tab (validated, with backup). Report generated offline by `nlp/topic_discovery.py` |
 
 ### Source categories (facts vs. opinion)
@@ -135,6 +180,8 @@ Columns added by `text_analysis.py` on top of each source's raw schema:
 All model outputs are correctable from the dashboard. Corrections are appended to `data/processed/training_data_feedback.csv` — the only piece of scraped-data `data/` versioned in the repo, since it's curated ground truth rather than scraped raw data — and used to retrain the urgency classifier on the next pipeline run (locally via `run_pipeline.py`, or in CI once the corrections are committed and pushed). This creates a continuous improvement loop without requiring changes to the pipeline code.
 
 Two smaller human-curated inputs work the same way, each kept in its own file so the append-only NLP-generated CSVs are never hand-edited: NGO documents added manually from the Campagne ONG tab (`data/processed/ong_manual_entries.csv`, merged in at read time by the dashboard) and the per-NGO curated keyword profile used by the Network Temi tab (`data/config/ong_keywords_profilo.csv`, timestamped backup on every edit).
+
+The theme registry follows the same principle: sub-themes are curated by a person from the Topic Emergenti tab (see [Themes and Sub-themes](#themes-and-sub-themes)), and the theme gold set (`data/utils/temi_gold_worksheet.csv`) is labeled by hand following `data/utils/GOLD_ISTRUZIONI.md`. Neither is ever filled in automatically.
 
 ---
 

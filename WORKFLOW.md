@@ -119,6 +119,36 @@ Runs unsupervised topic discovery (BERTopic: shared MiniLM embeddings → UMAP �
 
 ---
 
+## Step 5 — Curating Sub-themes (human review)
+
+The theme registry `data/utils/temi.csv` has 8 fixed macro-themes and sub-themes you add over time (concept and methodology: [README → Themes and Sub-themes](README.md#themes-and-sub-themes)).
+
+**From the dashboard** (tab 🔬 Topic Emergenti → *Sotto-temi*):
+
+1. Run Step 4 so the topic report is up to date, then open the tab. Topics marked 🔴 *outside the lexicon* or 🟡 *sub-theme candidate* are listed first in the **➕ Nuovo sotto-tema** selector.
+2. Pick a topic (or *Manuale*), then review the pre-filled form:
+   - **Name**: a short, readable label (no `|`).
+   - **Parent macro-theme**: pre-selected from the topic's prevailing macro-theme.
+   - **Seed terms**: one per line, at least 3 characters. BERTopic keywords are only a starting point: keep the specific ones (`chat control`, `csam`), remove the generic ones (`luglio`, `decisione`, `online`). A stem such as `sorveglian` covers several word endings.
+   - **Threshold**: `1.0` = exact terms only (recommended while the sub-theme is uncalibrated); lower values also add semantic matches.
+   - **State**: `attivo` to tag it, `candidato` to save it without tagging yet.
+3. Edit existing sub-themes directly in the table below the form. To retire one, set its state to `dismesso` (rows cannot be deleted, so the history is preserved).
+4. Apply the change to the data:
+   ```bash
+   .venv\Scripts\python.exe nlp/text_analysis.py
+   ```
+   The sub-theme is applied retroactively to the whole archive. Rerun Step 4 if you want the topic comparison to reflect it.
+5. Commit `data/utils/temi.csv`: git is the versioned history of the registry.
+
+**By hand**: editing `temi.csv` directly works too (columns `tema,termini,soglia,padre,stato,dal,origine`), but bypasses validation. Prefer the dashboard, or check the file afterwards with the same rules the dashboard applies:
+```bash
+.venv\Scripts\python.exe -c "from nlp.theme_matching import carica_registro_temi, valida_registro; print(valida_registro(carica_registro_temi()) or 'Registro valido')"
+```
+
+If a save is rejected, the dashboard lists the reasons (duplicate name, parent that is not an active macro-theme, terms that are too short, threshold outside 0.30–1.0). Local backups of each previous version are kept in `data/utils/backup_temi/` (git-ignored).
+
+---
+
 ## Full Pipeline (single command)
 
 ```bash
