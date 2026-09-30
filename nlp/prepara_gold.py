@@ -143,7 +143,8 @@ def main():
     for tema, termini in temi.items():
         print(f"  • {tema}: {', '.join(termini[:6])}...")
     print("\nIstruzioni: nella colonna 'temi' scrivi i temi che il documento tratta")
-    print("davvero (non solo di sfuggita), separati da '|'. Lascia vuoto se nessuno.")
+    print("davvero (non solo di sfuggita), separati da '|'. Scrivi NESSUNO se non ne")
+    print("tratta alcuno (vuoto = non ancora etichettato). Guida: data/utils/GOLD_ISTRUZIONI.md")
     print("Usa ESATTAMENTE i nomi del codebook. Verifica il testo, non fidarti di 'temi_suggeriti'.")
 
 

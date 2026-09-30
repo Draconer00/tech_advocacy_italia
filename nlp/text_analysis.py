@@ -9,6 +9,7 @@ import os
 import sys
 import re
 import csv
+import html
 import math
 import random
 import sqlite3
@@ -21,6 +22,7 @@ from functools import wraps
 
 import pandas as pd
 import spacy
+from bs4 import BeautifulSoup
 from spacy.lang.it.stop_words import STOP_WORDS as STOPWORD_IT
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 
@@ -288,6 +290,39 @@ def topic_modeling(testi_lista: list[str]) -> tuple[list[int], list[str]]:
 
 
 # ===== PRIORITY 1.1: Pulizia testo =====
+# Marcatori HTML (tag o entità) nel testo dei feed RSS: il `summary` di molti
+# feed (ONG, alcuni regolatori UE) arriva come HTML grezzo, e senza pulizia NER,
+# TF-IDF, embedding e topic lavorano su `<p lang="en-GB">`, `&nbsp;`, `ecl-*`...
+_RE_MARCATORI_HTML = re.compile(r'<[a-zA-Z/!][^>]*>|&(?:[a-zA-Z]+|#\d+|#x[0-9a-fA-F]+);')
+# Footer standard dei feed WordPress ("L'articolo  <titolo>  proviene da  <testata> ."):
+# ripete titolo e nome della testata, falsando keyword, topic e similarità.
+# Firma stretta: ancorato alla FINE del testo e con i DOPPI spazi lasciati dai
+# link <a> del footer — così una frase vera come "L'articolo 5 del GDPR proviene
+# da..." non viene mai scambiata per footer.
+_RE_FOOTER_FEED = re.compile(
+    r"\s*L['’]articolo\s{2}.{1,300}?\s{2}proviene da\s{2}[^.\n]{1,80}?\s*\.\s*$",
+    re.S,
+)
+
+
+def pulisci_html(testo) -> str:
+    """Toglie markup HTML, entità e footer RSS dal testo di un feed.
+
+    Si applica SOLO nel layer processato: il raw resta intatto (append-only, e
+    il suo `hash_contenuto`, calcolato sul testo originale, resta l'id stabile
+    del documento). Deterministica; i testi senza marcatori tornano invariati
+    (salvo il footer).
+    """
+    if not isinstance(testo, str):
+        return ''
+    if _RE_MARCATORI_HTML.search(testo):
+        if '<' in testo:
+            testo = BeautifulSoup(testo, 'html.parser').get_text(' ')
+        testo = html.unescape(testo)
+        testo = re.sub(r'\s+', ' ', testo).strip()
+    return _RE_FOOTER_FEED.sub('', testo)
+
+
 def pulisci_testo_gpdp(testo: str) -> str:
     if not isinstance(testo, str):
         return ""
@@ -424,8 +459,27 @@ def carica_modello_impatto() -> tuple:
     percorso_modello = os.path.join(cartella, '..', 'models', 'impact_classifier.pkl')
     if os.path.exists(percorso_modello):
         try:
+            import warnings
+            from sklearn.exceptions import InconsistentVersionWarning
             from nlp.deduplication import get_embedding_model
-            return joblib.load(percorso_modello), get_embedding_model()
+            # Un .pkl scikit-learn è affidabile solo con la STESSA versione con cui è
+            # stato salvato. sklearn emette un avviso per ogni albero della foresta:
+            # li raccogliamo e ne logghiamo UNO, esplicito e con il rimedio. Il
+            # caso tipico è lanciare la pipeline con un Python diverso dal .venv.
+            with warnings.catch_warnings(record=True) as avvisi:
+                warnings.simplefilter('always', InconsistentVersionWarning)
+                clf = joblib.load(percorso_modello)
+            skew = next((a.message for a in avvisi
+                         if issubclass(a.category, InconsistentVersionWarning)), None)
+            if skew is not None:
+                logger.warning(
+                    "Modello d'urgenza salvato con scikit-learn %s ma in uso %s (Python: %s): "
+                    "i livelli di allarme potrebbero non essere affidabili. Usa il Python del "
+                    ".venv (pip install -r requirements.txt) oppure riaddestra con "
+                    "'python nlp/train_impact_model.py'.",
+                    skew.original_sklearn_version, skew.current_sklearn_version, sys.executable,
+                )
+            return clf, get_embedding_model()
         except Exception as e:
             logger.warning("Errore caricamento modello impatto: %s", e)
     return None, None
@@ -523,6 +577,16 @@ def processa_dataframe(df: pd.DataFrame, fonte_nome: str) -> pd.DataFrame:
     """Applica l'intera pipeline NLP a qualsiasi DataFrame in ingresso."""
     logger.info("Inizio analisi NLP per %s: %d documenti", fonte_nome, len(df))
     clf, embedding_model = carica_modello_impatto()
+
+    # Pulizia HTML/footer PRIMA di ogni analisi: tutto ciò che segue (NER,
+    # keyword, embedding, temi) lavora sul testo pulito. Il raw non si tocca.
+    originale = df['testo_completo'].fillna('').astype(str)
+    df['testo_completo'] = originale.apply(pulisci_html)
+    if 'titolo' in df.columns:
+        df['titolo'] = df['titolo'].apply(lambda t: pulisci_html(t) if isinstance(t, str) else t)
+    n_puliti = int((df['testo_completo'] != originale).sum())
+    if n_puliti:
+        logger.info("Pulizia HTML/footer %s: %d/%d testi ripuliti", fonte_nome, n_puliti, len(df))
 
     # Entity linking keyword-overlap + punteggio di confidenza (score basso = stima incerta)
     _link = df['testo_completo'].apply(lambda t: link_ong(t, PROFILI_ONG, return_score=True))

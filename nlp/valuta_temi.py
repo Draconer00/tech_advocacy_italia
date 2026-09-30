@@ -24,7 +24,7 @@ Cosa guardare
    a occhio la PRECISIONE (sono davvero pertinenti?) e il guadagno di RECALL
    (il lessicale li perdeva davvero?). È la verifica più onesta senza gold set.
 3) GOLD (opzionale): con un file etichettato a mano (id_documento, temi separati
-   da '|') calcola precision/recall/F1 per soglia, per scegliere in modo oggettivo.
+   da '|', 'NESSUNO' se non tratta alcun tema, vuoto = non ancora etichettato) calcola precision/recall/F1 per soglia, per scegliere in modo oggettivo.
 """
 import os
 import sys
@@ -154,12 +154,49 @@ def esempi(docs, titoli, fonti, temi, etichette, sim, soglie_map, n):
         print()
 
 
+NESSUN_TEMA = 'NESSUNO'   # etichetta esplicita: "letto, non tratta alcun tema"
+
+
+def carica_gold(percorso_gold, temi) -> dict[str, set[str]]:
+    """Legge le etichette manuali: {id_documento: set(temi)}.
+
+    Cella vuota = NON ancora etichettato (escluso dalla valutazione);
+    'NESSUNO' = etichettato senza temi (negativo, serve a misurare i falsi
+    positivi). Una riga con un nome di tema sconosciuto (refuso) viene ESCLUSA e
+    segnalata: interpretarla falserebbe la misura.
+    """
+    gold = pd.read_csv(percorso_gold, dtype=str, keep_default_na=False)
+    atteso, scartate = {}, []
+    for _, r in gold.iterrows():
+        cella = r.get('temi', '').strip()
+        if not cella:
+            continue
+        valori = {t.strip() for t in cella.split('|') if t.strip()}
+        if valori == {NESSUN_TEMA}:
+            valori = set()
+        ignoti = valori - set(temi)
+        if ignoti:
+            scartate.append((r['id_documento'][:12], sorted(ignoti)))
+            continue
+        atteso[r['id_documento'].strip()] = valori
+    if scartate:
+        print(f"\n[gold] ATTENZIONE: {len(scartate)} righe escluse per nomi di tema "
+              f"non presenti in temi.csv (correggile nel foglio):")
+        for rid, nomi in scartate:
+            print(f"   id {rid}…  {nomi}")
+    return atteso
+
+
 def valuta_gold(docs_df, temi, etichette, sim, percorso_gold, soglie):
     """Precision/Recall/F1 per soglia rispetto a etichette manuali."""
-    gold = pd.read_csv(percorso_gold)
-    atteso = {str(r['id_documento']): set(str(r['temi']).split('|'))
-              for _, r in gold.iterrows() if str(r.get('temi', '')).strip()}
+    atteso = carica_gold(percorso_gold, temi)
     idx_gold = [i for i, rid in enumerate(docs_df['id']) if rid in atteso]
+    assenti = set(atteso) - set(docs_df['id'])
+    if assenti:
+        # Tipicamente: la deduplica semantica ora sceglie un altro rappresentante
+        # del cluster, quindi il documento non è più nel layer processato.
+        print(f"\n[gold] {len(assenti)} documenti etichettati non sono più nei dati "
+              f"processati (es. rimossi dalla deduplica): esclusi dalla valutazione.")
     if not idx_gold:
         print(f"\n[gold] Nessun id in comune tra {percorso_gold} e i documenti processati.")
         return

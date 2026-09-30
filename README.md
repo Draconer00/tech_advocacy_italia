@@ -141,6 +141,14 @@ Two smaller human-curated inputs work the same way, each kept in its own file so
 ## Quick Start
 
 ```bash
+# Use a dedicated virtual environment: the urgency model (models/impact_classifier.pkl)
+# is only reliable with the exact scikit-learn version pinned in requirements.txt.
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# Linux/Mac:
+source .venv/bin/activate
+
 pip install -r requirements.txt
 python -m spacy download it_core_news_md
 

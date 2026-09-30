@@ -54,6 +54,7 @@ Incorporate structured first-person input from monitored organisations (position
 | Feature | Status |
 |---------|--------|
 | Text cleaning + blacklist | Implemented |
+| HTML/entity stripping + WordPress feed-footer removal (`pulisci_html`, processed layer only — raw text and its `hash_contenuto` id stay untouched) | Implemented (2026-09-30) — ONG 290/307, rss_eu 8/70, tech_news 283/330 texts cleaned |
 | NER (spaCy `it_core_news_md`) | Implemented |
 | TF-IDF keyword extraction (bilingual IT/EN stop words, HTML/web junk excluded) | Implemented |
 | Curated theme lexicon for temporal trends (`data/utils/temi.csv`) | Implemented (2026-09-20) |
