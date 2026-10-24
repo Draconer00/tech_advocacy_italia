@@ -44,7 +44,8 @@ except Exception:
     pass
 
 from nlp.theme_matching import (carica_temi, carica_soglie, carica_gerarchia, macro_temi,
-                                temi_lessicali, matrice_similarita)
+                                temi_lessicali, matrice_similarita,
+                                SOGLIA_SEMANTICA as SOGLIA_DEFAULT)
 from nlp.deduplication import get_embedding_model
 
 _DIR_PROCESSED = os.path.join(_ROOT, 'data', 'processed')
@@ -63,8 +64,11 @@ def _carica_documenti(fonte: str | None) -> pd.DataFrame:
         if 'testo_completo' not in df.columns:
             continue
         for _, r in df.iterrows():
-            testo = f"{r.get('titolo', '')} {r.get('testo_completo', '')}".strip()
-            if not testo:
+            # STESSO input della pipeline (processa_dataframe rileva i temi su
+            # testo_completo, già ripulito): si valuta il sistema reale, non una
+            # variante con il titolo aggiunto.
+            testo = str(r.get('testo_completo', '')) if pd.notna(r.get('testo_completo')) else ''
+            if not testo.strip():
                 continue
             righe.append({
                 'id': _id_documento(r),
@@ -188,41 +192,137 @@ def carica_gold(percorso_gold, temi) -> dict[str, set[str]]:
     return atteso
 
 
-def valuta_gold(docs_df, temi, etichette, sim, percorso_gold, soglie):
-    """Precision/Recall/F1 per soglia rispetto a etichette manuali."""
+_SOLO_ESATTO = 2.0   # soglia irraggiungibile (coseno <= 1): disattiva il semantico
+
+
+def _prf(tp: int, fp: int, fn: int) -> tuple[float, float, float]:
+    """Precision, recall, F1 da conteggi. 0 quando il denominatore è nullo."""
+    p = tp / (tp + fp) if tp + fp else 0.0
+    r = tp / (tp + fn) if tp + fn else 0.0
+    f1 = 2 * p * r / (p + r) if p + r else 0.0
+    return p, r, f1
+
+
+def _conteggi(pred_per_doc, veri_per_doc, universo) -> dict[str, list[int]]:
+    """TP/FP/FN per tema, sulle coppie (documento, tema): multi-etichetta, ogni
+    tema è una decisione sì/no indipendente per ogni documento."""
+    c = {t: [0, 0, 0] for t in universo}
+    for pred, veri in zip(pred_per_doc, veri_per_doc):
+        for t in pred & veri:
+            c[t][0] += 1
+        for t in pred - veri:
+            c[t][1] += 1
+        for t in veri - pred:
+            c[t][2] += 1
+    return c
+
+
+def _riassunto(pred_per_doc, veri_per_doc, universo) -> dict[str, float]:
+    """Micro, macro ed exact match di una configurazione."""
+    c = _conteggi(pred_per_doc, veri_per_doc, universo)
+    micro = _prf(*[sum(v[k] for v in c.values()) for k in range(3)])
+    # Macro: media sui temi valutabili (almeno un positivo nel gold o una previsione)
+    per_tema = [_prf(*v) for v in c.values() if v[0] + v[1] + v[2] > 0]
+    macro = tuple(sum(x[k] for x in per_tema) / len(per_tema) for k in range(3)) if per_tema else (0, 0, 0)
+    esatti = sum(1 for p, v in zip(pred_per_doc, veri_per_doc) if p == v) / len(veri_per_doc)
+    return {'micro': micro, 'macro': macro, 'exact': esatti}
+
+
+def valuta_gold(docs_df, temi, etichette, sim, percorso_gold, soglie, soglie_map):
+    """Valuta il rilevamento temi contro le etichette manuali del gold set.
+
+    Stampa: (1) configurazione in produzione (soglie per-tema di temi.csv) vs
+    baseline solo-lessicale, in micro/macro/exact match; (2) dettaglio per tema;
+    (3) sweep con soglia globale; (4) soglia migliore per singolo tema.
+    """
     atteso = carica_gold(percorso_gold, temi)
-    idx_gold = [i for i, rid in enumerate(docs_df['id']) if rid in atteso]
     assenti = set(atteso) - set(docs_df['id'])
     if assenti:
         # Tipicamente: la deduplica semantica ora sceglie un altro rappresentante
         # del cluster, quindi il documento non è più nel layer processato.
         print(f"\n[gold] {len(assenti)} documenti etichettati non sono più nei dati "
               f"processati (es. rimossi dalla deduplica): esclusi dalla valutazione.")
+    # Un id per documento: lo stesso contenuto in due fonti ha lo stesso hash e
+    # verrebbe contato due volte.
+    visti, idx_gold = set(), []
+    for i, rid in enumerate(docs_df['id']):
+        if rid in atteso and rid not in visti:
+            visti.add(rid)
+            idx_gold.append(i)
     if not idx_gold:
         print(f"\n[gold] Nessun id in comune tra {percorso_gold} e i documenti processati.")
         return
+
     testi = docs_df['testo'].tolist()
-    lex = [set(temi_lessicali(testi[i], temi)) for i in range(len(testi))]
+    lex = {i: set(temi_lessicali(testi[i], temi)) for i in idx_gold}
     # Stessa regola della pipeline: un sotto-tema implica il padre. Si valutano
     # solo i temi che il gold può giudicare (macro-temi + quelli usati nelle
     # etichette): un sotto-tema mai etichettato non è un falso positivo.
     padre_di = carica_gerarchia()
     universo = set(macro_temi()) | {t for v in atteso.values() for t in v}
-    print(f"\n=== GOLD — precision/recall/F1 su {len(idx_gold)} documenti etichettati ===\n")
+    veri = [atteso[docs_df['id'].iloc[i]] for i in idx_gold]
+
+    def predici(soglia_di: dict[str, float]) -> list[set[str]]:
+        out = []
+        for i in idx_gold:
+            pred = lex[i] | {etichette[j][0] for j, s in enumerate(sim[i])
+                             if s >= soglia_di.get(etichette[j][0], SOGLIA_DEFAULT)}
+            out.append((pred | {padre_di[t] for t in pred if t in padre_di}) & universo)
+        return out
+
+    n_neg = sum(1 for v in veri if not v)
+    print(f"\n=== GOLD — {len(idx_gold)} documenti etichettati "
+          f"({n_neg} senza temi, {sum(len(v) for v in veri)} coppie documento-tema positive) ===")
+
+    # (1) produzione vs baseline
+    configurazioni = {
+        'Solo lessicale (baseline)': {t: _SOLO_ESATTO for t in temi},
+        'Ibrido, soglie per-tema (produzione)': {t: soglie_map.get(t, SOGLIA_DEFAULT) for t in temi},
+    }
+    print("\n(1) Configurazioni a confronto\n")
+    print("configurazione".ljust(38) + "micro P   micro R  micro F1 | macro P   macro R  macro F1 | exact")
+    pred_prod = None
+    for nome, soglia_di in configurazioni.items():
+        pred = predici(soglia_di)
+        if 'produzione' in nome:
+            pred_prod = pred
+        r = _riassunto(pred, veri, universo)
+        print(nome.ljust(38) + "  ".join(f"{x:7.3f}" for x in r['micro']) + " | " +
+              "  ".join(f"{x:7.3f}" for x in r['macro']) + f" | {r['exact']:5.3f}")
+
+    # (2) dettaglio per tema, configurazione in produzione
+    print("\n(2) Per tema — configurazione in produzione\n")
+    print("tema".ljust(28) + "soglia  gold  prev    TP   FP   FN   precision  recall    F1")
+    c = _conteggi(pred_prod, veri, universo)
+    for t in sorted(c, key=lambda t: -(c[t][0] + c[t][2])):
+        tp, fp, fn = c[t]
+        p, r, f1 = _prf(tp, fp, fn)
+        print(t.ljust(28) + f"{soglie_map.get(t, SOGLIA_DEFAULT):5.2f}" +
+              f"{tp + fn:6}{tp + fp:6}{tp:6}{fp:5}{fn:5}   {p:8.3f}  {r:7.3f}  {f1:6.3f}")
+
+    # (3) sweep con soglia globale unica (micro)
+    print("\n(3) Soglia globale unica (stessa per tutti i temi) — micro\n")
     print("soglia   precision   recall     F1")
     for s in soglie:
-        tp = fp = fn = 0
-        for i in idx_gold:
-            pred = lex[i] | _temi_semantici(sim[i], etichette, s)
-            pred = (pred | {padre_di[t] for t in pred if t in padre_di}) & universo
-            veri = atteso[docs_df['id'].iloc[i]]
-            tp += len(pred & veri)
-            fp += len(pred - veri)
-            fn += len(veri - pred)
-        prec = tp / (tp + fp) if tp + fp else 0.0
-        rec = tp / (tp + fn) if tp + fn else 0.0
-        f1 = 2 * prec * rec / (prec + rec) if prec + rec else 0.0
-        print(f"{s:.2f}     {prec:8.3f}   {rec:7.3f}   {f1:6.3f}")
+        p, r, f1 = _riassunto(predici({t: s for t in temi}), veri, universo)['micro']
+        print(f"{s:.2f}     {p:8.3f}   {r:7.3f}   {f1:6.3f}")
+
+    # (4) soglia migliore per singolo tema: le metriche di un tema dipendono solo
+    # dalla sua soglia, quindi si ottimizzano indipendentemente.
+    print("\n(4) Soglia con F1 migliore per tema (indicativa: pochi esempi per tema)\n")
+    candidati = [_SOLO_ESATTO] + list(soglie)
+    per_soglia = {s: _conteggi(predici({t: s for t in temi}), veri, universo) for s in candidati}
+    print("tema".ljust(28) + "attuale  F1 att. | migliore  F1 migl.  (gold)")
+    for t in sorted(universo & set(temi)):
+        att = soglie_map.get(t, SOGLIA_DEFAULT)
+        conteggi_t = {s: per_soglia[s][t] for s in candidati}
+        conteggi_t[att] = c[t]            # la soglia attuale è sempre tra i candidati
+        f1_di = {s: _prf(*v)[2] for s, v in conteggi_t.items()}
+        # a parità di F1 si preferisce la soglia più alta (più precisa, più prudente)
+        migliore = max(f1_di, key=lambda s: (round(f1_di[s], 3), s))
+        etich = 'esatto' if migliore == _SOLO_ESATTO else f"{migliore:.2f}"
+        print(t.ljust(28) + f"{att:6.2f}  {f1_di[att]:7.3f} | {etich:>8}  {f1_di[migliore]:7.3f}  "
+              f"({c[t][0] + c[t][2]})")
 
 
 def main():
@@ -254,7 +354,7 @@ def main():
         esempi(docs_df['testo'].tolist(), docs_df['titolo'].tolist(),
                docs_df['fonte'].tolist(), temi, etichette, sim, soglie_map, args.esempi)
     if args.gold and os.path.exists(args.gold):
-        valuta_gold(docs_df, temi, etichette, sim, args.gold, _SOGLIE_DEFAULT)
+        valuta_gold(docs_df, temi, etichette, sim, args.gold, _SOGLIE_DEFAULT, soglie_map)
 
 
 if __name__ == "__main__":

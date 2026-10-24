@@ -69,7 +69,7 @@ Incorporate structured first-person input from monitored organisations (position
 | Hybrid theme tagging (exact lexical + semantic embedding, `nlp/theme_matching.py`) | Implemented (2026-09-20) — per-theme semantic thresholds in `temi.csv` (`soglia` column), calibrated via `nlp/valuta_temi.py` |
 | Two-level theme registry (8 stable macro-themes + dynamic sub-themes; `padre`/`stato`/`dal`/`origine` columns in `temi.csv`) | Implemented (2026-09-30) — see "Topic Modelling and Dynamic Themes" above |
 | Sub-theme threshold calibration | Planned — per-sub-theme gold labels; until then, the conservative option is `soglia = 1.0` (exact terms only) |
-| Theme gold set for objective P/R/F1 tuning | Scaffold ready (`nlp/prepara_gold.py` → `data/utils/temi_gold_worksheet.csv`, 129 docs); awaiting human labeling, then `valuta_temi.py --gold` |
+| Theme gold set for objective P/R/F1 tuning | Labeled (2026-10-01): 110/129 docs, 107 evaluable. `valuta_temi.py --gold` reports micro/macro P/R/F1, exact match, per-theme TP/FP/FN, a global-threshold sweep and the best threshold per theme. First result: hybrid micro F1 0.646 vs lexical-only 0.553 (recall 0.607 vs 0.468, precision stable ~0.68). Stratified, edge-heavy sample: use it to choose thresholds, not as a corpus-wide estimate |
 | Fuzzy deduplication (SequenceMatcher) | Implemented |
 | Semantic deduplication (sentence-transformers) | Implemented |
 | Geographic classification | Implemented |
