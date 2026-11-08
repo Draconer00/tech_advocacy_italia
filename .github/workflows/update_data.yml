@@ -2,7 +2,8 @@ name: Radar Advocacy - Automazione Dati
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    # Minuto non tondo: allo scoccare dell'ora GitHub è più carico (run ritardati/saltati, download lenti).
+    - cron: '17 2 * * *'
   workflow_dispatch:
 
 # Le action JS (checkout, setup-python, upload/download-artifact, cache) girano
@@ -29,7 +30,17 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - run: pip install -r requirements.txt
+      # pip non ritenta i 504 di GitHub (requirements.txt include il wheel del
+      # modello spaCy da GitHub Releases): retry con attesa crescente. I pacchetti
+      # già installati vengono saltati ai tentativi successivi.
+      - name: Installa dipendenze (con retry)
+        run: |
+          for i in 1 2 3 4; do
+            pip install -r requirements.txt && break
+            if [ "$i" = 4 ]; then exit 1; fi
+            echo "pip install fallito (tentativo $i), nuovo tentativo tra $((i*30))s..."
+            sleep $((i*30))
+          done
 
       - name: Scraping Garante Privacy
         run: python scrapers/scraper_gpdp.py
@@ -58,7 +69,17 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - run: pip install -r requirements.txt
+      # pip non ritenta i 504 di GitHub (requirements.txt include il wheel del
+      # modello spaCy da GitHub Releases): retry con attesa crescente. I pacchetti
+      # già installati vengono saltati ai tentativi successivi.
+      - name: Installa dipendenze (con retry)
+        run: |
+          for i in 1 2 3 4; do
+            pip install -r requirements.txt && break
+            if [ "$i" = 4 ]; then exit 1; fi
+            echo "pip install fallito (tentativo $i), nuovo tentativo tra $((i*30))s..."
+            sleep $((i*30))
+          done
 
       - name: Scraping ONG RSS
         run: python scrapers/scraper_ong.py
@@ -88,7 +109,17 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - run: pip install -r requirements.txt
+      # pip non ritenta i 504 di GitHub (requirements.txt include il wheel del
+      # modello spaCy da GitHub Releases): retry con attesa crescente. I pacchetti
+      # già installati vengono saltati ai tentativi successivi.
+      - name: Installa dipendenze (con retry)
+        run: |
+          for i in 1 2 3 4; do
+            pip install -r requirements.txt && break
+            if [ "$i" = 4 ]; then exit 1; fi
+            echo "pip install fallito (tentativo $i), nuovo tentativo tra $((i*30))s..."
+            sleep $((i*30))
+          done
 
       - name: Scraping GNews
         run: python scrapers/scraper_gnews.py
@@ -120,7 +151,17 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - run: pip install -r requirements.txt
+      # pip non ritenta i 504 di GitHub (requirements.txt include il wheel del
+      # modello spaCy da GitHub Releases): retry con attesa crescente. I pacchetti
+      # già installati vengono saltati ai tentativi successivi.
+      - name: Installa dipendenze (con retry)
+        run: |
+          for i in 1 2 3 4; do
+            pip install -r requirements.txt && break
+            if [ "$i" = 4 ]; then exit 1; fi
+            echo "pip install fallito (tentativo $i), nuovo tentativo tra $((i*30))s..."
+            sleep $((i*30))
+          done
 
       - name: Scraping RSS Regolatori Europei
         run: python scrapers/scraper_rss_eu.py
@@ -150,7 +191,17 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - run: pip install -r requirements.txt
+      # pip non ritenta i 504 di GitHub (requirements.txt include il wheel del
+      # modello spaCy da GitHub Releases): retry con attesa crescente. I pacchetti
+      # già installati vengono saltati ai tentativi successivi.
+      - name: Installa dipendenze (con retry)
+        run: |
+          for i in 1 2 3 4; do
+            pip install -r requirements.txt && break
+            if [ "$i" = 4 ]; then exit 1; fi
+            echo "pip install fallito (tentativo $i), nuovo tentativo tra $((i*30))s..."
+            sleep $((i*30))
+          done
 
       - name: Scraping AGCOM
         run: python scrapers/scraper_agcom.py
@@ -180,7 +231,17 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - run: pip install -r requirements.txt
+      # pip non ritenta i 504 di GitHub (requirements.txt include il wheel del
+      # modello spaCy da GitHub Releases): retry con attesa crescente. I pacchetti
+      # già installati vengono saltati ai tentativi successivi.
+      - name: Installa dipendenze (con retry)
+        run: |
+          for i in 1 2 3 4; do
+            pip install -r requirements.txt && break
+            if [ "$i" = 4 ]; then exit 1; fi
+            echo "pip install fallito (tentativo $i), nuovo tentativo tra $((i*30))s..."
+            sleep $((i*30))
+          done
 
       - name: Scraping Tech News Italia
         run: python scrapers/scraper_tech_news.py
@@ -210,7 +271,17 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - run: pip install -r requirements.txt
+      # pip non ritenta i 504 di GitHub (requirements.txt include il wheel del
+      # modello spaCy da GitHub Releases): retry con attesa crescente. I pacchetti
+      # già installati vengono saltati ai tentativi successivi.
+      - name: Installa dipendenze (con retry)
+        run: |
+          for i in 1 2 3 4; do
+            pip install -r requirements.txt && break
+            if [ "$i" = 4 ]; then exit 1; fi
+            echo "pip install fallito (tentativo $i), nuovo tentativo tra $((i*30))s..."
+            sleep $((i*30))
+          done
 
       - name: Scraping Parlamento Europeo (RSS + Open Data API)
         run: python scrapers/scraper_eu_parl.py
@@ -240,7 +311,17 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - run: pip install -r requirements.txt
+      # pip non ritenta i 504 di GitHub (requirements.txt include il wheel del
+      # modello spaCy da GitHub Releases): retry con attesa crescente. I pacchetti
+      # già installati vengono saltati ai tentativi successivi.
+      - name: Installa dipendenze (con retry)
+        run: |
+          for i in 1 2 3 4; do
+            pip install -r requirements.txt && break
+            if [ "$i" = 4 ]; then exit 1; fi
+            echo "pip install fallito (tentativo $i), nuovo tentativo tra $((i*30))s..."
+            sleep $((i*30))
+          done
 
       - name: Scraping Gazzetta Ufficiale
         run: python scrapers/scraper_gazzetta_ufficiale.py
@@ -270,7 +351,17 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - run: pip install -r requirements.txt
+      # pip non ritenta i 504 di GitHub (requirements.txt include il wheel del
+      # modello spaCy da GitHub Releases): retry con attesa crescente. I pacchetti
+      # già installati vengono saltati ai tentativi successivi.
+      - name: Installa dipendenze (con retry)
+        run: |
+          for i in 1 2 3 4; do
+            pip install -r requirements.txt && break
+            if [ "$i" = 4 ]; then exit 1; fi
+            echo "pip install fallito (tentativo $i), nuovo tentativo tra $((i*30))s..."
+            sleep $((i*30))
+          done
 
       - name: Scraping CJEU (Corte di Giustizia UE)
         run: python scrapers/scraper_curia.py
@@ -300,7 +391,17 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - run: pip install -r requirements.txt
+      # pip non ritenta i 504 di GitHub (requirements.txt include il wheel del
+      # modello spaCy da GitHub Releases): retry con attesa crescente. I pacchetti
+      # già installati vengono saltati ai tentativi successivi.
+      - name: Installa dipendenze (con retry)
+        run: |
+          for i in 1 2 3 4; do
+            pip install -r requirements.txt && break
+            if [ "$i" = 4 ]; then exit 1; fi
+            echo "pip install fallito (tentativo $i), nuovo tentativo tra $((i*30))s..."
+            sleep $((i*30))
+          done
 
       - name: Scraping feed (blog e newsletter)
         run: python scrapers/scraper_feeds.py
@@ -343,9 +444,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-hf-models-
 
-      - run: |
-          pip install -r requirements.txt
-          python -m spacy download it_core_news_md
+      # pip non ritenta i 504 di GitHub (requirements.txt include il wheel del
+      # modello spaCy da GitHub Releases): retry con attesa crescente. I pacchetti
+      # già installati vengono saltati ai tentativi successivi.
+      - name: Installa dipendenze (con retry)
+        run: |
+          for i in 1 2 3 4; do
+            pip install -r requirements.txt && break
+            if [ "$i" = 4 ]; then exit 1; fi
+            echo "pip install fallito (tentativo $i), nuovo tentativo tra $((i*30))s..."
+            sleep $((i*30))
+          done
 
       # Tutti i download sono tolleranti ai fallimenti: se uno scraper non ha
       # prodotto il proprio artifact, l'analisi NLP procede comunque sulle
