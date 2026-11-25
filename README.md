@@ -8,7 +8,7 @@ An open-source civic intelligence platform for monitoring digital rights, privac
 
 Tech Advocacy Radar aggregates and semantically analyses public-interest documents from institutional regulators, civil society organisations, and news sources. It transforms heterogeneous raw text into a structured, queryable knowledge base and presents the results through an interactive dashboard designed for journalists, researchers, policy professionals, and activists.
 
-The system monitors over 35 sources continuously, processes documents in Italian and English, and provides seven analytical views including network visualisation, geographic classification, temporal trend analysis, a two-dimensional positioning map, and an unsupervised topic-discovery view.
+The system monitors over 35 sources continuously, processes documents in Italian and English, and provides seven analytical views (plus a static HTML export for sharing) including network visualisation, geographic classification, temporal trend analysis, a two-dimensional positioning map, and an unsupervised topic-discovery view.
 
 ---
 
@@ -38,7 +38,12 @@ tech_advocacy_italia/
 │   └── prepara_gold.py        ← generates the stratified gold-set annotation worksheet
 │
 ├── app/
-│   └── dashboard.py           ← Streamlit interactive dashboard (7 tabs)
+│   ├── dashboard.py           ← Streamlit interactive dashboard (8 tabs) + operator tools
+│   ├── export_html.py         ← static HTML export of the dashboard (for beta testers)
+│   ├── viste.py               ← tab content as target-neutral blocks, shared by dashboard and export
+│   ├── grafici.py             ← Plotly figures and vis-network graph
+│   ├── dati.py                ← data loading and preparation (no Streamlit dependency)
+│   └── tema.py                ← design system: colour tokens, fonts, CSS, Plotly template
 │
 ├── data/
 │   ├── raw/                   ← Append-only raw CSV files (git-ignored)
@@ -130,13 +135,13 @@ topic_discovery.py (BERTopic)  →  topic compared with existing themes  →  op
 
 ## Dashboard
 
-The Streamlit dashboard provides seven analytical views:
+The Streamlit dashboard provides seven analytical views plus a methodology tab. Its look (palette, fonts, panels, document cards) is defined once in `app/tema.py` and the tab content once in `app/viste.py`, so the dashboard and the static HTML export (see *Sharing a static snapshot* below) stay identical by construction. Interactive filters and operator tools (corrections, manual entries, keyword profiles, sub-theme management) exist only in the dashboard, inside dashed "Strumenti operatore" panels.
 
 | Tab | Description |
 |-----|-------------|
 | Home Radar | Rolling overview across **all** processed sources with urgency-coded document feed, correction interface, filters by source category (see below), source, geography, alert level and time window, and a per-source raw-feed preview (titles from `data/raw/*_sample.csv`, shown even for sources not yet processed by the NLP pipeline) |
 | Campagne ONG | Aggregated feed from all monitored civil society organisations, plus a form to manually add NGO documents (statements, testimony) that aren't published via RSS |
-| Provvedimenti Garante | Italian Data Protection Authority decisions, filterable by geography and alert level |
+| Geografia | Geographic scope of every document across all sources, by content type and collection channel, with the full document list |
 | Network Temi | Force-directed graph: NGOs → focus topics → recent documents, with an editable curated keyword profile per NGO to improve topic matching |
 | Mappa Posizionamento | 2D Cartesian map: Italy↔Global (X) × Technical↔Legal (Y) |
 | Analisi Temporale | Monthly document volume and **theme trends over time** — themes are matched against a curated lexicon (`data/utils/temi.csv`: Privacy, AI, Surveillance, …) rather than raw TF-IDF tokens, so the trend lines track meaningful topics instead of frequent-but-noisy words. A selector switches between macro-themes, sub-themes or both; each sub-theme shows its introduction date |
@@ -154,6 +159,15 @@ Every processed document carries a macro `categoria` that separates evidence fro
 | **Società civile** | Monitored NGOs / civil society organisations |
 
 Feeds ingested via `scraper_feeds.py` are classified per-row from their `tipo_fonte`/`trust_tier`, so an institutional feed keeps its real outlet name and lands in **Ufficiale**, not lumped with blogs.
+
+### Sharing a static snapshot
+
+```bash
+python app/export_html.py          # self-contained file, works offline (~6 MB)
+python app/export_html.py --cdn    # lighter file, loads plotly.js from a CDN
+```
+
+Writes `export/radar_diritti_digitali_<date>_<time>.html` (git-ignored, never overwritten): the same tabs, Plotly charts and network graph as the dashboard, with filters fixed to the values shown in each tab. Read-only on all datasets.
 
 A standalone SQL utility (`app/db_manager.py`) provides direct database access and schema inspection; it is run separately and is not yet wired into the dashboard as a tab.
 
