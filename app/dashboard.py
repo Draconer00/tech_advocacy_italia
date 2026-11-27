@@ -1,1906 +1,432 @@
 """
-Dashboard Streamlit del progetto: aggrega i dati NLP-processati (SQLite +
-CSV di fallback) e li presenta attraverso sette viste analitiche (rassegna
-giornaliera, campagne ONG, provvedimenti del Garante, network tematico,
-mappa di posizionamento, analisi temporale, topic emergenti), con interfacce di
-correzione umana che alimentano l'active learning del classificatore di urgenza
-e la gestione dei sotto-temi del registro temi.
+Dashboard Streamlit del Radar Diritti Digitali.
+
+Aggrega i dati NLP-processati e li presenta in otto schede (panoramica, campagne
+ONG, geografia, network temi, mappa di posizionamento, analisi temporale, topic
+emergenti, note di metodo).
+
+Il contenuto delle schede è descritto in app/viste.py come blocchi neutri e reso
+qui con i widget Streamlit; app/export_html.py rende gli stessi blocchi in HTML
+statico per i beta tester. Lo stile (token, CSS, template Plotly) è in app/tema.py.
+Solo la dashboard ha i filtri interattivi e gli strumenti operatore (correzioni
+per l'active learning, documenti manuali, profilo keyword ONG, sotto-temi).
 """
-import streamlit as st
-import pandas as pd
 import os
-import ast
-import sqlite3
-import plotly.express as px
-import networkx as nx
-from pyvis.network import Network
-import streamlit.components.v1 as components
-from collections import Counter
-from datetime import datetime
-import numpy as np
 import sys
+from datetime import datetime
 
-# Aggiungi cartella ROOT del progetto al path (risolve import scrapers)
-cartella_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, cartella_root)
+import pandas as pd
+import streamlit as st
+import streamlit.components.v1 as components
 
-from scrapers.scraper_ong import PROFILI_ONG
-from utils.feedback_schema import append_correzioni, load_feedback
-from utils.ong_profile import carica_profilo_keywords_ong, salva_profilo_keywords_ong
-from utils.ong_manual_entries import carica_documenti_manuali, salva_documento_manuale
-from nlp.theme_matching import (
-    STATI as STATI_TEMA, SOGLIA_SOTTOTEMA,
-    carica_temi as carica_temi_registro, carica_registro_temi, salva_registro_temi,
-)
-from spacy.lang.it.stop_words import STOP_WORDS as STOPWORD_IT
-from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+CARTELLA_APP = os.path.dirname(os.path.abspath(__file__))
+for _p in (CARTELLA_APP, os.path.abspath(os.path.join(CARTELLA_APP, '..'))):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
-# Corpus multilingua (alcune ONG pubblicano in inglese): stessa combinazione
-# usata in nlp/text_analysis.py::estrai_keywords_corpus per coerenza.
-STOPWORD_KW = STOPWORD_IT | set(ENGLISH_STOP_WORDS)
+import dati  # noqa: E402
+import grafici  # noqa: E402
+import tema  # noqa: E402
+import viste as V  # noqa: E402
+from scrapers.scraper_ong import PROFILI_ONG  # noqa: E402
+from utils.feedback_schema import append_correzioni  # noqa: E402
+from utils.ong_profile import carica_profilo_keywords_ong, salva_profilo_keywords_ong  # noqa: E402
+from utils.ong_manual_entries import salva_documento_manuale  # noqa: E402
+from nlp.theme_matching import STATI as STATI_TEMA, SOGLIA_SOTTOTEMA, salva_registro_temi  # noqa: E402
 
-# --- CONFIGURAZIONE DELLA PAGINA ---
-st.set_page_config(page_title="Radar Diritti Digitali", page_icon="⚖️", layout="wide")
+st.set_page_config(page_title=tema.TITOLO, page_icon="⚖️", layout="wide")
+st.markdown(tema.css_streamlit(), unsafe_allow_html=True)
 
-st.title("⚖️ Tech Advocacy Radar - Italia & Europa")
-st.markdown("""
-Questa dashboard monitora in tempo reale le campagne delle principali organizzazioni civiche 
-e le azioni del Garante Privacy, creando una mappa dell'ecosistema dei diritti digitali.
-""")
+# --- DATI (cache sui loader puri di app/dati.py) ------------------------------
+carica_dati_unificati = st.cache_data(dati.carica_dati_unificati)
+carica_dati_ong = st.cache_data(dati.carica_dati_ong)
+carica_dati_per_analisi_temporale = st.cache_data(dati.carica_dati_per_analisi_temporale)
+carica_dati_raw_per_fonte = st.cache_data(dati.carica_dati_raw_per_fonte)
+carica_topic_emergenti = st.cache_data(dati.carica_topic_emergenti)
+carica_registro = st.cache_data(dati.carica_registro)
+carica_temi = st.cache_data(dati.carica_temi)
+carica_dati_gnews = st.cache_data(dati.carica_dati_gnews)
+carica_dati_tech_news = st.cache_data(dati.carica_dati_tech_news)
+carica_dati_rss_eu = st.cache_data(dati.carica_dati_rss_eu)
+carica_dati_eu_parl = st.cache_data(dati.carica_dati_eu_parl)
+carica_dati_agcom = st.cache_data(dati.carica_dati_agcom)
 
-# --- CARICAMENTO DATI ---
+
 @st.cache_data
-def carica_dati_ong():
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    # Priorità: dati analizzati da NLP → dati grezzi come fallback
-    for percorso in [
-        os.path.join(cartella_script, '..', 'data', 'processed', 'ong_analyzed.csv'),
-        os.path.join(cartella_script, '..', 'data', 'raw', 'ong_sample.csv'),
-    ]:
-        if os.path.exists(percorso):
-            df = pd.read_csv(percorso)
-            df_manuali = carica_documenti_manuali()
-            if not df_manuali.empty:
-                df = pd.concat([df, df_manuali], ignore_index=True)
-            return df
-    return pd.DataFrame()
-
-@st.cache_data 
-def carica_dati_garante():
-    """Carica dati del Garante da SQLite (Priority 0: più veloce di CSV)."""
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_db = os.path.join(cartella_script, '..', 'data', 'tech_advocacy.db')
-    percorso_csv_fallback = os.path.join(cartella_script, '..', 'data', 'processed', 'gpdp_analyzed.csv')
-    
-    # Prova prima SQLite (più veloce)
-    if os.path.exists(percorso_db):
-        try:
-            conn = sqlite3.connect(percorso_db)
-            # provvedimenti_analyzed contiene l'unione di TUTTE le fonti (nlp/text_analysis.py
-            # ci scrive tutti i CSV processati, non solo GPDP) — filtrare per fonte_origine
-            # è indispensabile, altrimenti articoli GNews/ONG/etc. verrebbero mostrati come
-            # provvedimenti del Garante Privacy.
-            df = pd.read_sql(
-                "SELECT * FROM provvedimenti_analyzed WHERE fonte_origine = 'Garante Privacy GPDP'",
-                conn,
-            )
-            conn.close()
-
-            if not df.empty:
-                # Converti liste salvate come stringhe in liste Python
-                if 'Entita_Coinvolte' in df.columns:
-                    df['Entita_Coinvolte'] = df['Entita_Coinvolte'].apply(
-                        lambda x: ast.literal_eval(x) if isinstance(x, str) else []
-                    )
-                return df
-        except Exception as e:
-            st.warning(f"⚠️ Errore lettura SQLite: {e}. Fallback su CSV...")
-    
-    # Fallback su CSV se SQLite non disponibile
-    if os.path.exists(percorso_csv_fallback):
-        df = pd.read_csv(percorso_csv_fallback)
-        if 'Entita_Coinvolte' in df.columns:
-            df['Entita_Coinvolte'] = df['Entita_Coinvolte'].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else [])
-        return df
-    
-    return pd.DataFrame()
-
-# Fonti processate incluse nella vista unificata (Home Radar / analisi geografica).
-# (nome_file_*_analyzed, etichetta_fonte, tipo_documento). La ONG è gestita a parte
-# perché la sua "fonte" è il nome della singola organizzazione (ground truth).
-# REGOLA: ogni scraper registrato deve comparire qui, o i suoi documenti restano
-# invisibili in Home Radar (era il caso di 6 fonti su 9 prima di questo fix).
-# (file_*_analyzed, etichetta_fonte, tipo_documento, categoria_fonte).
-_FONTI_UNIFICATE: list[tuple[str, str, str, str]] = [
-    ('gpdp_analyzed',               'Garante Privacy',    'Provvedimento',  'Ufficiale'),
-    ('gnews_analyzed',              'GNews',              'Articolo',       'Stampa'),
-    ('rss_eu_analyzed',             'Regolatori UE',      'Comunicato',     'Ufficiale'),
-    ('agcom_analyzed',              'AGCOM',              'Documento',      'Ufficiale'),
-    ('tech_news_analyzed',          'Tech News',          'Articolo',       'Stampa'),
-    ('eu_parl_analyzed',            'Parlamento UE',      'Atto',           'Ufficiale'),
-    ('gazzetta_ufficiale_analyzed', 'Gazzetta Ufficiale', 'Atto normativo', 'Ufficiale'),
-    ('cjeu_analyzed',               'CJEU',               'Sentenza',       'Ufficiale'),
-]
-# I feed (feeds_analyzed) sono gestiti a parte: un solo file contiene fonti di
-# natura diversa (istituzionali, stampa, blog), quindi etichetta e categoria si
-# derivano per riga dai metadati tipo_fonte/trust_tier.
-
-_COLONNE_UNIFICATE = ['data', 'titolo', 'fonte', 'tipo', 'categoria', 'url',
-                      'sentiment', 'ambito_geografico', 'livello_allarme']
-
-# Categoria-macro per separare i fatti (atti ufficiali) dall'opinione (blog).
-_TIPO_FONTE_A_CATEGORIA = {
-    'istituzionale':   'Ufficiale',
-    'media':           'Stampa',
-    'ngo':             'Società civile',
-    'blog_newsletter': 'Blog/Opinione',
-}
-
-
-def _leggi_processed(nome_file: str) -> pd.DataFrame:
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso = os.path.join(cartella_script, '..', 'data', 'processed', f'{nome_file}.csv')
-    return pd.read_csv(percorso) if os.path.exists(percorso) else pd.DataFrame()
-
-
-def _categoria_feed(row) -> str:
-    """Categoria-macro di un feed dai suoi metadati (tipo_fonte, poi trust_tier)."""
-    tf = str(row.get('tipo_fonte', '')).strip().lower()
-    if tf in _TIPO_FONTE_A_CATEGORIA:
-        return _TIPO_FONTE_A_CATEGORIA[tf]
-    try:
-        tier = int(float(row.get('trust_tier', 2)))
-    except (ValueError, TypeError):
-        tier = 2
-    return {1: 'Ufficiale', 2: 'Stampa', 3: 'Blog/Opinione'}.get(tier, 'Blog/Opinione')
-
-
-def _riga_unificata(row, fonte: str, tipo: str, categoria: str) -> dict:
-    return {
-        'data': row.get('data_pubblicazione', row.get('Data', datetime.now().date().isoformat())),
-        'titolo': row.get('titolo', row.get('Titolo', '')),
-        'fonte': fonte,
-        'tipo': tipo,
-        'categoria': categoria,
-        'url': row.get('url', row.get('Link', '')),
-        'sentiment': row.get('Sentiment_Direzione', 'NEUTRALE'),
-        'ambito_geografico': row.get('Ambito_Geografico', row.get('area_geografica', 'Italia')),
-        'livello_allarme': row.get('livello_allarme', 2),
+def grafo_network(df_ong: pd.DataFrame, profilo: dict, correzioni: dict) -> tuple[str, dict]:
+    fonti_generaliste = {
+        "GNews": carica_dati_gnews(), "Tech News Italiane": carica_dati_tech_news(),
+        "RSS Regolatori Europei": carica_dati_rss_eu(), "Parlamento Europeo": carica_dati_eu_parl(),
+        "AGCOM": carica_dati_agcom(),
     }
+    G = dati.costruisci_grafo(df_ong, fonti_generaliste, profilo, correzioni)
+    return grafici.html_grafo(G), dati.statistiche_grafo(G)
 
-
-@st.cache_data
-def carica_dati_unificati():
-    """Unisce i dati da TUTTE le fonti processate in un dataframe standardizzato,
-    con una categoria-macro (Ufficiale / Stampa / Blog-Opinione / Società civile)
-    che separa i fatti dall'opinione. Legge i CSV *_analyzed direttamente."""
-    dati_unificati = []
-    for nome_file, fonte, tipo, categoria in _FONTI_UNIFICATE:
-        df_fonte = _leggi_processed(nome_file)
-        for _, row in df_fonte.iterrows():
-            dati_unificati.append(_riga_unificata(row, fonte, tipo, categoria))
-
-    # Feed: fonte = nome della testata reale; categoria derivata per riga, così
-    # AGID/FRA (istituzionali) non finiscono nel mucchio dei blog.
-    df_feeds = _leggi_processed('feeds_analyzed')
-    for _, row in df_feeds.iterrows():
-        nome_testata = str(row.get('nome_testata', 'Feed'))
-        dati_unificati.append(_riga_unificata(row, nome_testata, 'Approfondimento', _categoria_feed(row)))
-
-    # ONG: la fonte è il nome della singola organizzazione
-    df_ong = _leggi_processed('ong_analyzed')
-    for _, row in df_ong.iterrows():
-        nome_ong = str(row.get('nome_organizzazione', 'Organizzazione'))
-        dati_unificati.append(_riga_unificata(row, nome_ong, 'Comunicato ONG', 'Società civile'))
-
-    if not dati_unificati:
-        return pd.DataFrame(columns=_COLONNE_UNIFICATE)
-
-    df = pd.DataFrame(dati_unificati)
-    df['data'] = pd.to_datetime(df['data'], errors='coerce', format='mixed', utc=True).dt.date
-    return df.sort_values('data', ascending=False).reset_index(drop=True)
-
-
-@st.cache_data
-def carica_dati_gnews():
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'gnews_analyzed.csv')
-    if os.path.exists(percorso_csv):
-        df = pd.read_csv(percorso_csv)
-        df['ong_collegata'] = df.get('ong_collegata', "")
-        df['fonte'] = 'GNews'
-        return df
-    return pd.DataFrame()
 
 df_unificato = carica_dati_unificati()
 df_ong = carica_dati_ong()
-df_gpdp = carica_dati_garante()
-# df_master deriva direttamente dalla vista unificata completa (tutte le fonti,
-# GNews inclusa). La vecchia normalizzazione separata di GNews è stata rimossa:
-# ora GNews è già dentro carica_dati_unificati, evitando il doppio conteggio.
-df_master = df_unificato.copy()
-
-# Rimuovi duplicati per titolo e fonte
-df_master = df_master.drop_duplicates(subset=['titolo', 'fonte'], keep='first')
-
-# Conversione data finale e ordinamento
-df_master['data'] = pd.to_datetime(df_master['data'], errors='coerce', format='mixed', utc=True).dt.date
-df_master = df_master.sort_values('data', ascending=False).reset_index(drop=True)
-
-# --- CARICAMENTO DATI AGGIUNTIVI PER ANALISI TEMPORALE ---
-@st.cache_data
-def carica_dati_rss_eu():
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'rss_eu_analyzed.csv')
-    if os.path.exists(percorso_csv):
-        return pd.read_csv(percorso_csv)
-    return pd.DataFrame()
-
-@st.cache_data
-def carica_dati_tech_news():
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'tech_news_analyzed.csv')
-    if os.path.exists(percorso_csv):
-        return pd.read_csv(percorso_csv)
-    return pd.DataFrame()
-
-@st.cache_data
-def carica_dati_eu_parl():
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'eu_parl_analyzed.csv')
-    if os.path.exists(percorso_csv):
-        return pd.read_csv(percorso_csv)
-    return pd.DataFrame()
-
-@st.cache_data
-def carica_dati_agcom():
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'agcom_analyzed.csv')
-    if os.path.exists(percorso_csv):
-        return pd.read_csv(percorso_csv)
-    return pd.DataFrame()
-
-@st.cache_data
-def carica_dati_gazzetta_ufficiale():
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'gazzetta_ufficiale_analyzed.csv')
-    if os.path.exists(percorso_csv):
-        return pd.read_csv(percorso_csv)
-    return pd.DataFrame()
-
-@st.cache_data
-def carica_dati_cjeu():
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'cjeu_analyzed.csv')
-    if os.path.exists(percorso_csv):
-        return pd.read_csv(percorso_csv)
-    return pd.DataFrame()
-
-@st.cache_data
-def carica_dati_feeds():
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    percorso_csv = os.path.join(cartella_script, '..', 'data', 'processed', 'feeds_analyzed.csv')
-    if os.path.exists(percorso_csv):
-        return pd.read_csv(percorso_csv)
-    return pd.DataFrame()
-
-@st.cache_data
-def carica_temi() -> dict:
-    """Temi attivi del registro (data/utils/temi.csv) -> termini-seme.
-    Unico punto di definizione in nlp/theme_matching.py, condiviso con la pipeline.
-    Qui serve solo al fallback lessicale per CSV processati pre-feature."""
-    return carica_temi_registro()
+df_master = dati.prepara_master(df_unificato)
 
 
-@st.cache_data
-def carica_registro() -> pd.DataFrame:
-    """Registro completo dei temi (macro + sotto-temi, tutti gli stati)."""
-    return carica_registro_temi()
+# --- RENDERER DEI BLOCCHI ------------------------------------------------------
+_contatore_pannelli = [0]
 
 
-# Esito del confronto topic scoperto ↔ registro temi (nlp/topic_discovery.py)
-ETICHETTE_VALUTAZIONE_TOPIC = {
-    'coperto': '✅ già coperto',
-    'candidato_sottotema': '🟡 candidato sotto-tema',
-    'fuori_lessico': '🔴 fuori lessico',
-}
+def pannello():
+    """st.container con bordo e chiave 'pannello_N': la chiave diventa la classe CSS
+    st-key-pannello_N, che tema.CSS_STREAMLIT colora come i .panel dell'export."""
+    _contatore_pannelli[0] += 1
+    return st.container(border=True, key=f"pannello_{_contatore_pannelli[0]}")
+
+def _column_config(formati: dict, etichette: dict) -> dict:
+    cfg = {}
+    for col, f in formati.items():
+        nome = etichette.get(col, col)
+        if f == 'data':
+            cfg[nome] = st.column_config.DateColumn(nome, format="DD/MM/YYYY")
+        elif f == 'dataora':
+            cfg[nome] = st.column_config.DatetimeColumn(nome, format="DD/MM/YYYY HH:mm")
+        elif f == 'pct':
+            cfg[nome] = st.column_config.ProgressColumn(nome, format="%.0f%%", min_value=0, max_value=1)
+    if 'Titolo' in etichette.values():
+        cfg.setdefault('Titolo', st.column_config.TextColumn('Titolo', width="large"))
+    return cfg
 
 
-@st.cache_data
-def carica_topic_emergenti() -> tuple:
-    """Report BERTopic (layer di scoperta), prodotto OFFLINE da nlp/topic_discovery.py.
-    Ritorna (df_topic, df_trend); DataFrame vuoti se l'artefatto non esiste ancora."""
-    cartella = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'processed')
-    p_topic = os.path.join(cartella, 'topic_emergenti.csv')
-    p_trend = os.path.join(cartella, 'topic_emergenti_trend.csv')
-    df_topic = pd.read_csv(p_topic) if os.path.exists(p_topic) else pd.DataFrame()
-    df_trend = pd.read_csv(p_trend) if os.path.exists(p_trend) else pd.DataFrame()
-    return df_topic, df_trend
+def rendi(blocchi: list) -> None:
+    for b in blocchi:
+        if isinstance(b, V.Html):
+            st.markdown(b.html, unsafe_allow_html=True)
+        elif isinstance(b, V.Grafico):
+            st.plotly_chart(b.fig, theme=None, width='stretch', config={'displaylogo': False})
+        elif isinstance(b, V.Pannello):
+            with pannello():
+                if b.titolo:
+                    st.markdown(tema.rd(tema.panel_head(b.titolo, b.sottotitolo)), unsafe_allow_html=True)
+                rendi(b.blocchi)
+                if b.nota:
+                    st.markdown(tema.rd(tema.nota(b.nota)), unsafe_allow_html=True)
+        elif isinstance(b, V.Colonne):
+            for col, contenuto in zip(st.columns(b.pesi or len(b.colonne), gap="medium"), b.colonne):
+                with col:
+                    rendi(contenuto)
+        elif isinstance(b, V.Dettagli):
+            with st.expander(b.titolo, expanded=b.aperto):
+                rendi(b.blocchi)
+        elif isinstance(b, V.Tabella):
+            st.dataframe(b.df.rename(columns=b.etichette), hide_index=True, width='stretch',
+                         column_config=_column_config(b.formati, b.etichette))
+        elif isinstance(b, V.Grafo):
+            components.html(b.html, height=b.altezza)
+        elif isinstance(b, V.Selettore):
+            if b.opzioni:
+                scelta = st.selectbox(b.etichetta, options=list(b.opzioni), key=b.chiave)
+                rendi(b.opzioni[scelta])
 
 
-# Etichetta visualizzata -> nome file data/raw/{nome}_sample.csv, uno per scraper.
-FONTI_RAW_CSV: dict[str, str] = {
-    "Garante Privacy (GPDP)":       "gpdp",
-    "AGCOM":                        "agcom",
-    "ONG e Società Civile":         "ong",
-    "GNews":                        "gnews",
-    "RSS Regolatori Europei":       "rss_eu",
-    "Tech News Italiane":           "tech_news",
-    "Parlamento Europeo":           "eu_parl",
-    "Gazzetta Ufficiale":           "gazzetta_ufficiale",
-    "CJEU (Corte di Giustizia UE)": "cjeu",
-    "Blog e Newsletter":            "feeds",
-}
+def filtri_pannello():
+    """Pannello bianco che ospita i widget di filtro (nell'export: riepilogo)."""
+    c = pannello()
+    c.markdown(tema.rd(tema.panel_head('Filtri')), unsafe_allow_html=True)
+    return c
 
 
-@st.cache_data
-def carica_dati_raw_per_fonte() -> dict:
-    """Carica titolo + data di raccolta dal CSV grezzo di ogni scraper (data/raw/*_sample.csv).
-    A differenza dei loader *_analyzed, non richiede che la pipeline NLP sia già stata eseguita."""
-    cartella_script = os.path.dirname(os.path.abspath(__file__))
-    fonti_raw = {}
-    for etichetta, nome_file in FONTI_RAW_CSV.items():
-        percorso = os.path.join(cartella_script, '..', 'data', 'raw', f'{nome_file}_sample.csv')
-        if not os.path.exists(percorso):
-            continue
-        df = pd.read_csv(percorso)
-        if df.empty or 'titolo' not in df.columns or 'data_scraping' not in df.columns:
-            continue
-        df = df[['titolo', 'data_scraping']].copy()
-        df['data_scraping'] = pd.to_datetime(df['data_scraping'], errors='coerce', format='mixed', utc=True)
-        df = df.dropna(subset=['data_scraping']).sort_values('data_scraping', ascending=False)
-        if not df.empty:
-            fonti_raw[etichetta] = df.reset_index(drop=True)
-    return fonti_raw
+def strumenti_operatore(chiave: str):
+    """Contenitore degli strumenti operatore: bordo tratteggiato, non esportati."""
+    return st.container(key=f"operatore_{chiave}")
 
 
-def _estrai_data_pubblicazione(df: pd.DataFrame) -> pd.Series:
-    """Tenta di leggere la data da colonne note, restituisce una Series datetime con NaT per date malformate."""
-    for col in ['data_pubblicazione', 'Data', 'publishedAt']:
-        if col in df.columns:
-            return pd.to_datetime(df[col], errors='coerce', format='mixed', utc=True)
-    return pd.Series(pd.NaT, index=df.index)
+# --- MASTHEAD E SCHEDE -----------------------------------------------------------
+aggiornamento = dati.data_aggiornamento()
+stamp = f"Dati al {aggiornamento:%d/%m/%Y %H:%M}" if aggiornamento else "Dati non disponibili"
+rendi([V.masthead(df_master, stamp)])
 
-@st.cache_data
-def carica_dati_per_analisi_temporale():
-    """Unifica tutti i dataset in un formato standard per l'analisi temporale."""
-    df_gpdp = carica_dati_garante()
-    df_ong_loc = carica_dati_ong()
-    df_gnews_loc = carica_dati_gnews()
-    df_rss = carica_dati_rss_eu()
-    df_tech = carica_dati_tech_news()
-    df_eu = carica_dati_eu_parl()
-    df_agcom = carica_dati_agcom()
-    df_gu = carica_dati_gazzetta_ufficiale()
-    df_cjeu = carica_dati_cjeu()
-    df_feeds = carica_dati_feeds()
-
-    fonti_config = [
-        (df_gpdp,   'GPDP'),
-        (df_ong_loc,'ONG'),
-        (df_gnews_loc, 'GNews'),
-        (df_rss,    'EU RSS'),
-        (df_tech,   'Tech News'),
-        (df_eu,     'Parlamento EU'),
-        (df_agcom,  'AGCOM'),
-        (df_gu,     'Gazzetta Ufficiale'),
-        (df_cjeu,   'CJEU'),
-        (df_feeds,  'Blog/Newsletter'),
-    ]
-
-    blocchi = []
-    for df_src, etichetta in fonti_config:
-        if df_src.empty:
-            continue
-        blocco = pd.DataFrame()
-        blocco['data'] = _estrai_data_pubblicazione(df_src)
-        blocco['fonte'] = etichetta
-        # Testo per il matching tematico (titolo + testo completo, minuscolo)
-        t_tit = df_src['titolo'].fillna('').astype(str) if 'titolo' in df_src.columns else pd.Series([''] * len(df_src))
-        t_txt = df_src['testo_completo'].fillna('').astype(str) if 'testo_completo' in df_src.columns else pd.Series([''] * len(df_src))
-        blocco['testo_ricerca'] = [f"{a} {b}".lower() for a, b in zip(t_tit.values, t_txt.values)]
-        # Temi già rilevati dal NLP (ibrido lessicale+semantico, persistito).
-        # Fallback lessicale a runtime solo per CSV generati prima della feature,
-        # così la Sezione B legge sempre e solo 'temi_rilevati'.
-        if 'temi_rilevati' in df_src.columns:
-            blocco['temi_rilevati'] = df_src['temi_rilevati'].fillna('').astype(str).values
-        else:
-            temi_fb = carica_temi()
-            blocco['temi_rilevati'] = [
-                '|'.join(tema for tema, termini in temi_fb.items()
-                         if any(term in ts for term in termini))
-                for ts in blocco['testo_ricerca']
-            ]
-        # Parole chiave — colonna Parole_Chiave o keywords
-        for col_kw in ['Parole_Chiave', 'keywords']:
-            if col_kw in df_src.columns:
-                blocco['parole_chiave_raw'] = df_src[col_kw].values
-                break
-        else:
-            blocco['parole_chiave_raw'] = None
-        # Topic label se presente
-        for col_tp in ['Topic_Emergente', 'topic', 'topic_label']:
-            if col_tp in df_src.columns:
-                blocco['topic_label'] = df_src[col_tp].values
-                break
-        else:
-            blocco['topic_label'] = None
-        # Importo EUR (solo GPDP potrebbe averlo)
-        if 'importo_eur' in df_src.columns:
-            blocco['importo_eur'] = pd.to_numeric(df_src['importo_eur'], errors='coerce')
-        else:
-            blocco['importo_eur'] = float('nan')
-        blocchi.append(blocco)
-
-    if not blocchi:
-        return pd.DataFrame(columns=['data', 'fonte', 'parole_chiave_raw', 'topic_label', 'importo_eur'])
-
-    df_unione = pd.concat(blocchi, ignore_index=True)
-    df_unione['data'] = pd.to_datetime(df_unione['data'], errors='coerce', format='mixed', utc=True)
-    df_unione = df_unione.dropna(subset=['data'])
-    df_unione['mese'] = df_unione['data'].dt.to_period('M')
-    return df_unione
-
-def _parse_parole_chiave(valore) -> list:
-    """Converte una stringa-lista Python in lista reale, con gestione degli errori."""
-    if isinstance(valore, list):
-        return valore
-    if not isinstance(valore, str) or not valore.strip():
-        return []
-    try:
-        parsed = ast.literal_eval(valore)
-        if isinstance(parsed, list):
-            return [str(p).strip() for p in parsed if str(p).strip()]
-        return []
-    except Exception:
-        return []
-
-STOPWORDS_MATCHING = {
-    "del", "della", "dei", "delle", "dello", "degli", "per", "con", "che", "una", "uno",
-    "gli", "nella", "nel", "nello", "sul", "sulla", "sui", "come", "loro", "questo",
-    "questa", "sono", "essere", "anche", "alla", "alle", "agli", "and", "the", "of", "for",
-}
-
-def _parole_significative(testo) -> set:
-    """Estrae parole >3 caratteri, minuscole, senza stopword — usato per il matching
-    deterministico keyword-overlap (Notizia<->Tema), stesso principio di link_ong."""
-    if not testo:
-        return set()
-    parole = set()
-    for token in str(testo).lower().replace(',', ' ').replace(';', ' ').split():
-        token = token.strip('.,;:()[]"\'')
-        if len(token) > 3 and token not in STOPWORDS_MATCHING:
-            parole.add(token)
-    return parole
-
-def _termini_da_lista_serializzata(valore) -> set:
-    """Come _parole_significative ma partendo da una colonna lista-serializzata
-    (es. Parole_Chiave, Entita_Coinvolte)."""
-    termini = set()
-    for frase in _parse_parole_chiave(valore):
-        termini |= _parole_significative(frase)
-    return termini
-
-# --- CREAZIONE DELLE SCHEDE (TABS) ---
-tab_home, tab_ong, tab_garante, tab_network, tab_mappa_posizionamento, tab_analisi_temporale, tab_topic = st.tabs(["🏠 Home Radar", "📢 Campagne ONG", "⚖️ Provvedimenti Garante", "🕸️ Network Temi", "📍 Mappa Posizionamento", "📈 Analisi Temporale", "🔬 Topic Emergenti"])
+(tab_home, tab_ong, tab_geo, tab_network, tab_posizionamento,
+ tab_tempo, tab_topic, tab_metodo) = st.tabs([etichetta for _, etichetta in tema.SCHEDE])
 
 # ==========================================
-# SCHEDA 0: HOME RADAR UNIFICATO
+# 1. PANORAMICA (HOME RADAR)
 # ==========================================
 with tab_home:
-    st.header("📊 Panoramica Generale")
-    
-    # --- KPI PRINCIPALI ---
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("📄 Documenti ultimi 7 giorni", len(df_master[df_master['data'] >= (datetime.now().date() - pd.Timedelta(days=7))]))
-    col2.metric("🔍 Fonti monitorate", df_master['fonte'].nunique())
-    col3.metric("🌍 Aree geografiche", df_master['ambito_geografico'].nunique())
-    col4.metric("⚠️ Livello allarme medio", round(df_master['livello_allarme'].mean(), 1))
-    
-    st.divider()
-    
-    # --- FILTRI UNIVERSALI ---
-    st.subheader("🔍 Filtri")
+    rendi([V.testata_home()])
 
-    # Categoria-macro: separa i fatti (atti ufficiali) dall'opinione (blog).
-    categorie_disponibili = sorted(df_master['categoria'].dropna().unique()) if 'categoria' in df_master.columns else []
-    categorie_selezionate = st.multiselect(
-        "🏛️ Categoria fonte — Ufficiale (fatti) · Stampa · Blog/Opinione · Società civile",
-        options=categorie_disponibili,
-        default=categorie_disponibili,
-        help="Filtra per natura della fonte: distingue gli atti ufficiali da stampa e opinioni."
-    )
+    with filtri_pannello():
+        # Categoria-macro: separa i fatti (atti ufficiali) dall'opinione (blog).
+        categorie_disponibili = sorted(df_master['categoria'].dropna().unique())
+        categorie_selezionate = st.multiselect(
+            "Categoria fonte — Ufficiale (fatti) · Stampa · Blog/Opinione · Società civile",
+            options=categorie_disponibili, default=categorie_disponibili,
+            help="Filtra per natura della fonte: distingue gli atti ufficiali da stampa e opinioni.")
+        col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+        with col_f1:
+            fonti_selezionate = st.multiselect("Fonte", options=df_master['fonte'].unique(),
+                                               default=df_master['fonte'].unique())
+        with col_f2:
+            aree_selezionate = st.multiselect("Area geografica", options=df_master['ambito_geografico'].unique(),
+                                              default=df_master['ambito_geografico'].unique())
+        with col_f3:
+            livello_allarme = st.slider("Livello allarme minimo", min_value=1, max_value=3, value=1)
+        with col_f4:
+            intervallo_giorni = st.selectbox("Intervallo temporale", options=dati.INTERVALLI_HOME,
+                                             index=dati.INTERVALLO_HOME_DEFAULT, format_func=lambda x: x[0])
 
-    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
-
-    with col_f1:
-        fonti_selezionate = st.multiselect("Fonte", options=df_master['fonte'].unique(), default=df_master['fonte'].unique())
-    with col_f2:
-        aree_selezionate = st.multiselect("Area Geografica", options=df_master['ambito_geografico'].unique(), default=df_master['ambito_geografico'].unique())
-    with col_f3:
-        livello_allarme = st.slider("Livello Allarme Minimo", min_value=1, max_value=3, value=1)
-    with col_f4:
-        intervallo_giorni = st.selectbox(
-            "📅 Intervallo Temporale",
-            options=[
-                ("Ultimi 7 giorni", 7),
-                ("Ultimi 14 giorni", 14),
-                ("Ultimi 30 giorni", 30),
-                ("Ultimi 90 giorni", 90),
-                ("Tutto lo storico", 9999)
-            ],
-            index=1,  # default: 14 giorni
-            format_func=lambda x: x[0]
-        )
-    
-    # Applica filtro data
-    soglia_data = datetime.now().date() - pd.Timedelta(days=intervallo_giorni[1])
-    if intervallo_giorni[1] != 9999:
-        df_master_filtrato = df_master[df_master['data'] >= soglia_data]
-    else:
-        df_master_filtrato = df_master.copy()
-    
-    # Applica filtri (categoria + fonte + area + allarme) sulla base già filtrata per data
-    df_filtrato = df_master_filtrato[
-        df_master_filtrato['categoria'].isin(categorie_selezionate) &
-        df_master_filtrato['fonte'].isin(fonti_selezionate) &
-        df_master_filtrato['ambito_geografico'].isin(aree_selezionate) &
-        (df_master_filtrato['livello_allarme'] >= livello_allarme)
-    ]
-    
-    st.divider()
-    
-    # --- TIMELINE GENERALE ---
-    st.subheader("📅 Timeline Tutti gli Eventi")
-    
-    eventi_per_giorno = df_filtrato.groupby('data').size().reset_index(name='conteggio')
-    
-    # Forziamo l'asse X come data giornaliera, evitiamo la formattazione automatica in secondi
-    fig_timeline = px.line(
-        eventi_per_giorno, 
-        x='data', 
-        y='conteggio', 
-        title='Eventi per giorno', 
-        markers=True,
-        labels={'conteggio': 'Numero eventi'}
-    )
-    
-    # Forza il formato data sull'asse orizzontale e nasconde ore/minuti/secondi
-    fig_timeline.update_layout(
-        xaxis=dict(
-            type='date',
-            tickformat='%d/%m/%Y',
-            dtick=2 * 24 * 60 * 60 * 1000, # Un tick ogni 2 giorni (in millisecondi, richiesto da Plotly per assi date)
-            tickmode='linear',
-            showgrid=True
-        ),
-        hovermode='x unified'
-    )
-
-    st.plotly_chart(fig_timeline, width='stretch')
-
-    st.divider()
-
-    # --- ULTIME NOTIZIE PER FONTE (una tabella per scraper) ---
-    st.subheader("🗂️ Ultime Notizie per Fonte")
-    st.caption("Titolo e data di raccolta dal CSV grezzo di ciascuno scraper, indipendentemente dalla classificazione NLP.")
-
-    dati_per_fonte = carica_dati_raw_per_fonte()
-    if not dati_per_fonte:
-        st.info("Nessun dato grezzo trovato in data/raw/. Esegui gli scraper per popolare questa sezione.")
-    else:
-        for etichetta, df_fonte in dati_per_fonte.items():
-            with st.expander(f"{etichetta} — {len(df_fonte)} notizie"):
-                st.dataframe(
-                    df_fonte,
-                    column_config={
-                        "titolo": st.column_config.TextColumn("Titolo", width="large"),
-                        "data_scraping": st.column_config.DatetimeColumn("Data raccolta", format="DD/MM/YYYY HH:mm"),
-                    },
-                    hide_index=True,
-                    width='stretch',
-                )
-
-    st.divider()
+    df_filtrato = dati.filtra_master(df_master, intervallo_giorni[1], categorie_selezionate,
+                                     fonti_selezionate, aree_selezionate, livello_allarme)
+    rendi(V.vista_home(df_filtrato, carica_dati_raw_per_fonte()))
 
     # === SISTEMA HUMAN-IN-THE-LOOP ===
-    st.subheader("🔧 Correggi Classificazione (Active Learning)")
-    
-    # Filtri per restringere il set di documenti da correggere manualmente
-    col_filtro_gold1, col_filtro_gold2 = st.columns(2)
-    with col_filtro_gold1:
-        fonti_disponibili = ["Tutte le fonti"] + list(df_unificato['fonte'].unique())
-        fonte_filtro = st.selectbox("Filtra per Fonte:", options=fonti_disponibili)
-    with col_filtro_gold2:
-        mostra_solo_non_corrette = st.checkbox("Mostra solo notizie non ancora corrette", value=False)
-    
-    # Applica filtri
-    df_gold = df_master.copy()
-    if fonte_filtro != "Tutte le fonti":
-        df_gold = df_gold[df_gold['fonte'] == fonte_filtro]
-    
-    # Inizializza stato sessione per modifiche
-    if 'modifiche_correzione' not in st.session_state:
-        st.session_state.modifiche_correzione = []
-    
-    # Categorie disponibili per correzione
-    CATEGORIE_GEOGRAFICHE = ["Italia", "Europa", "USA / Internazionale", "Asia", "Generico"]
-    ong_lista = list(PROFILI_ONG.keys())
-    
-    # Prepara dataframe per editor - NESSUN LIMITE DI RIGHE
-    df_correzione = df_gold[['data', 'fonte', 'titolo', 'ambito_geografico', 'livello_allarme']].copy()
-    df_correzione['errore_segnalato'] = False
-    df_correzione['categoria_corretta'] = "Non modificato"
-    df_correzione['livello_allarme_corretto'] = df_correzione['livello_allarme']
-    df_correzione['ong_collegata_corretta'] = ""
-    
-    # Usa data_editor invece di dataframe per modifiche interattive
-    col_edit, col_save = st.columns([4,1])
-    
-    with col_edit:
-        df_modificato = st.data_editor(
-            df_correzione,
-            column_config={
-                "data": st.column_config.DateColumn("Data", disabled=True),
-                "fonte": st.column_config.TextColumn("Fonte", disabled=True),
-                "titolo": st.column_config.TextColumn("Titolo", disabled=True, width="large"),
-                "ambito_geografico": st.column_config.TextColumn("Classificazione AI", disabled=True),
-                "errore_segnalato": st.column_config.CheckboxColumn("✅ Segnala Errore"),
-            "categoria_corretta": st.column_config.SelectboxColumn(
-                "🎯 Categoria Corretta",
-                options=CATEGORIE_GEOGRAFICHE
-            ),
-            "livello_allarme": st.column_config.NumberColumn("Livello AI", disabled=True, min_value=1, max_value=5),
-            "livello_allarme_corretto": st.column_config.NumberColumn(
-                "⚠️ Livello Allarme Reale",
-                help="Modifica per assegnare l'importanza vera di questa notizia. 1 = Bassa, 5 = Molto Alta",
-                min_value=1,
-                max_value=5,
-                step=1
-            ),
-            "ong_collegata_corretta": st.column_config.SelectboxColumn(
-                "🔗 ONG Associata",
-                options=ong_lista,
-                help="Assegna manualmente quale ONG è citata in questa notizia"
-            )
-        },
-            hide_index=True,
-            width='stretch',
-            disabled=["data", "fonte", "titolo", "ambito_geografico"]
-        )
-    
-    with col_save:
-        st.markdown("<br>", unsafe_allow_html=True)
-        salva_correzioni = st.button("💾 Salva Correzioni", type="primary", use_container_width=True)
-        
-        if salva_correzioni:
-            # Estrai solo le righe modificate
-            modifiche = df_modificato[df_modificato['errore_segnalato'] == True].copy()
-            
-            if len(modifiche) > 0:
-                # Aggiungi metadata
-                modifiche['timestamp_correzione'] = datetime.now().isoformat()
-                modifiche['utente'] = "Operatore"
-                modifiche['tipo_correzione'] = "classificazione"
-                
-                # Percorso file feedback
-                cartella_script = os.path.dirname(os.path.abspath(__file__))
-                percorso_feedback = os.path.join(cartella_script, '..', 'data', 'processed', 'training_data_feedback.csv')
-                
-                # Append allineato allo schema canonico (writer e reader non
-                # possono più divergere — vedi utils/feedback_schema.py)
-                append_correzioni(modifiche, percorso_feedback)
-                
-                st.success(f"✅ Salvataggi {len(modifiche)} correzioni. Saranno usate per il prossimo fine-tuning del modello.")
-                st.balloons()
-            else:
-                st.info("Nessuna modifica selezionata per il salvataggio.")
-    
-    st.divider()
-    
-    # --- ULTIMI EVENTI ---
-    st.subheader("📌 Ultimi 50 Eventi")
-    st.dataframe(
-        df_filtrato[['data', 'categoria', 'fonte', 'tipo', 'titolo', 'livello_allarme']].head(50),
-        hide_index=True,
-        width='stretch'
-    )
-
-# ==========================================
-# SCHEDA 1: ORGANIZZAZIONI CIVICHE (Il tuo codice originale)
-# ==========================================
-with tab_ong:
-    ong_con_documenti = set(df_ong['nome_organizzazione'].unique()) if not df_ong.empty else set()
-    ong_senza_documenti = sorted(set(PROFILI_ONG.keys()) - ong_con_documenti)
-    if ong_senza_documenti:
-        st.warning(
-            f"⚠️ {len(ong_senza_documenti)} ONG senza documenti raccolti: " + ", ".join(ong_senza_documenti)
-        )
-
-    if df_ong.empty:
-        st.info("Nessun documento ONG raccolto finora. Usa il form sotto per aggiungerne uno manualmente, oppure esegui prima lo scraper delle ONG.")
-    else:
-        # Layout a due colonne per filtri e metriche
-        col_filtri, col_metriche = st.columns([1, 2])
-
-        with col_filtri:
-            st.subheader("Filtra i Dati")
-            ong_selezionate = st.multiselect(
-                "Scegli le Organizzazioni:",
-                options=df_ong['nome_organizzazione'].unique(),
-                default=df_ong['nome_organizzazione'].unique()
-            )
-
-        df_filtrato_ong = df_ong[df_ong['nome_organizzazione'].isin(ong_selezionate)]
-
-        with col_metriche:
-            col1, col2 = st.columns(2)
-            col1.metric("Comunicati Analizzati", len(df_filtrato_ong))
-            col2.metric("Organizzazioni Attive", len(ong_selezionate))
-
-        st.subheader("📄 Documenti per Organizzazione")
-        if not ong_selezionate:
-            st.info("Seleziona almeno un'ONG dal filtro sopra per vedere i documenti in dettaglio.")
-        else:
-            ong_dettaglio = st.selectbox("Scegli un'ONG per il dettaglio:", options=sorted(ong_selezionate))
-            df_dettaglio = df_filtrato_ong[df_filtrato_ong['nome_organizzazione'] == ong_dettaglio].sort_values(
-                'data_pubblicazione', ascending=False
-            )
-            st.caption(f"{len(df_dettaglio)} documenti per {ong_dettaglio}")
-            for _, doc in df_dettaglio.iterrows():
-                titolo_doc = str(doc.get('titolo', '') or '(senza titolo)')
-                data_doc = str(doc.get('data_pubblicazione', '') or '?')
-                with st.expander(f"{data_doc} — {titolo_doc}"):
-                    testo_doc = str(doc.get('testo_completo', '') or '')
-                    st.write(testo_doc[:500] + ("..." if len(testo_doc) > 500 else ""))
-                    url_doc = str(doc.get('url', '') or '')
-                    if url_doc.strip():
-                        st.markdown(f"[🔗 Apri notizia]({url_doc})")
-                    if str(doc.get('fonte', '')) == 'manuale':
-                        st.caption("✍️ Inserito manualmente")
-
-    st.divider()
-    st.subheader("➕ Aggiungi un documento manualmente")
-    with st.form("aggiungi_documento_ong", clear_on_submit=True):
-        ong_form = st.selectbox("Organizzazione *", options=sorted(PROFILI_ONG.keys()), key="ong_manuale_select")
-        titolo_form = st.text_input("Titolo *")
-        testo_form = st.text_area("Testo *", height=150)
-        data_form = st.date_input("Data *", value=datetime.now().date())
-        url_form = st.text_input("Link *")
-        invia_documento = st.form_submit_button("💾 Salva documento")
-
-        if invia_documento:
-            errori_form = []
-            if not titolo_form.strip():
-                errori_form.append("titolo")
-            if not testo_form.strip():
-                errori_form.append("testo")
-            if not url_form.strip().lower().startswith("http"):
-                errori_form.append("link (deve iniziare con http)")
-
-            if errori_form:
-                st.error(f"Campi mancanti o non validi: {', '.join(errori_form)}")
-            else:
-                salva_documento_manuale(ong_form, titolo_form, testo_form, data_form, url_form)
-                st.success(f"✅ Documento aggiunto per '{ong_form}'.")
-                carica_dati_ong.clear()
-                st.rerun()
-
-# ==========================================
-# SCHEDA 2: ANALISI GEOGRAFICA GLOBALE
-# ==========================================
-with tab_garante:
-    st.header("🌍 Analisi Geografica Tutte le Fonti")
-    
-    # Unisci TUTTI i dati da TUTTI gli scraper
-    df_geografia_totale = df_master.copy()
-    
-    # --- FILTRO TIPO FONTE ---
-    st.subheader("🔍 Filtra per Tipo di Fonte")
-    col_f1, col_f2 = st.columns(2)
-    
-    with col_f1:
-        filtro_tipo = st.multiselect(
-            "Tipo di Contenuto:",
-            options=['Provvedimento', 'Comunicato ONG', 'Notizia'],
-            default=['Provvedimento', 'Comunicato ONG', 'Notizia']
-        )
-    
-    with col_f2:
-        filtro_area = st.selectbox("Filtra per Area Geografica:", 
-            ["Tutte le aree", "Italia", "Europa", "USA / Internazionale", "Asia"]
-        )
-    
-    # Applica filtri
-    df_geo_filtrato = df_geografia_totale[df_geografia_totale['tipo'].isin(filtro_tipo)]
-    
-    if filtro_area != "Tutte le aree":
-        df_geo_filtrato = df_geo_filtrato[df_geo_filtrato['ambito_geografico'] == filtro_area]
-    
-    # --- METRICHE GENERALI ---
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("📄 Totale Documenti Analizzati", len(df_geo_filtrato))
-    col2.metric("🇮🇹 Italia", len(df_geo_filtrato[df_geo_filtrato['ambito_geografico'] == 'Italia']))
-    col3.metric("🇪🇺 Europa", len(df_geo_filtrato[df_geo_filtrato['ambito_geografico'] == 'Europa']))
-    col4.metric("🌍 Mondo", len(df_geo_filtrato[df_geo_filtrato['ambito_geografico'].isin(['USA / Internazionale', 'Asia'])]))
-
-    st.divider()
-
-    # --- ANALISI GEOGRAFICA ---
-    st.subheader("📊 Distribuzione Geografica per Tipo")
-    
-    col_grafico, col_dettaglio = st.columns([2, 1])
-    
-    with col_grafico:
-        # Raggruppa per Area e Tipo
-        conteggio_geo = df_geo_filtrato.groupby(['ambito_geografico', 'tipo']).size().reset_index(name='conteggio')
-        
-        fig = px.bar(
-            conteggio_geo,
-            x='ambito_geografico',
-            y='conteggio',
-            color='tipo',
-            barmode='stack',
-            title='Distribuzione Geografica per Tipologia Contenuto',
-            labels={'conteggio': 'Numero Documenti', 'ambito_geografico': 'Area Geografica'}
-        )
-        
-        st.plotly_chart(fig, width='stretch')
-    
-    with col_dettaglio:
-        st.markdown("**Dettaglio per Fonte:**")
-        conteggio_fonte = df_geo_filtrato.groupby(['fonte', 'ambito_geografico']).size().reset_index(name='conteggio')
-        st.dataframe(conteggio_fonte, hide_index=True, width='stretch')
-
-    st.divider()
-
-    # --- ELENCO COMPLETO ---
-    st.subheader("📜 Elenco Tutti i Documenti")
-    
-    st.dataframe(
-        df_geo_filtrato[['data', 'categoria', 'fonte', 'tipo', 'ambito_geografico', 'titolo', 'livello_allarme']],
-        hide_index=True,
-        width='stretch'
-    )
-
-
-# ==========================================
-# SCHEDA 4: MAPPA DI POSIZIONAMENTO CARTESIANO
-# ==========================================
-with tab_mappa_posizionamento:
-    st.header("📍 Mappa di Posizionamento")
-    st.markdown("""
-    Piano cartesiano bidimensionale dove ogni elemento viene posizionato in base a due assi:
-    
-    | Asse | Estremo Sinistro | Estremo Destro |
-    |------|------------------|----------------|
-    | 🡪 **Asse X Orizzontale** | `-1 = Italia 🇮🇹` | `+1 = Mondo 🌍` |
-    | 🡩 **Asse Y Verticale** | `-1 = Legale ⚖️` | `+1 = Tecnico ⚙️` |
-    
-    ✅ Punti grigi piccoli = Singole notizie
-    ✅ Punti colorati grandi = Centroidi delle ONG
-    ✅ La dimensione del punto dipende dal numero di articoli pubblicati
-    """)
-
-    # Importa funzione calcolo score
-    import sys
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-    from scrapers.scraper_ong import PROFILI_ONG
-
-    # Mapping Ambito_Geografico → score X già calcolato dal NLP pipeline
-    _AMBITO_SCORE = {
-        'Italia':              -0.65,
-        'Europa':               0.15,
-        'USA / Internazionale': 0.75,
-        'Asia':                 0.55,
-    }
-    # Baseline geografica dal profilo ONG (area_geografica)
-    _AREA_ONG_SCORE = {
-        'italia':          -0.5,
-        'europa':           0.1,
-        'unione europea':   0.1,
-        'internazionale':   0.6,
-        'mondiale':         0.7,
-    }
-    # Parole chiave bilingui per asse Y (legale=positivo, tecnico=negativo)
-    _KW_LEGALE = (
-        # Italiano
-        "legge", "normativa", "provvedimento", "multa", "sentenza", "regolamento",
-        "tribunale", "avvocato", "giurisprudenza", "ricorso", "decreto", "sanzione",
-        "violazione", "illecito", "procedimento", "delibera", "autorità", "gdpr",
-        "direttiva", "codice privacy", "corte", "giudice", "contenziosi",
-        # Inglese
-        "regulation", "enforcement", "fine", "court", "compliance",
-        "lawsuit", "ruling", "judgment", "penalty", "legislation",
-        "infringement", "supervisory authority", "legal action", "appeal",
-        "complaint", "sanction", "legal challenge", "gdpr article",
-        "data protection authority", "dpa decision",
-    )
-    _KW_TECNICO = (
-        # Italiano
-        "algoritmo", "crittografia", "software", "hardware",
-        "intelligenza artificiale", "machine learning", "dataset",
-        "biometri", "cybersecurity", "exploit", "vulnerabilit", "hacker",
-        "cifratura", "open source", "api", "rete neurale", "llm", "deepfake",
-        # Inglese
-        "algorithm", "encryption", "neural network", "biometric",
-        "vulnerability", "open source software", "artificial intelligence",
-        "surveillance technology", "fingerprinting", "large language model",
-        "deepfake", "adversarial", "model training", "training data",
-        "technical standard", "interoperability",
-    )
-
-    # Baseline Y derivata dal profilo PROFILI_ONG (focus dichiarato).
-    # Negativo = orientamento tecnico, positivo = orientamento legale/policy.
-    _BASELINE_Y_ONG = {
-        "Hermes Center":                   -0.50,  # crittografia, anonimato, censura
-        "AI Forensics":                    -0.45,  # audit IA, trasparenza algoritmica
-        "AlgorithmWatch":                  -0.40,  # auditing algoritmico, trasparenza IA
-        "Electronic Frontier Foundation":  -0.25,  # libertà digitale, crittografia, brevetti
-        "Slow Web":                        -0.20,  # decentralizzazione, etica digitale
-        "NINA":                            -0.20,  # critica IA, filosofia tecnologica
-        "Privacy International":           -0.15,  # sorveglianza di massa, dati, AI
-        "Access Now":                      -0.15,  # internet freedom, shutdown, sorveglianza
-        "Privacy Network":                 -0.05,  # dati personali, sorveglianza, IA
-        "Open Rights Group":                0.00,  # GDPR, sorveglianza, open data
-        "EDRi (Europa)":                    0.15,  # policy europea, diritti civili, regolamentazione
-        "Consiglio d'Europa":               0.25,  # diritti umani, governance AI, etica
-        "The Good Lobby Italia":            0.20,  # democrazia, trasparenza istituzionale
-        "Amnesty Italia":                   0.20,  # diritti umani, giustizia
-        "Antigone":                         0.25,  # carceri, giustizia penale
-        "SOMO (Multinazionali)":            0.15,  # corporate accountability, diritti economici
-        "Italiani Senza Cittadinanza":      0.15,  # cittadinanza, migrazioni
-        "STRALI":                           0.10,  # lavoro, economia
-        "EDPS Garante Privacy UE":          0.30,  # GDPR, applicazione normativa, IA
-        "Commissione Europea DG Connect":   0.35,  # AI Act, DSA, DMA
-        "AI Act Monitor":                   0.40,  # AI Act, regolamentazione IA, conformità
-        "Noyb (Privacy UE)":                0.50,  # GDPR, contenziosi strategici, multate
-    }
-
-    def _calcola_scores(row) -> pd.Series:
-        # --- Asse X: geografia ---
-        ambito = str(row.get('Ambito_Geografico', '')).strip()
-        score_geo = _AMBITO_SCORE.get(ambito, 0.0)
-        # Sfuma con baseline ONG (area_geografica dal profilo)
-        area_ong = str(row.get('area_geografica', '')).lower()
-        for k, v in _AREA_ONG_SCORE.items():
-            if k in area_ong:
-                score_geo = round((score_geo + v) / 2, 3)
-                break
-
-        # --- Asse Y: tech/legale (negativo = tecnico, positivo = legale) ---
-        # 60% baseline da profilo ONG (cosa fa l'org), 40% da testo (di cosa parla l'articolo)
-        nome_ong = str(row.get('nome_organizzazione', ''))
-        baseline_y = _BASELINE_Y_ONG.get(nome_ong, 0.0)
-
-        # Analisi testuale bilingue: usa titolo + fino a 1500 char di testo
-        testo = ' '.join(filter(None, [
-            str(row.get('titolo', '')),
-            str(row.get('testo_completo', ''))[:1500],
-        ])).lower()
-        punti_tl = 0.0
-        for p in _KW_LEGALE:
-            if p in testo:
-                punti_tl += 0.1
-        for p in _KW_TECNICO:
-            if p in testo:
-                punti_tl -= 0.1
-        text_signal = max(-1.0, min(1.0, punti_tl))
-
-        score_tl = round(max(-1.0, min(1.0, 0.6 * baseline_y + 0.4 * text_signal)), 3)
-
-        return pd.Series([score_tl, score_geo])
-
-    if df_ong.empty:
-        st.warning("Nessun dato ONG disponibile")
-    else:
-        # Prepara dati notizie
-        df_notizie = df_ong.copy()
-        df_notizie[['score_tech_legale', 'score_geografia']] = df_notizie.apply(
-            _calcola_scores, axis=1
-        )
-        df_notizie['tipo'] = 'Notizia'
-        # Uniforma il nome colonna a 'data' per essere compatibile con df_plot più sotto
-        df_notizie['data'] = df_notizie.get('data_pubblicazione', datetime.now().date().isoformat())
-        df_notizie['livello_allarme'] = df_notizie.get('livello_allarme', 1)
-
-        # La posizione di ogni ONG viene salvata su disco e aggiornata in modo
-        # incrementale: così non torna al centro (nessun dato) quando le sue
-        # notizie recenti escono dalla finestra temporale mostrata altrove in
-        # dashboard, e riflette solo le fonti che hanno effettivamente nuovi dati.
-        cartella_script = os.path.dirname(os.path.abspath(__file__))
-        percorso_posizioni_ong = os.path.join(cartella_script, '..', 'data', 'processed', 'ong_posizioni_permanenti.csv')
-        
-        # Calcola nuovi centroidi dai dati attuali
-        centroidi_nuovi = df_notizie.groupby('nome_organizzazione').agg({
-            'score_tech_legale': 'mean',
-            'score_geografia': 'mean',
-            'titolo': 'count'
-        }).reset_index()
-        centroidi_nuovi.columns = ['nome', 'score_tech_legale', 'score_geografia', 'numero_articoli']
-        
-        # Carica posizioni salvate permanentemente se esistono
-        if os.path.exists(percorso_posizioni_ong):
-            centroidi_salvati = pd.read_csv(percorso_posizioni_ong)
-            
-            # Aggiorna solamente le ONG che hanno nuovi dati
-            for _, riga_nuova in centroidi_nuovi.iterrows():
-                nome_ong = riga_nuova['nome']
-                # Se abbiamo nuovi dati per questa ONG aggiorniamo la posizione
-                if nome_ong in centroidi_salvati['nome'].values:
-                    indice = centroidi_salvati.index[centroidi_salvati['nome'] == nome_ong][0]
-                    centroidi_salvati.at[indice, 'score_tech_legale'] = riga_nuova['score_tech_legale']
-                    centroidi_salvati.at[indice, 'score_geografia'] = riga_nuova['score_geografia']
-                    centroidi_salvati.at[indice, 'numero_articoli'] = riga_nuova['numero_articoli']
-                else:
-                    # Nuova ONG mai vista prima, aggiungila
-                    centroidi_salvati = pd.concat([centroidi_salvati, pd.DataFrame([riga_nuova])], ignore_index=True)
-            
-            centroidi_ong = centroidi_salvati
-        else:
-            # Nessun salvataggio esistente, usa i centroidi nuovi
-            centroidi_ong = centroidi_nuovi
-        
-        # Salva le posizioni aggiornate in modo permanente
-        centroidi_ong.to_csv(percorso_posizioni_ong, index=False)
-        
-        # Aggiungi TUTTE le ONG da PROFILI_ONG anche se non hanno articoli
-        tutte_ong = list(PROFILI_ONG.keys())
-        ong_presenti = centroidi_ong['nome'].tolist()
-        
-        for ong_nome in tutte_ong:
-            if ong_nome not in ong_presenti:
-                # Posiziona al centro temporaneamente le ONG senza dati MAI VISTE
-                centroidi_ong = pd.concat([centroidi_ong, pd.DataFrame([{
-                    'nome': ong_nome,
-                    'score_tech_legale': 0,
-                    'score_geografia': 0,
-                    'numero_articoli': 0
-                }])], ignore_index=True)
-        
-        centroidi_ong['tipo'] = 'ONG'
-
-        # Unisci i due dataframe
-        df_plot = pd.concat([
-            df_notizie[['score_tech_legale', 'score_geografia', 'titolo', 'tipo', 'data', 'livello_allarme']],
-            centroidi_ong.rename(columns={'nome': 'titolo'})
-        ])
-
-        # Riempie valori NaN per le notizie con dimensione fissa piccola
-        df_plot['numero_articoli'] = df_plot['numero_articoli'].fillna(3)
-
-        # Dimensione del punto proporzionale al numero di articoli (i centroidi
-        # ONG con più pubblicazioni recenti risultano visivamente più prominenti)
-        df_plot['dimensione_finale'] = df_plot['numero_articoli'] * 1.5
-
-        # Scala fissa (-1.0/+1.0), senza normalizzazione dinamica sui dati correnti:
-        # i valori restano comparabili tra un'esecuzione e l'altra della dashboard.
-
-        # Mostra solo le notizie recenti (ultimi 30 giorni) o ad alto allarme (>=2)
-        from datetime import datetime, timedelta
-        soglia_data = datetime.now().date() - timedelta(days=30)
-        
-        # Gestisci valori NaN per i centroidi ONG che non hanno dati
-        df_plot['data'] = df_plot['data'].fillna(datetime.now().date().isoformat())
-        df_plot['livello_allarme'] = df_plot['livello_allarme'].fillna(2)
-        
-        # I centroidi ONG sono sempre visibili; le notizie solo se recenti o urgenti
-        mask_ong = (df_plot['tipo'] == 'ONG')
-        mask_notizie = (pd.to_datetime(df_plot['data'], errors='coerce', format='ISO8601').dt.date >= soglia_data) | (df_plot['livello_allarme'] >= 2)
-        mask = mask_ong | mask_notizie
-        
-        df_plot_grafici = df_plot[mask].copy()
-        
-        # Jitter leggero per separare visivamente i punti sovrapposti; seed fisso
-        # così il grafico è riproducibile in modo identico ad ogni esecuzione
-        rng = np.random.RandomState(seed=42)
-        df_plot_grafici['score_tech_legale'] += rng.normal(0, 0.025, size=len(df_plot_grafici))
-        df_plot_grafici['score_geografia'] += rng.normal(0, 0.025, size=len(df_plot_grafici))
-
-        # Separa ONG per aggiungere etichette direttamente sui punti
-        df_notizie_solo = df_plot[df_plot['tipo'] == 'Notizia']
-        df_ong_solo = df_plot[df_plot['tipo'] == 'ONG']
-
-        # Crea scatter plot base per le notizie
-        fig = px.scatter(
-            df_notizie_solo,
-            x='score_geografia',
-            y='score_tech_legale',
-            color_discrete_sequence=['#666666'],
-            size='dimensione_finale' if 'dimensione_finale' in df_plot.columns else None,
-            size_max=18,
-            opacity=0.6,
-            hover_data=['titolo'],
-            range_x=[-1.1, 1.1],
-            range_y=[-1.1, 1.1],
-            title='Mappa di Posizionamento delle Organizzazioni e Notizie'
-        )
-
-        # Punti ONG disegnati separatamente, con il nome scritto direttamente
-        # sul marker (nessun offset/freccia) così l'etichetta resta sempre allineata
-        fig.add_scatter(
-            x=df_ong_solo['score_geografia'],
-            y=df_ong_solo['score_tech_legale'],
-            mode='markers+text',
-            text=df_ong_solo['titolo'],
-            textposition='top center',
-            marker=dict(
-                color='#ff4b4b',
-                size=22,
-                line=dict(width=3, color='#ffffff')
-            ),
-            textfont=dict(
-                family='Verdana',
-                size=11,
-                color='#ffffff'
-            ),
-            hovertext=df_ong_solo['titolo'],
-            name='ONG'
-        )
-
-        # Aggiungi linee degli assi al centro
-        fig.add_hline(y=0, line_dash="dash", line_color="#ff00ff", line_width=2)
-        fig.add_vline(x=0, line_dash="dash", line_color="#ff00ff", line_width=2)
-
-        # Palette ad alto contrasto scelta deliberatamente per distinguere
-        # rapidamente assi, ONG e notizie a colpo d'occhio
-        fig.update_layout(
-            xaxis_title="🌍 Geografia: Italia ↔ Mondo",
-            yaxis_title="⚙️ Tipo: Tecnico ↔ Legale",
-            showlegend=True,
-            height=750,
-            paper_bgcolor="#000000",
-            plot_bgcolor="#000000",
-            font_color="#ffffff",
-            xaxis=dict(
-                gridcolor="#330033",
-                linecolor="#ff00ff",
-                zerolinecolor="#ff00ff",
-                tickfont_color="#ffffff"
-            ),
-            yaxis=dict(
-                gridcolor="#330033",
-                linecolor="#ff00ff",
-                zerolinecolor="#ff00ff",
-                tickfont_color="#ffffff"
-            )
-        )
-
-        st.plotly_chart(fig, width='stretch')
-
-        st.info("💡 Passa con il mouse sopra i punti per vedere i dettagli. Le ONG si trovano nella media della posizione di tutte le loro notizie.")
-
-
-# ==========================================
-# SCHEDA 3: NETWORK MAP ONG <-> TEMI
-# ==========================================
-with tab_network:
-    st.header("🕸️ Mappa Network Relazioni ONG - Notizie")
-    st.markdown("""
-    Questa visualizzazione mostra il grafo di relazioni tra le Organizzazioni, i temi e le notizie raccolte.
-    ✅ **Nodi rossi**: ONG
-    ✅ **Nodi blu**: Temi / Argomenti
-    ✅ **Archi verdi**: ONG → Tema (focus) e ONG → Notizia (comunicati pubblicati dall'ONG)
-    ✅ **Archi blu scuro**: Notizia (raccolta dagli scraper) → Tema, per keyword-overlap sulle parole chiave estratte
-    ✅ **Distanza**: Indica quanto vicino è il tema agli argomenti di cui si occupa l'ONG
-    """)
-
-    with st.expander("🏷️ Profilo Parole Chiave ONG (migliora l'aggancio Notizia → ONG nel grafo)"):
-        st.markdown(
-            "Parole chiave aggiuntive, specifiche per ONG, usate solo per collegare le notizie "
-            "all'ONG più pertinente in questo grafo — si sommano al `focus` già definito, non lo sostituiscono."
-        )
-        profilo_keywords_ong = carica_profilo_keywords_ong()
-        ong_scelta_profilo = st.selectbox("Organizzazione", options=sorted(PROFILI_ONG.keys()), key="ong_profilo_select")
-        keywords_correnti = profilo_keywords_ong.get(ong_scelta_profilo, [])
-        testo_keywords = st.text_area(
-            "Parole chiave (una per riga)",
-            value="\n".join(keywords_correnti),
-            key="ong_profilo_textarea",
-            height=120,
-        )
-        if st.button("💾 Salva profilo", key="salva_profilo_ong"):
-            nuove_parole = [riga.strip() for riga in testo_keywords.split("\n") if riga.strip()]
-            salva_profilo_keywords_ong(ong_scelta_profilo, nuove_parole)
-            st.success(f"✅ Profilo di '{ong_scelta_profilo}' aggiornato: {len(nuove_parole)} parole chiave.")
-            st.rerun()
-
-    if df_ong.empty:
-        st.warning("Nessun dato ONG disponibile per costruire il network")
-    else:
-        import sys
-        import os
-        sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-        from scrapers.scraper_ong import PROFILI_ONG
-        from nlp.entity_linking import link_ong
-
-        G = nx.Graph()
-
-        sinonimi = {
-            'intelligenza artificiale': 'Intelligenza Artificiale',
-            'ia': 'Intelligenza Artificiale',
-            'ai': 'Intelligenza Artificiale',
-            'artificial intelligence': 'Intelligenza Artificiale',
-            'crittografia': 'Crittografia',
-            'criptografia': 'Crittografia'
-        }
-
-        def normalizza_tema(tema: str) -> str:
-            tema_low = tema.strip().lower()
-            for sin, standard in sinonimi.items():
-                if sin in tema_low or tema_low == sin:
-                    return standard
-            return tema.strip().title()
-
-        tema_keywords: dict = {}
-
-        for nome_ong, dati_ong in PROFILI_ONG.items():
-            G.add_node(nome_ong,
-                      color='#ff4b4b',
-                      size=25,
-                      title=f"{nome_ong}\n{dati_ong['descrizione'][:120]}...",
-                      group='ONG')
-
-            for tema in dati_ong.get('focus', []):
-                tema_norm = normalizza_tema(tema)
-                if tema_norm not in G:
-                    G.add_node(tema_norm, color='#4b8bff', size=15, group='Tema')
-                G.add_edge(nome_ong, tema_norm, value=1, title=f"Focus principale")
-                tema_keywords.setdefault(tema_norm, set())
-                tema_keywords[tema_norm] |= _parole_significative(tema)
-                tema_keywords[tema_norm] |= _parole_significative(tema_norm)
-
-        parole_tema = []
-        for _, dati_ong in PROFILI_ONG.items():
-            parole_tema.extend(dati_ong.get('focus', []))
-        parole_tema = list(set(parole_tema))
-
-        # Profilo parole chiave custom per ONG (vedi expander sopra): si somma a
-        # 'focus' solo per il matching Notizia->ONG di questo grafo, non tocca
-        # PROFILI_ONG né la pipeline offline.
-        PROFILI_ONG_ARRICCHITO = {
-            nome: {**dati, 'focus': list(dati.get('focus', [])) + profilo_keywords_ong.get(nome, [])}
-            for nome, dati in PROFILI_ONG.items()
-        }
-
-        # Correzioni manuali salvate dal pannello "Correggi Associazioni Notizie"
-        # (tipo_correzione == 'ong_collegata' in training_data_feedback.csv): hanno
-        # priorità assoluta, anche sul publisher noto — è proprio quello che l'utente
-        # sta correggendo. Override deterministico per titolo, nessun training.
-        percorso_feedback_ong = os.path.join(cartella_root, 'data', 'processed', 'training_data_feedback.csv')
-        df_feedback_ong = load_feedback(percorso_feedback_ong)
-        correzioni_ong_manuali: dict = {}
-        if not df_feedback_ong.empty:
-            df_correzioni_ong = df_feedback_ong[df_feedback_ong['tipo_correzione'] == 'ong_collegata']
-            for _, riga_corretta in df_correzioni_ong.iterrows():
-                titolo_corretto = str(riga_corretta.get('titolo', '')).strip()
-                ong_corretta = str(riga_corretta.get('ong_collegata_corretta', '')).strip()
-                if titolo_corretto and ong_corretta:
-                    # Il file è append-only in ordine cronologico: l'ultima occorrenza
-                    # per lo stesso titolo sovrascrive le precedenti (correzione più recente vince).
-                    correzioni_ong_manuali[titolo_corretto] = ong_corretta
-
-        from datetime import datetime, timedelta
-        soglia_data = datetime.now().date() - timedelta(days=30)
-
-        df_ong['data_pubblicazione'] = pd.to_datetime(df_ong['data_pubblicazione'], errors='coerce', format='mixed', utc=True).dt.date
-
-        mask = (df_ong['data_pubblicazione'] >= soglia_data) | (df_ong['livello_allarme'] >= 3)
-        df_ong_filtrato = df_ong[mask].copy()
-
-        for _, notizia in df_ong_filtrato.iterrows():
-            titolo = notizia['titolo'][:50] + "..."
-            testo_notizia = (notizia['titolo'] + " " + notizia.get('testo_completo', '')).lower()
-            # Priorità 1: correzione manuale salvata dall'utente per questo titolo.
-            ancora = correzioni_ong_manuali.get(str(notizia['titolo']).strip())
-            ancora = ancora if ancora in G else None
-
-            # Priorità 2 (ground truth): la notizia appartiene a chi l'ha PUBBLICATA.
-            # Per il feed ONG il publisher è noto, quindi la si attacca sempre alla
-            # sua ONG — così ogni ONG attiva mostra i propri articoli e non resta vuota.
-            if ancora is None:
-                ong_nome = str(notizia.get('nome_organizzazione', '')).strip()
-                ancora = ong_nome if ong_nome in G else None
-
-            # Solo se il publisher non è una ONG nota (es. fonti non-ONG) si ricade
-            # sul keyword-overlap del paper per inferire la ONG più pertinente.
-            if ancora is None:
-                candidata, _score = link_ong(testo_notizia, PROFILI_ONG_ARRICCHITO, return_score=True)
-                ancora = candidata if candidata in G else None
-
-            if ancora is not None:
-                G.add_node(titolo, color='#4bff8b', size=8, group='Notizia', shape='diamond')
-                G.add_edge(ancora, titolo, value=0.5, title=f"Pubblicato da {ancora}")
-
-        # --- Notizie generaliste (scraper non-ONG) -> Temi ---
-        # Aggancio deterministico per keyword-overlap (stesso principio di link_ong,
-        # ma contro il vocabolario dei Temi invece che contro i profili ONG).
-        # Se non c'è overlap sufficiente la notizia resta fuori dal grafo: niente
-        # aggancio forzato, per non inventare associazioni deboli (vedi CLAUDE.md).
-        COLORE_NOTIZIA_GENERALE = '#00008b'  # blu scuro
-        SOGLIA_MIN_OVERLAP_TEMA = 1
-
-        fonti_scraper_generaliste = {
-            "GNews": carica_dati_gnews(),
-            "Tech News Italiane": carica_dati_tech_news(),
-            "RSS Regolatori Europei": carica_dati_rss_eu(),
-            "Parlamento Europeo": carica_dati_eu_parl(),
-            "AGCOM": carica_dati_agcom(),
-        }
-
-        for fonte_label, df_fonte in fonti_scraper_generaliste.items():
-            if df_fonte.empty or 'titolo' not in df_fonte.columns:
-                continue
-            df_fonte = df_fonte.copy()
-            df_fonte['data_pubblicazione'] = pd.to_datetime(
-                df_fonte.get('data_pubblicazione'), errors='coerce', format='mixed', utc=True
-            ).dt.date
-            df_fonte['livello_allarme'] = pd.to_numeric(df_fonte.get('livello_allarme', 1), errors='coerce').fillna(1)
-            mask_fonte = (df_fonte['data_pubblicazione'] >= soglia_data) | (df_fonte['livello_allarme'] >= 3)
-
-            for _, notizia in df_fonte[mask_fonte].iterrows():
-                titolo_raw = str(notizia.get('titolo', '')).strip()
-                if not titolo_raw:
-                    continue
-
-                termini_notizia = _parole_significative(notizia.get('titolo', ''))
-                termini_notizia |= _termini_da_lista_serializzata(notizia.get('Parole_Chiave'))
-                termini_notizia |= _termini_da_lista_serializzata(notizia.get('Entita_Coinvolte'))
-
-                migliore_tema, migliore_score = None, 0
-                for tema_norm, parole_tema_set in tema_keywords.items():
-                    score = len(termini_notizia & parole_tema_set)
-                    if score > migliore_score:
-                        migliore_tema, migliore_score = tema_norm, score
-
-                if migliore_tema is None or migliore_score < SOGLIA_MIN_OVERLAP_TEMA:
-                    continue
-
-                titolo_nodo = titolo_raw[:50] + "..."
-                if titolo_nodo not in G:
-                    G.add_node(titolo_nodo, color=COLORE_NOTIZIA_GENERALE, size=8,
-                              group='NotiziaGenerale', shape='diamond',
-                              title=f"{fonte_label}\n{titolo_raw}")
-                G.add_edge(migliore_tema, titolo_nodo, value=0.5, color=COLORE_NOTIZIA_GENERALE,
-                          title=f"{fonte_label} · overlap={migliore_score} parole")
-
-        col_stat1, col_stat2, col_stat3, col_stat4, col_stat5 = st.columns(5)
-        numero_ong = len([n for n, d in G.nodes(data=True) if d.get('group') == 'ONG'])
-        numero_temi = len([n for n, d in G.nodes(data=True) if d.get('group') == 'Tema'])
-        numero_notizie = len([n for n, d in G.nodes(data=True) if d.get('group') == 'Notizia'])
-        numero_notizie_generali = len([n for n, d in G.nodes(data=True) if d.get('group') == 'NotiziaGenerale'])
-        numero_connessioni = G.number_of_edges()
-        col_stat1.metric("🔴 Organizzazioni", numero_ong)
-        col_stat2.metric("🔵 Temi Monitorati", numero_temi)
-        col_stat3.metric("🟢 Notizie ONG", numero_notizie)
-        col_stat4.metric("🔷 Notizie Generali", numero_notizie_generali)
-        col_stat5.metric("🔗 Connessioni Totali", numero_connessioni)
-        st.divider()
-
-        net = Network(height='700px', width='100%', bgcolor='#0a0a0a', font_color='ffffff',
-                      select_menu=False, filter_menu=False, directed=False)
-        net.from_nx(G)
-        net.set_options("""
-        {
-          "nodes": {
-            "shape": "dot",
-            "size": 18,
-            "borderWidth": 2,
-            "borderWidthSelected": 4,
-            "font": {
-              "size": 11,
-              "face": "Verdana",
-              "color": "#ffffff",
-              "strokeWidth": 2,
-              "strokeColor": "#000000"
-            },
-            "shadow": false
-          },
-          "edges": {
-            "color": {
-              "inherit": false,
-              "color": "#44ff00",
-              "highlight": "#00ffff",
-              "hover": "#ff00ff"
-            },
-            "width": 1,
-            "smooth": false
-          },
-          "layout": {
-            "randomSeed": 42
-          },
-          "physics": {
-            "enabled": true,
-            "solver": "forceAtlas2Based",
-            "forceAtlas2Based": {
-              "gravitationalConstant": -150,
-              "centralGravity": 0.01,
-              "springLength": 200,
-              "springConstant": 0.05,
-              "avoidOverlap": 1
-            },
-            "stabilization": {
-              "enabled": true,
-              "iterations": 1000,
-              "updateInterval": 100
-            }
-          },
-          "interaction": {
-            "hideEdgesOnDrag": false,
-            "hideNodesOnDrag": false,
-            "hover": true,
-            "multiselect": true,
-            "navigationButtons": false,
-            "tooltipDelay": 50,
-            "zoomView": true,
-            "zoomSpeed": 0.25,
-            "dragView": true
-          }
-        }
-        """)
-
-        path_html = 'network_graph.html'
-        net.save_graph(path_html)
-        with open(path_html, 'r', encoding='utf-8') as f:
-            html_content = f.read()
-        html_content = html_content.replace(
-            'var options = {',
-            'var options = {\n  zoomMax: 2.2,\n  zoomMin: 0.35,'
-        )
-        html_content = html_content.replace(
-            'background-color: #0a0a0a;',
-            'background: #000000;\nbackground-image: linear-gradient(rgba(30,30,30,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(30,30,30,0.3) 1px, transparent 1px), radial-gradient(#111111 1px, #000000 1px);\nbackground-size: 100% 100%, 100% 100%, 8px 8px;\nbackground-position: center center, center center, 0 0;'
-        )
-        components.html(html_content, height=750)
-        os.remove(path_html)
-
-        st.info("💡 Trascina i nodi per muovere la rete. Clicca su un nodo per vedere i dettagli.")
-        st.divider()
-
-        st.subheader("✏️ Correggi Associazioni Notizie")
-        st.markdown("Se una notizia è associata alla ONG sbagliata puoi correggere l'associazione qui:")
-
-        if not df_ong.empty:
-            df_correzione_network = df_ong[['data_pubblicazione', 'nome_organizzazione', 'titolo', 'url']].head(50).copy()
-            df_correzione_network['associazione_corretta'] = df_correzione_network['nome_organizzazione']
+    with strumenti_operatore('home'):
+        with st.expander("Strumenti operatore · Correggi classificazione (active learning)"):
+            col_filtro_gold1, col_filtro_gold2 = st.columns(2)
+            with col_filtro_gold1:
+                fonte_filtro = st.selectbox("Filtra per fonte:",
+                                            options=["Tutte le fonti"] + list(df_unificato['fonte'].unique()))
+            with col_filtro_gold2:
+                st.checkbox("Mostra solo notizie non ancora corrette", value=False)
+
+            df_gold = df_master.copy()
+            if fonte_filtro != "Tutte le fonti":
+                df_gold = df_gold[df_gold['fonte'] == fonte_filtro]
+
+            CATEGORIE_GEOGRAFICHE = ["Italia", "Europa", "USA / Internazionale", "Asia", "Generico"]
             ong_lista = list(PROFILI_ONG.keys())
 
-            df_modificato_network = st.data_editor(
-                df_correzione_network,
+            df_correzione = df_gold[['data', 'fonte', 'titolo', 'ambito_geografico', 'livello_allarme']].copy()
+            df_correzione['errore_segnalato'] = False
+            df_correzione['categoria_corretta'] = "Non modificato"
+            df_correzione['livello_allarme_corretto'] = df_correzione['livello_allarme']
+            df_correzione['ong_collegata_corretta'] = ""
+
+            df_modificato = st.data_editor(
+                df_correzione,
                 column_config={
-                    "nome_organizzazione": st.column_config.TextColumn("Associazione Attuale", disabled=True),
-                    "associazione_corretta": st.column_config.SelectboxColumn(
-                        "✅ Associazione Corretta",
-                        options=ong_lista
-                    ),
-                    "titolo": st.column_config.TextColumn("Titolo Notizia", disabled=True, width="large"),
-                    "url": st.column_config.TextColumn("Link", disabled=True)
+                    "data": st.column_config.DateColumn("Data", disabled=True, format="DD/MM/YYYY"),
+                    "fonte": st.column_config.TextColumn("Fonte", disabled=True),
+                    "titolo": st.column_config.TextColumn("Titolo", disabled=True, width="large"),
+                    "ambito_geografico": st.column_config.TextColumn("Classificazione AI", disabled=True),
+                    "errore_segnalato": st.column_config.CheckboxColumn("Segnala errore"),
+                    "categoria_corretta": st.column_config.SelectboxColumn("Categoria corretta",
+                                                                           options=CATEGORIE_GEOGRAFICHE),
+                    "livello_allarme": st.column_config.NumberColumn("Livello AI", disabled=True,
+                                                                     min_value=1, max_value=5),
+                    "livello_allarme_corretto": st.column_config.NumberColumn(
+                        "Livello allarme reale",
+                        help="Modifica per assegnare l'importanza vera di questa notizia. 1 = Bassa, 5 = Molto Alta",
+                        min_value=1, max_value=5, step=1),
+                    "ong_collegata_corretta": st.column_config.SelectboxColumn(
+                        "ONG associata", options=ong_lista,
+                        help="Assegna manualmente quale ONG è citata in questa notizia"),
                 },
-                hide_index=True,
-                width='stretch'
+                hide_index=True, width='stretch',
+                disabled=["data", "fonte", "titolo", "ambito_geografico"],
             )
 
-            salva_associazioni = st.button("💾 Salva Correzioni Associazioni", type="primary")
-            if salva_associazioni:
-                modifiche_network = df_modificato_network[
-                    df_modificato_network['associazione_corretta'] != df_modificato_network['nome_organizzazione']
-                ].copy()
-                if len(modifiche_network) > 0:
-                    # Stesso schema/percorso del blocco "Correggi Classificazione" nel tab
-                    # Home Radar: append_correzioni normalizza le colonne mancanti a NaN,
-                    # quindi qui basta valorizzare quelle rilevanti per una correzione ONG.
-                    modifiche_feedback = pd.DataFrame({
-                        'data': modifiche_network['data_pubblicazione'],
-                        'fonte': modifiche_network['nome_organizzazione'],
-                        'titolo': modifiche_network['titolo'],
-                        'errore_segnalato': True,
-                        'ong_collegata_corretta': modifiche_network['associazione_corretta'],
-                        'timestamp_correzione': datetime.now().isoformat(),
-                        'utente': "Operatore",
-                        'tipo_correzione': "ong_collegata",
-                    })
-                    cartella_script = os.path.dirname(os.path.abspath(__file__))
-                    percorso_feedback = os.path.join(cartella_script, '..', 'data', 'processed', 'training_data_feedback.csv')
-                    append_correzioni(modifiche_feedback, percorso_feedback)
-                    st.success(f"✅ Salvate {len(modifiche_network)} correzioni in training_data_feedback.csv.")
+            if st.button("Salva correzioni", type="primary"):
+                modifiche = df_modificato[df_modificato['errore_segnalato'] == True].copy()  # noqa: E712
+                if len(modifiche) > 0:
+                    modifiche['timestamp_correzione'] = datetime.now().isoformat()
+                    modifiche['utente'] = "Operatore"
+                    modifiche['tipo_correzione'] = "classificazione"
+                    # Append allineato allo schema canonico (utils/feedback_schema.py)
+                    append_correzioni(modifiche, dati.PERCORSO_FEEDBACK)
+                    st.success(f"Salvate {len(modifiche)} correzioni. Saranno usate per il prossimo "
+                               "fine-tuning del modello.")
                 else:
-                    st.info("Nessuna modifica effettuata")
-
+                    st.info("Nessuna modifica selezionata per il salvataggio.")
 
 # ==========================================
-# SCHEDA 6: ANALISI TEMPORALE
+# 2. CAMPAGNE ONG
 # ==========================================
-with tab_analisi_temporale:
-    st.header("📈 Analisi Temporale")
-    st.markdown("""
-    Questa sezione offre due viste analitiche sull'evoluzione nel tempo dei dati raccolti:
-    - **Sezione A**: Andamento dei provvedimenti/documenti per mese, raggruppati per fonte
-    - **Sezione B**: Tendenze dei temi principali nelle ultime settimane
-    """)
+with tab_ong:
+    rendi([V.testata_ong()])
+    ong_con_documenti = set(df_ong['nome_organizzazione'].unique()) if not df_ong.empty else set()
+    rendi(V.avviso_ong_mancanti(sorted(set(PROFILI_ONG.keys()) - ong_con_documenti)))
 
-    df_temporale = carica_dati_per_analisi_temporale()
-
-    if df_temporale.empty:
-        st.warning("Nessun dato temporale disponibile. Assicurati che gli scraper abbiano prodotto i file CSV analizzati in data/processed/.")
+    if df_ong.empty:
+        ong_selezionate = []
     else:
-        # --- FILTRO INTERVALLO TEMPORALE (condiviso dalle due sezioni) ---
-        st.subheader("🗓️ Intervallo Temporale")
-        col_filtro_temp1, col_filtro_temp2 = st.columns([2, 2])
+        with filtri_pannello():
+            ong_selezionate = st.multiselect("Organizzazioni", options=df_ong['nome_organizzazione'].unique(),
+                                             default=df_ong['nome_organizzazione'].unique())
+    df_ong_vista = dati.ong_come_unificato(df_ong[df_ong['nome_organizzazione'].isin(ong_selezionate)]
+                                           if not df_ong.empty else df_ong)
+    rendi(V.vista_ong(df_ong_vista, len(ong_selezionate)))
 
-        data_min = df_temporale['data'].min().date()
-        data_max = df_temporale['data'].max().date()
+    with strumenti_operatore('ong'):
+        with st.expander("Strumenti operatore · Aggiungi un documento manualmente"):
+            with st.form("aggiungi_documento_ong", clear_on_submit=True):
+                ong_form = st.selectbox("Organizzazione *", options=sorted(PROFILI_ONG.keys()),
+                                        key="ong_manuale_select")
+                titolo_form = st.text_input("Titolo *")
+                testo_form = st.text_area("Testo *", height=150)
+                data_form = st.date_input("Data *", value=datetime.now().date())
+                url_form = st.text_input("Link *")
+                if st.form_submit_button("Salva documento"):
+                    errori_form = []
+                    if not titolo_form.strip():
+                        errori_form.append("titolo")
+                    if not testo_form.strip():
+                        errori_form.append("testo")
+                    if not url_form.strip().lower().startswith("http"):
+                        errori_form.append("link (deve iniziare con http)")
+                    if errori_form:
+                        st.error(f"Campi mancanti o non validi: {', '.join(errori_form)}")
+                    else:
+                        salva_documento_manuale(ong_form, titolo_form, testo_form, data_form, url_form)
+                        st.success(f"Documento aggiunto per '{ong_form}'.")
+                        carica_dati_ong.clear()
+                        st.rerun()
 
-        with col_filtro_temp1:
-            scelta_intervallo = st.selectbox(
-                "Periodo di analisi",
-                options=[
-                    ("Ultimi 6 mesi", 180),
-                    ("Ultimo anno", 365),
-                    ("Tutto lo storico", 0),
-                ],
-                format_func=lambda x: x[0],
-                index=0
-            )
+# ==========================================
+# 3. GEOGRAFIA (tutte le fonti)
+# ==========================================
+with tab_geo:
+    rendi([V.testata_geo()])
+    ordine_tipi = df_master['tipo'].value_counts().index.tolist()
+    with filtri_pannello():
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            filtro_tipo = st.multiselect("Tipo di contenuto", options=ordine_tipi, default=ordine_tipi)
+        with col_f2:
+            filtro_area = st.selectbox("Area geografica", ["Tutte le aree"] + V.AREE)
+    df_geo = df_master[df_master['tipo'].isin(filtro_tipo)]
+    if filtro_area != "Tutte le aree":
+        df_geo = df_geo[df_geo['ambito_geografico'] == filtro_area]
+    rendi(V.vista_geo(df_geo, ordine_tipi))
 
-        giorni_intervallo = scelta_intervallo[1]
-        if giorni_intervallo > 0:
-            soglia_temporale = pd.Timestamp.now(tz='UTC') - pd.Timedelta(days=giorni_intervallo)
-            df_filtrato_temp = df_temporale[df_temporale['data'] >= soglia_temporale].copy()
-        else:
-            df_filtrato_temp = df_temporale.copy()
+# ==========================================
+# 4. NETWORK ONG <-> TEMI
+# ==========================================
+with tab_network:
+    rendi([V.testata_network()])
+    profilo_keywords_ong = carica_profilo_keywords_ong()
+    if df_ong.empty:
+        rendi([V.Html(tema.rd(tema.callout('Nessun dato ONG disponibile per costruire il network.', 'warn')))])
+    else:
+        html_grafo, stats = grafo_network(df_ong, profilo_keywords_ong, dati.correzioni_ong_manuali())
+        rendi(V.vista_network(html_grafo, stats))
 
-        with col_filtro_temp2:
-            st.metric("Documenti nel periodo selezionato", len(df_filtrato_temp))
+    with strumenti_operatore('network'):
+        with st.expander("Strumenti operatore · Profilo parole chiave ONG"):
+            st.markdown("Parole chiave aggiuntive, specifiche per ONG, usate solo per collegare le notizie "
+                        "all'ONG più pertinente in questo grafo — si sommano al `focus` già definito, "
+                        "non lo sostituiscono.")
+            ong_scelta_profilo = st.selectbox("Organizzazione", options=sorted(PROFILI_ONG.keys()),
+                                              key="ong_profilo_select")
+            testo_keywords = st.text_area("Parole chiave (una per riga)",
+                                          value="\n".join(profilo_keywords_ong.get(ong_scelta_profilo, [])),
+                                          key="ong_profilo_textarea", height=120)
+            if st.button("Salva profilo", key="salva_profilo_ong"):
+                nuove_parole = [r.strip() for r in testo_keywords.split("\n") if r.strip()]
+                salva_profilo_keywords_ong(ong_scelta_profilo, nuove_parole)
+                st.success(f"Profilo di '{ong_scelta_profilo}' aggiornato: {len(nuove_parole)} parole chiave.")
+                st.rerun()
 
-        st.divider()
+        if not df_ong.empty:
+            with st.expander("Strumenti operatore · Correggi associazioni notizie → ONG"):
+                st.markdown("Se una notizia è associata alla ONG sbagliata puoi correggere l'associazione qui.")
+                df_correzione_network = df_ong[['data_pubblicazione', 'nome_organizzazione', 'titolo', 'url']].head(50).copy()
+                df_correzione_network['associazione_corretta'] = df_correzione_network['nome_organizzazione']
+                df_modificato_network = st.data_editor(
+                    df_correzione_network,
+                    column_config={
+                        "nome_organizzazione": st.column_config.TextColumn("Associazione attuale", disabled=True),
+                        "associazione_corretta": st.column_config.SelectboxColumn(
+                            "Associazione corretta", options=list(PROFILI_ONG.keys())),
+                        "titolo": st.column_config.TextColumn("Titolo notizia", disabled=True, width="large"),
+                        "url": st.column_config.TextColumn("Link", disabled=True),
+                    },
+                    hide_index=True, width='stretch')
+                if st.button("Salva correzioni associazioni", type="primary"):
+                    modifiche_network = df_modificato_network[
+                        df_modificato_network['associazione_corretta'] != df_modificato_network['nome_organizzazione']
+                    ].copy()
+                    if len(modifiche_network) > 0:
+                        # Stesso schema/percorso del "Correggi classificazione" della Panoramica.
+                        modifiche_feedback = pd.DataFrame({
+                            'data': modifiche_network['data_pubblicazione'],
+                            'fonte': modifiche_network['nome_organizzazione'],
+                            'titolo': modifiche_network['titolo'],
+                            'errore_segnalato': True,
+                            'ong_collegata_corretta': modifiche_network['associazione_corretta'],
+                            'timestamp_correzione': datetime.now().isoformat(),
+                            'utente': "Operatore",
+                            'tipo_correzione': "ong_collegata",
+                        })
+                        append_correzioni(modifiche_feedback, dati.PERCORSO_FEEDBACK)
+                        grafo_network.clear()
+                        st.success(f"Salvate {len(modifiche_network)} correzioni in training_data_feedback.csv.")
+                    else:
+                        st.info("Nessuna modifica effettuata")
 
-        # ==========================================
-        # SEZIONE A — TIMELINE PROVVEDIMENTI
-        # ==========================================
-        st.subheader("📊 Sezione A — Timeline Provvedimenti per Fonte")
-        st.markdown(
-            "Numero di documenti pubblicati ogni mese, suddivisi per fonte di provenienza. "
-            "Consente di individuare periodi di maggiore attività regolatoria o giornalistica."
-        )
+# ==========================================
+# 5. MAPPA DI POSIZIONAMENTO
+# ==========================================
+with tab_posizionamento:
+    rendi([V.testata_posizionamento()])
+    if df_ong.empty:
+        rendi([V.Html(tema.rd(tema.callout('Nessun dato ONG disponibile.', 'warn')))])
+    else:
+        # salva=True: aggiorna ong_posizioni_permanenti.csv (come prima del refactor)
+        df_notizie_pos, centroidi_ong = dati.prepara_posizionamento(df_ong, salva=True)
+        rendi(V.vista_posizionamento(df_notizie_pos, centroidi_ong))
 
-        if df_filtrato_temp.empty:
-            st.info("Nessun documento nel periodo selezionato.")
-        else:
-            # Raggruppa per mese e fonte
-            conteggio_mensile = (
-                df_filtrato_temp
-                .groupby([df_filtrato_temp['data'].dt.to_period('M').astype(str), 'fonte'])
-                .size()
-                .reset_index(name='conteggio')
-                .rename(columns={'data': 'mese'})
-            )
-            conteggio_mensile = conteggio_mensile.sort_values('mese')
+# ==========================================
+# 6. ANALISI TEMPORALE
+# ==========================================
+with tab_tempo:
+    rendi([V.testata_tempo()])
+    df_temporale = carica_dati_per_analisi_temporale()
+    if df_temporale.empty:
+        rendi([V.Html(tema.rd(tema.callout(
+            'Nessun dato temporale disponibile. Verifica che gli scraper abbiano prodotto i CSV analizzati '
+            'in <code>data/processed/</code>.', 'warn')))])
+    else:
+        with filtri_pannello():
+            scelta_intervallo = st.selectbox("Periodo di analisi", options=dati.INTERVALLI_TEMPO,
+                                             format_func=lambda x: x[0], index=0)
+        df_periodo = dati.filtra_periodo(df_temporale, scelta_intervallo[1])
+        ordine_fonti = df_temporale['fonte'].value_counts().index.tolist()
+        rendi(V.vista_tempo_a(df_periodo, ordine_fonti, dati.sanzioni_mensili(df_periodo)))
 
-            fig_timeline_fonti = px.bar(
-                conteggio_mensile,
-                x='mese',
-                y='conteggio',
-                color='fonte',
-                barmode='stack',
-                title='Documenti per mese, raggruppati per fonte',
-                labels={
-                    'mese': 'Mese',
-                    'conteggio': 'Numero documenti',
-                    'fonte': 'Fonte'
-                }
-            )
-            fig_timeline_fonti.update_layout(
-                xaxis_title="Mese",
-                yaxis_title="Numero documenti",
-                legend_title="Fonte",
-                hovermode='x unified',
-                xaxis=dict(tickangle=-45)
-            )
-            st.plotly_chart(fig_timeline_fonti, width='stretch')
-
-            # Grafico secondario: importo EUR multo (solo se la colonna esiste con valori reali)
-            ha_importo_eur = (
-                'importo_eur' in df_filtrato_temp.columns
-                and df_filtrato_temp['importo_eur'].notna().any()
-                and (df_filtrato_temp['importo_eur'] > 0).any()
-            )
-
-            if ha_importo_eur:
-                st.markdown("**Totale sanzioni (EUR) per mese — solo GPDP/AGCOM**")
-                df_sanzioni = df_filtrato_temp[df_filtrato_temp['importo_eur'].notna() & (df_filtrato_temp['importo_eur'] > 0)].copy()
-                sanzioni_mensili = (
-                    df_sanzioni
-                    .groupby(df_sanzioni['data'].dt.to_period('M').astype(str))['importo_eur']
-                    .sum()
-                    .reset_index()
-                    .rename(columns={'data': 'mese'})
-                    .sort_values('mese')
-                )
-                fig_sanzioni = px.line(
-                    sanzioni_mensili,
-                    x='mese',
-                    y='importo_eur',
-                    markers=True,
-                    title='Totale sanzioni (EUR) per mese',
-                    labels={'mese': 'Mese', 'importo_eur': 'Importo totale (€)'}
-                )
-                fig_sanzioni.update_layout(
-                    xaxis_title="Mese",
-                    yaxis_title="Importo totale (€)",
-                    hovermode='x unified',
-                    xaxis=dict(tickangle=-45)
-                )
-                st.plotly_chart(fig_sanzioni, width='stretch')
-            else:
-                st.info(
-                    "ℹ️ La colonna `importo_eur` non è presente o non contiene valori nei dati attuali. "
-                    "Il grafico delle sanzioni verrà mostrato automaticamente non appena i dati saranno disponibili."
-                )
-
-        st.divider()
-
-        # ==========================================
-        # SEZIONE B — TENDENZE TEMATICHE
-        # ==========================================
-        st.subheader("🔍 Sezione B — Tendenze dei Temi nel Tempo")
-        st.markdown(
-            "Evoluzione mensile dei temi tech/diritti digitali trattati dai documenti. "
-            "Consente di identificare quali argomenti stanno crescendo o calando di importanza. "
-            "I temi sono rilevati dalla pipeline NLP con un approccio **ibrido**: match "
-            "lessicale esatto sul lessico curato (`data/utils/temi.csv`) più match "
-            "**semantico** via embedding, che recupera sinonimi e parafrasi anche in altre lingue."
-        )
-
-        # Conta, per mese, quanti documenti trattano ciascun tema. I temi sono già
-        # stati rilevati e persistiti dal NLP (colonna 'temi_rilevati', pipe-joined),
-        # quindi qui si legge soltanto: nessun ricalcolo a runtime. Il caricatore
-        # temporale garantisce la colonna anche per eventuali CSV pre-feature
-        # (fallback lessicale), così questo blocco resta uniforme.
-        # Livello: i macro-temi sono stabili (serie confrontabili nel lungo
-        # periodo); i sotto-temi sono aggiunti nel tempo dal registro.
         reg_temi = carica_registro()
         reg_attivi = reg_temi[reg_temi['stato'] == 'attivo']
-        macro_set = set(reg_attivi[reg_attivi['padre'] == '']['tema'])
-        sotto_attivi = reg_attivi[reg_attivi['padre'] != '']
-        livello = st.radio(
-            "Livello", ["Macro-temi", "Sotto-temi", "Tutti"], horizontal=True,
-            key="livello_temi_trend",
-            help="I macro-temi includono anche i documenti dei loro sotto-temi.",
-        )
-        if livello == "Macro-temi":
-            ammessi = macro_set
-        elif livello == "Sotto-temi":
-            ammessi = set(sotto_attivi['tema'])
-        else:
-            ammessi = None
-        if livello != "Macro-temi" and not sotto_attivi.empty:
-            st.caption(
-                "Sotto-temi introdotti nel tempo: " + "; ".join(
-                    f"**{r['tema']}** (in {r['padre']}, dal {r['dal'] or 'n.d.'})"
-                    for _, r in sotto_attivi.iterrows()
-                ) + ". Il trend è **retroattivo**: la pipeline riapplica il registro a tutto "
-                "lo storico, quindi i mesi precedenti all'introduzione sono ricostruiti a posteriori."
-            )
-        elif livello == "Sotto-temi":
-            st.info("Nessun sotto-tema attivo. Puoi crearne uno dalla scheda 🔬 Topic Emergenti.")
+        with filtri_pannello():
+            livello = st.radio("Livello dei temi", dati.LIVELLI_TEMI, horizontal=True, key="livello_temi_trend",
+                               help="I macro-temi includono anche i documenti dei loro sotto-temi.")
+        df_kw = dati.conteggio_temi_mensile(df_periodo, dati.temi_ammessi(livello, reg_temi))
+        rendi(V.vista_tempo_b(df_kw, livello, reg_attivi[reg_attivi['padre'] != '']))
 
-        righe_temi = []
-        for _, riga in df_filtrato_temp.iterrows():
-            mese_str = riga['data'].to_period('M').strftime('%Y-%m')
-            for tema in str(riga.get('temi_rilevati', '') or '').split('|'):
-                if tema and (ammessi is None or tema in ammessi):
-                    righe_temi.append({'mese': mese_str, 'tema': tema})
-
-        if not righe_temi:
-            st.info(
-                "Nessun tema rilevato nel periodo selezionato. "
-                "Il lessico dei temi è configurabile in data/utils/temi.csv."
-            )
-        else:
-            df_temi = pd.DataFrame(righe_temi)
-
-            # Pivot: mesi × temi (tutti i temi del lessico che compaiono)
-            df_kw_pivot = (
-                df_temi
-                .groupby(['mese', 'tema'])
-                .size()
-                .reset_index(name='conteggio')
-                .sort_values('mese')
-            )
-
-            fig_trend = px.line(
-                df_kw_pivot,
-                x='mese',
-                y='conteggio',
-                color='tema',
-                markers=True,
-                title='Tendenze dei temi tech — documenti per mese',
-                labels={
-                    'mese': 'Mese',
-                    'conteggio': 'Documenti',
-                    'tema': 'Tema'
-                }
-            )
-            fig_trend.update_layout(
-                xaxis_title="Mese",
-                yaxis_title="Documenti che trattano il tema",
-                legend_title="Tema",
-                hovermode='x unified',
-                xaxis=dict(tickangle=-45)
-            )
-            st.plotly_chart(fig_trend, width='stretch')
-
-            # --- Indicatori crescita/declino (ultimi 2 mesi vs 2 mesi precedenti) ---
-            mesi_ordinati = sorted(df_kw_pivot['mese'].unique())
-
-            if len(mesi_ordinati) >= 4:
-                mesi_recenti = mesi_ordinati[-2:]
-                mesi_precedenti = mesi_ordinati[-4:-2]
-
-                def _freq_media(df_p, mesi_sel):
-                    sub = df_p[df_p['mese'].isin(mesi_sel)]
-                    return sub.groupby('tema')['conteggio'].mean()
-
-                freq_recente = _freq_media(df_kw_pivot, mesi_recenti)
-                freq_precedente = _freq_media(df_kw_pivot, mesi_precedenti)
-
-                confronto = pd.DataFrame({
-                    'freq_recente': freq_recente,
-                    'freq_precedente': freq_precedente,
-                }).fillna(0)
-
-                confronto['variazione_pct'] = (
-                    (confronto['freq_recente'] - confronto['freq_precedente'])
-                    / confronto['freq_precedente'].replace(0, float('nan'))
-                    * 100
-                ).round(1)
-
-                confronto = confronto.dropna(subset=['variazione_pct']).sort_values('variazione_pct', ascending=False)
-
-                st.markdown(f"**Variazione % frequenza: {mesi_precedenti[0]}–{mesi_precedenti[1]} → {mesi_recenti[0]}–{mesi_recenti[1]}**")
-
-                col_trend_su, col_trend_giu = st.columns(2)
-
-                with col_trend_su:
-                    st.markdown("📈 **In crescita**")
-                    trending_up = confronto[confronto['variazione_pct'] > 0].head(5)
-                    if trending_up.empty:
-                        st.info("Nessun tema in crescita rilevato.")
-                    else:
-                        for tema, riga in trending_up.iterrows():
-                            st.metric(
-                                label=tema,
-                                value=f"{riga['freq_recente']:.1f} doc/mese",
-                                delta=f"+{riga['variazione_pct']:.0f}%"
-                            )
-
-                with col_trend_giu:
-                    st.markdown("📉 **In calo**")
-                    trending_down = confronto[confronto['variazione_pct'] < 0].tail(5).sort_values('variazione_pct')
-                    if trending_down.empty:
-                        st.info("Nessun tema in calo rilevato.")
-                    else:
-                        for tema, riga in trending_down.iterrows():
-                            st.metric(
-                                label=tema,
-                                value=f"{riga['freq_recente']:.1f} doc/mese",
-                                delta=f"{riga['variazione_pct']:.0f}%"
-                            )
-            else:
-                st.info(
-                    "Dati insufficienti per calcolare le tendenze di crescita/calo "
-                    "(sono necessari almeno 4 mesi distinti di dati)."
-                )
-
-            st.divider()
-
-            # Tabella di riepilogo parole chiave
-            st.markdown("**Tabella dettagliata — documenti per tema per mese**")
-            df_tabella = df_kw_pivot.pivot_table(
-                index='mese', columns='tema', values='conteggio', fill_value=0
-            ).reset_index()
-            st.dataframe(df_tabella, hide_index=True, width='stretch')
-
+# ==========================================
+# 7. TOPIC EMERGENTI + GESTIONE SOTTO-TEMI
+# ==========================================
+ETICHETTE_VALUTAZIONE_TOPIC = {
+    'coperto': 'già coperto', 'candidato_sottotema': 'candidato sotto-tema', 'fuori_lessico': 'fuori lessico',
+}
 
 with tab_topic:
-    st.header("🔬 Topic Emergenti — Scoperta")
-    st.info(
-        "**Vista esplorativa, distinta dai temi curati.** I trend dell'Analisi Temporale "
-        "tracciano gli 8 temi che *già conosci* (`temi.csv`). Qui invece BERTopic **scopre** "
-        "in modo non supervisionato i cluster tematici che emergono dai documenti — anche "
-        "argomenti che non hai previsto. Serve a **individuare temi nuovi da promuovere** nel "
-        "lessico curato. Essendo statistica, la clusterizzazione può cambiare tra un'esecuzione "
-        "e l'altra: da leggere come radar, non come misura definitiva."
-    )
-
+    rendi([V.testata_topic()])
     df_topic, df_trend = carica_topic_emergenti()
+    rendi(V.vista_topic(df_topic, df_trend))
 
-    if df_topic.empty:
-        st.warning(
-            "Nessun report di scoperta trovato. Generalo (offline, periodicamente) con:\n\n"
-            "```\npython nlp/topic_discovery.py\n```\n\n"
-            "Produce `data/processed/topic_emergenti.csv` e `_trend.csv`, che questa vista legge."
-        )
-    else:
-        c1, c2 = st.columns(2)
-        c1.metric("Topic scoperti", len(df_topic))
-        c2.metric("Documenti raggruppati", int(df_topic['dimensione'].sum()))
-
-        st.subheader("Topic per dimensione")
-        st.caption("Ogni riga è un cluster scoperto: le parole distintive (c-TF-IDF) e i "
-                   "titoli d'esempio ti dicono di cosa parla. Le fonti mostrano da dove arriva. "
-                   "**Confronto con i temi**: quota dei documenti del topic a cui la pipeline ha "
-                   "già assegnato un tema — ✅ già coperto da un sotto-tema, 🟡 dentro un macro-tema "
-                   "ma senza sotto-tema (candidato), 🔴 nessun tema lo copre.")
-        df_vista = df_topic.copy()
-        if 'valutazione' in df_vista.columns:
-            df_vista['valutazione'] = df_vista['valutazione'].map(ETICHETTE_VALUTAZIONE_TOPIC)
-        else:
-            st.caption("ℹ️ Report generato prima del confronto con i temi: rilancia "
-                       "`nlp/topic_discovery.py` per vedere la colonna di valutazione.")
-        st.dataframe(
-            df_vista.rename(columns={
-                'topic_id': 'ID', 'dimensione': 'N. doc',
-                'parole_chiave': 'Parole distintive',
-                'titoli_esempio': 'Titoli di esempio', 'fonti': 'Fonti',
-                'valutazione': 'Confronto con i temi', 'padre_proposto': 'Macro-tema prevalente',
-                'quota_padre': 'Quota macro', 'sottotema_esistente': 'Sotto-tema prevalente',
-                'quota_sottotema': 'Quota sotto-tema',
-            }),
-            column_config={
-                'Quota macro': st.column_config.ProgressColumn(format="%.0f%%", min_value=0, max_value=1),
-                'Quota sotto-tema': st.column_config.ProgressColumn(format="%.0f%%", min_value=0, max_value=1),
-            },
-            hide_index=True, width='stretch',
-        )
-
-        # Andamento mensile dei topic (dal report di trend)
-        if not df_trend.empty:
-            st.subheader("Andamento nel tempo")
-            etichetta = {
-                int(r['topic_id']): f"#{int(r['topic_id'])} · " +
-                ', '.join(str(r['parole_chiave']).split(', ')[:3])
-                for _, r in df_topic.iterrows()
-            }
-            top_default = df_topic.nlargest(5, 'dimensione')['topic_id'].astype(int).tolist()
+    if not df_topic.empty and not df_trend.empty:
+        etichetta = V.etichette_topic(df_topic)
+        with filtri_pannello():
             scelti = st.multiselect(
-                "Topic da confrontare",
-                options=sorted(etichetta.keys()),
-                default=top_default,
-                format_func=lambda t: etichetta.get(t, f"#{t}"),
-            )
-            if scelti:
-                df_t = df_trend[df_trend['topic_id'].isin(scelti)].copy()
-                df_t['Topic'] = df_t['topic_id'].map(etichetta)
-                fig_topic = px.line(
-                    df_t.sort_values('mese'), x='mese', y='conteggio', color='Topic',
-                    markers=True, labels={'mese': 'Mese', 'conteggio': 'Documenti'},
-                    title="Documenti per topic emergente, per mese",
-                )
-                fig_topic.update_layout(hovermode='x unified', xaxis=dict(tickangle=-45))
-                st.plotly_chart(fig_topic, width='stretch')
+                "Topic da confrontare (massimo 8)", options=sorted(etichetta.keys()),
+                default=df_topic.nlargest(5, 'dimensione')['topic_id'].astype(int).tolist(),
+                format_func=lambda t: etichetta.get(t, f"#{t}"), max_selections=8)
+        rendi(V.vista_topic_trend(df_topic, df_trend, scelti))
 
-    # ==========================================
-    # GESTIONE SOTTO-TEMI (registro data/utils/temi.csv)
+    registro = carica_registro()
+    rendi(V.vista_registro(registro))
+
     # Ciclo: BERTopic SCOPRE -> l'operatore APPROVA qui -> il matcher TRACCIA.
-    # I macro-temi restano fissi (serie confrontabili e codebook del gold set);
-    # qui si gestiscono solo i sotto-temi. Nessuna cancellazione: un sotto-tema
-    # si "dismette" (stato) così la sua storia resta nel registro.
-    # ==========================================
-    st.divider()
-    st.subheader("🗂️ Sotto-temi")
-    st.markdown(
-        "Un **sotto-tema** specializza uno degli 8 macro-temi (es. *Chat Control* dentro "
-        "*Chat e Messaggistica*). I documenti che lo trattano contano anche per il suo "
-        "macro-tema. Le modifiche vengono salvate in `data/utils/temi.csv` (con backup) "
-        "e si applicano al prossimo `python nlp/text_analysis.py`, **retroattivamente** su "
-        "tutto lo storico."
-    )
-
+    # I macro-temi restano fissi; qui si gestiscono solo i sotto-temi. Nessuna
+    # cancellazione: un sotto-tema si "dismette" (stato) e la sua storia resta.
     if msg := st.session_state.pop('msg_registro_temi', None):
         st.success(msg)
 
-    registro = carica_registro()
     macro_attivi = registro[(registro['padre'] == '') & (registro['stato'] == 'attivo')]['tema'].tolist()
 
     def _salva_registro(df_nuovo: pd.DataFrame, messaggio: str) -> None:
@@ -1914,104 +440,92 @@ with tab_topic:
         carica_registro.clear()
         carica_temi.clear()
         st.session_state['msg_registro_temi'] = (
-            messaggio + (f" Backup della versione precedente: `{os.path.basename(backup)}`."
-                         if backup else "") +
-            " Rilancia `python nlp/text_analysis.py` per applicarlo ai documenti."
-        )
+            messaggio + (f" Backup della versione precedente: `{os.path.basename(backup)}`." if backup else "")
+            + " Rilancia `python nlp/text_analysis.py` per applicarlo ai documenti.")
         st.rerun()
 
-    # --- Nuovo sotto-tema (da un topic scoperto o manuale) ---
-    with st.expander("➕ Nuovo sotto-tema", expanded=False):
-        opzioni_topic = [None]
-        if not df_topic.empty:
-            ordine = {'fuori_lessico': 0, 'candidato_sottotema': 1, 'coperto': 2}
-            df_ord = df_topic.copy()
-            if 'valutazione' in df_ord.columns:
-                df_ord = df_ord.assign(_o=df_ord['valutazione'].map(ordine).fillna(3)) \
-                               .sort_values(['_o', 'dimensione'], ascending=[True, False])
-            opzioni_topic += df_ord['topic_id'].astype(int).tolist()
-        righe_topic = {int(r['topic_id']): r for _, r in df_topic.iterrows()} if not df_topic.empty else {}
+    with strumenti_operatore('topic'):
+        with st.expander("Strumenti operatore · Nuovo sotto-tema", expanded=False):
+            st.caption("Le modifiche vengono salvate in `data/utils/temi.csv` (con backup) e si applicano al "
+                       "prossimo `python nlp/text_analysis.py`, retroattivamente su tutto lo storico.")
+            opzioni_topic = [None]
+            if not df_topic.empty:
+                ordine = {'fuori_lessico': 0, 'candidato_sottotema': 1, 'coperto': 2}
+                df_ord = df_topic.copy()
+                if 'valutazione' in df_ord.columns:
+                    df_ord = df_ord.assign(_o=df_ord['valutazione'].map(ordine).fillna(3)) \
+                                   .sort_values(['_o', 'dimensione'], ascending=[True, False])
+                opzioni_topic += df_ord['topic_id'].astype(int).tolist()
+            righe_topic = {int(r['topic_id']): r for _, r in df_topic.iterrows()} if not df_topic.empty else {}
 
-        def _etichetta_topic(tid):
-            if tid is None:
-                return "— Manuale (nessun topic) —"
-            r = righe_topic[tid]
-            val = ETICHETTE_VALUTAZIONE_TOPIC.get(r.get('valutazione'), '')
-            return f"#{tid} · {', '.join(str(r['parole_chiave']).split(', ')[:3])} · {val}"
+            def _etichetta_topic(tid):
+                if tid is None:
+                    return "— Manuale (nessun topic) —"
+                r = righe_topic[tid]
+                val = ETICHETTE_VALUTAZIONE_TOPIC.get(r.get('valutazione'), '')
+                return f"#{tid} · {', '.join(str(r['parole_chiave']).split(', ')[:3])} · {val}"
 
-        tid = st.selectbox("Parti da un topic scoperto", opzioni_topic,
-                           format_func=_etichetta_topic, key="nuovo_sottotema_topic")
-        sorgente = righe_topic.get(tid)
-        parole = str(sorgente['parole_chiave']).split(', ') if sorgente is not None else []
-        if sorgente is not None:
-            st.caption(f"Titoli d'esempio: {sorgente['titoli_esempio']}")
-            if sorgente.get('valutazione') == 'coperto':
-                st.warning(f"Questo topic è già coperto dal sotto-tema "
-                           f"«{sorgente.get('sottotema_esistente')}».")
+            tid = st.selectbox("Parti da un topic scoperto", opzioni_topic,
+                               format_func=_etichetta_topic, key="nuovo_sottotema_topic")
+            sorgente = righe_topic.get(tid)
+            parole = str(sorgente['parole_chiave']).split(', ') if sorgente is not None else []
+            if sorgente is not None:
+                st.caption(f"Titoli d'esempio: {sorgente['titoli_esempio']}")
+                if sorgente.get('valutazione') == 'coperto':
+                    st.warning(f"Questo topic è già coperto dal sotto-tema «{sorgente.get('sottotema_esistente')}».")
 
-        padre_default = sorgente.get('padre_proposto') if sorgente is not None else None
-        with st.form(f"form_sottotema_{tid}"):
-            nome = st.text_input("Nome del sotto-tema",
-                                 value=' '.join(parole[:2]).title() if parole else '')
-            padre = st.selectbox(
-                "Macro-tema padre", macro_attivi,
-                index=macro_attivi.index(padre_default) if padre_default in macro_attivi else 0,
-            )
-            termini = st.text_area(
-                "Termini-seme (uno per riga)", value='\n'.join(parole),
-                help="Un documento ha il sotto-tema se contiene uno di questi termini (match "
-                     "esatto) o se gli è semanticamente vicino. Le parole di BERTopic sono solo un "
-                     "punto di partenza: tieni quelle specifiche, togli quelle generiche. "
-                     "Minimo 3 caratteri; una radice come 'sorveglian' copre più desinenze.",
-            )
-            soglia = st.slider(
-                "Soglia semantica", 0.30, 1.0, SOGLIA_SOTTOTEMA, 0.01,
-                help="Più alta = più preciso, meno documenti. 1.0 = solo match esatto dei termini.",
-            )
-            stato = st.radio("Stato", ['attivo', 'candidato'], horizontal=True,
-                             help="'candidato' lo salva nel registro senza ancora rilevarlo.")
-            if st.form_submit_button("💾 Aggiungi sotto-tema", type="primary"):
-                origine = (f"bertopic#{tid}: {', '.join(parole[:3])}" if sorgente is not None
-                           else 'manuale')
-                nuova = pd.DataFrame([{
-                    'tema': nome.strip(), 'termini': '|'.join(termini.splitlines()),
-                    'soglia': soglia, 'padre': padre, 'stato': stato,
-                    'dal': datetime.now().strftime('%Y-%m-%d'), 'origine': origine,
-                }])
-                _salva_registro(pd.concat([registro, nuova], ignore_index=True),
-                                f"Sotto-tema «{nome.strip()}» aggiunto a «{padre}».")
+            padre_default = sorgente.get('padre_proposto') if sorgente is not None else None
+            with st.form(f"form_sottotema_{tid}"):
+                nome = st.text_input("Nome del sotto-tema", value=' '.join(parole[:2]).title() if parole else '')
+                padre = st.selectbox("Macro-tema padre", macro_attivi,
+                                     index=macro_attivi.index(padre_default) if padre_default in macro_attivi else 0)
+                termini = st.text_area(
+                    "Termini-seme (uno per riga)", value='\n'.join(parole),
+                    help="Un documento ha il sotto-tema se contiene uno di questi termini (match esatto) o se gli "
+                         "è semanticamente vicino. Le parole di BERTopic sono solo un punto di partenza: tieni "
+                         "quelle specifiche, togli quelle generiche. Minimo 3 caratteri; una radice come "
+                         "'sorveglian' copre più desinenze.")
+                soglia = st.slider("Soglia semantica", 0.30, 1.0, SOGLIA_SOTTOTEMA, 0.01,
+                                   help="Più alta = più preciso, meno documenti. 1.0 = solo match esatto dei termini.")
+                stato = st.radio("Stato", ['attivo', 'candidato'], horizontal=True,
+                                 help="'candidato' lo salva nel registro senza ancora rilevarlo.")
+                if st.form_submit_button("Aggiungi sotto-tema", type="primary"):
+                    origine = f"bertopic#{tid}: {', '.join(parole[:3])}" if sorgente is not None else 'manuale'
+                    nuova = pd.DataFrame([{
+                        'tema': nome.strip(), 'termini': '|'.join(termini.splitlines()),
+                        'soglia': soglia, 'padre': padre, 'stato': stato,
+                        'dal': datetime.now().strftime('%Y-%m-%d'), 'origine': origine,
+                    }])
+                    _salva_registro(pd.concat([registro, nuova], ignore_index=True),
+                                    f"Sotto-tema «{nome.strip()}» aggiunto a «{padre}».")
 
-    # --- Modifica dei sotto-temi esistenti ---
-    sotto = registro[registro['padre'] != ''].copy()
-    if sotto.empty:
-        st.info("Nessun sotto-tema ancora registrato.")
-    else:
-        st.caption("Modifica direttamente nella tabella. Per ritirare un sotto-tema imposta lo "
-                   "stato su **dismesso**: smette di essere rilevato ma resta nel registro.")
-        sotto_mod = st.data_editor(
-            sotto,
-            column_config={
-                'tema': st.column_config.TextColumn("Sotto-tema", required=True),
-                'termini': st.column_config.TextColumn("Termini (separati da |)", width="large", required=True),
-                'soglia': st.column_config.NumberColumn("Soglia", min_value=0.30, max_value=1.0,
-                                                        step=0.01, format="%.2f"),
-                'padre': st.column_config.SelectboxColumn("Macro-tema", options=macro_attivi, required=True),
-                'stato': st.column_config.SelectboxColumn("Stato", options=list(STATI_TEMA), required=True),
-                'dal': st.column_config.TextColumn("Dal", disabled=True),
-                'origine': st.column_config.TextColumn("Origine", disabled=True),
-            },
-            hide_index=True, width='stretch', num_rows="fixed", key="editor_sottotemi",
-        )
-        if st.button("💾 Salva modifiche ai sotto-temi", type="primary"):
-            if sotto_mod.reset_index(drop=True).equals(sotto.reset_index(drop=True)):
-                st.info("Nessuna modifica da salvare.")
-            else:
-                macro_righe = registro[registro['padre'] == '']
-                _salva_registro(pd.concat([macro_righe, sotto_mod], ignore_index=True),
-                                "Sotto-temi aggiornati.")
+        sotto = registro[registro['padre'] != ''].copy()
+        if not sotto.empty:
+            with st.expander("Strumenti operatore · Modifica sotto-temi"):
+                st.caption("Modifica direttamente nella tabella. Per ritirare un sotto-tema imposta lo stato su "
+                           "**dismesso**: smette di essere rilevato ma resta nel registro.")
+                sotto_mod = st.data_editor(
+                    sotto,
+                    column_config={
+                        'tema': st.column_config.TextColumn("Sotto-tema", required=True),
+                        'termini': st.column_config.TextColumn("Termini (separati da |)", width="large", required=True),
+                        'soglia': st.column_config.NumberColumn("Soglia", min_value=0.30, max_value=1.0,
+                                                                step=0.01, format="%.2f"),
+                        'padre': st.column_config.SelectboxColumn("Macro-tema", options=macro_attivi, required=True),
+                        'stato': st.column_config.SelectboxColumn("Stato", options=list(STATI_TEMA), required=True),
+                        'dal': st.column_config.TextColumn("Dal", disabled=True),
+                        'origine': st.column_config.TextColumn("Origine", disabled=True),
+                    },
+                    hide_index=True, width='stretch', num_rows="fixed", key="editor_sottotemi")
+                if st.button("Salva modifiche ai sotto-temi", type="primary"):
+                    if sotto_mod.reset_index(drop=True).equals(sotto.reset_index(drop=True)):
+                        st.info("Nessuna modifica da salvare.")
+                    else:
+                        _salva_registro(pd.concat([registro[registro['padre'] == ''], sotto_mod], ignore_index=True),
+                                        "Sotto-temi aggiornati.")
 
-    with st.expander("Macro-temi (sola lettura)"):
-        st.caption("Sono il riferimento stabile per i trend e per il gold set: si modificano "
-                   "solo in `data/utils/temi.csv`, con una decisione esplicita.")
-        st.dataframe(registro[registro['padre'] == ''][['tema', 'termini', 'soglia', 'stato', 'dal']],
-                     hide_index=True, width='stretch')
+# ==========================================
+# 8. NOTE DI METODO
+# ==========================================
+with tab_metodo:
+    rendi(V.vista_metodo(df_master, stamp, statico=False))

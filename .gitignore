@@ -37,3 +37,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 .pytest_cache/
+
+# Export HTML statici della dashboard (app/export_html.py): file generati da
+# condividere, non sorgenti. Ogni export ha data e ora nel nome.
+export/

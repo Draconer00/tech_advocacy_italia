@@ -1,0 +1,20 @@
+# Tema della dashboard: stessi token di colore e font di app/tema.py, così la
+# vista Streamlit e l'export HTML statico (app/export_html.py) coincidono.
+[theme]
+base = "light"
+primaryColor = "#1d5a7a"
+backgroundColor = "#f5f6f4"
+secondaryBackgroundColor = "#eceeec"
+textColor = "#17212b"
+linkColor = "#1d5a7a"
+borderColor = "#dde1de"
+showWidgetBorder = true
+baseRadius = "4px"
+font = "IBM Plex Sans:https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap, system-ui, sans-serif"
+headingFont = "Source Serif 4:https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&display=swap, Georgia, serif"
+codeFont = "IBM Plex Mono:https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap, Consolas, monospace"
+dataframeHeaderBackgroundColor = "#f5f6f4"
+chartCategoricalColors = ["#2f78b5", "#e07034", "#1f9e78", "#d99a0b", "#d0679a", "#3a8a2e", "#6a58c9", "#cf4a46"]
+
+[client]
+toolbarMode = "minimal"
